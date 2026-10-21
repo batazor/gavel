@@ -1,0 +1,108 @@
+// Как это живёт в Kubernetes с Istio.
+// Rate limiting, mTLS, retries, timeouts и проверка JWT — на уровне меша (ADR-0002).
+// Namespace на bounded context: сервис и его БД живут рядом (ADR-0004).
+deployment {
+
+  prod = environment 'Production' {
+
+    k8s = cluster 'Kubernetes' {
+
+      // ---- Вход ----
+      istioSystem = namespace 'istio-system' {
+        ingress = pod 'Istio Ingress Gateway' {
+          #mesh
+          description '''
+            Единственная точка входа из интернета.
+            - RequestAuthentication: валидация JWT от IdP
+            - AuthorizationPolicy: только с валидным токеном
+            - Rate limit по user_id из claims
+            - Маршруты только на web и bff (ADR-0008)
+            - SSE-маршрут: timeout 0s (ADR-0006)
+          '''
+        }
+      }
+
+      // ---- Приложение ----
+      webNs = namespace 'web' {
+        webPod = pod 'web' {
+          instanceOf gavel.web
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+      }
+
+      bffNs = namespace 'bff' {
+        bffPod = pod 'bff' {
+          instanceOf gavel.bff
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+      }
+
+      auctionNs = namespace 'auction' {
+        auctionPod = pod 'auction-service' {
+          instanceOf gavel.auction.service
+          envoy = sidecar 'envoy' {
+            #mesh
+            description 'mTLS, retries, timeouts, trace-context propagation'
+          }
+        }
+        auctionDb = pod 'auction-db' {
+          instanceOf gavel.auction.db
+        }
+      }
+
+      catalogNs = namespace 'catalog' {
+        catalogPod = pod 'catalog-service' {
+          instanceOf gavel.catalog.service
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+        catalogDb = pod 'catalog-db' {
+          instanceOf gavel.catalog.db
+        }
+      }
+
+      messagingNs = namespace 'messaging' {
+        brokerPod = pod 'broker' {
+          instanceOf gavel.broker
+        }
+      }
+
+      analyticsNs = namespace 'analytics' {
+        clickhousePod = pod 'clickhouse' {
+          instanceOf gavel.analytics.clickhouse
+        }
+      }
+
+      // ---- Платформа ----
+      obsNs = namespace 'observability' {
+        otelPod = pod 'otel-collector' {
+          instanceOf gavel.otel
+        }
+      }
+
+      argocdNs = namespace 'argocd' {
+        argocd = pod 'ArgoCD' {
+          description 'GitOps: следит за веткой main, применяет Helm-релизы во все namespace выше (ADR-0007)'
+        }
+      }
+    }
+
+    idpInst = instanceOf idp
+    grafanaInst = instanceOf observability
+  }
+
+  // Вход: ingress -> sidecar -> приложение. Связи между подами наследуются из модели.
+  prod.k8s.istioSystem.ingress -> prod.k8s.webNs.webPod 'HTML, островки'
+  prod.k8s.istioSystem.ingress -> prod.k8s.bffNs.bffPod 'REST + SSE. Доменные сервисы наружу не видны'
+
+  // Меш отправляет свои span-ы в тот же коллектор
+  prod.k8s.istioSystem.ingress -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.bffNs.bffPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.auctionNs.auctionPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.catalogNs.catalogPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+}

@@ -1,0 +1,81 @@
+// Словарь элементов. Все остальные файлы используют только эти виды.
+specification {
+
+  element actor {
+    style {
+      shape person
+    }
+  }
+
+  element system
+
+  element external {
+    notation 'Внешняя система, не наша'
+    style {
+      color muted
+    }
+  }
+
+  element container {
+    notation 'Деплоимая единица: сервис, БД, фронт'
+  }
+
+  element context {
+    notation 'DDD bounded context внутри сервиса'
+    style {
+      color secondary
+    }
+  }
+
+  element component {
+    notation 'Модуль внутри bounded context'
+    style {
+      color secondary
+    }
+  }
+
+  element database {
+    style {
+      shape storage
+      icon tech:postgresql
+    }
+  }
+
+  element webapp {
+    style {
+      shape browser
+    }
+  }
+
+  // Deployment
+  deploymentNode environment
+  deploymentNode cluster {
+    style {
+      icon tech:kubernetes
+    }
+  }
+  deploymentNode namespace
+  deploymentNode pod
+  deploymentNode sidecar {
+    style {
+      icon tech:envoy
+      color muted
+    }
+  }
+
+  relationship uses
+  relationship calls
+  relationship reads
+  relationship writes
+  relationship emits
+  relationship exports {
+    color muted
+    line dotted
+  }
+
+  tag candidate   // решение не принято, см. VISION.md "Кандидаты"
+  tag domain      // чистая доменная логика, без инфраструктуры
+  tag mesh        // обеспечивается Istio, а не кодом приложения
+
+  color candidate #8a6d3b
+}

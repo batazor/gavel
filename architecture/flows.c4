@@ -1,0 +1,116 @@
+// Сценарии по шагам поверх модели. Это основа для спек (SDD) и утверждений в Lean.
+views {
+
+  dynamic view flow_place_bid {
+    title 'Сценарий: ставка'
+    description 'От нажатия кнопки до обновления цены у всех подписчиков'
+    autoLayout TopBottom
+
+    bidder -> gavel.web 'ставка: максимум 120'
+    gavel.web -> gavel.bff.routes 'POST /lots/{id}/bids, Idempotency-Key'
+    gavel.bff.routes -> gavel.auction.service.api 'PlaceBid(user_id, amount)'
+    gavel.auction.service.api -> gavel.auction.service.aggregate 'load + PlaceBid'
+    gavel.auction.service.aggregate -> gavel.auction.service.events 'MaxBidPlaced + PriceChanged' {
+      notes 'Проверка: max > текущей цены, аукцион открыт. Pricing policy внутри агрегата пересчитывает лидера и цену'
+    }
+    gavel.auction.service.events -> gavel.auction.service.eventstore 'append, expected version = N'
+    gavel.auction.service.eventstore -> gavel.auction.db 'events + outbox, одна транзакция' {
+      notes 'Конфликт версии → 409, клиент повторяет с актуальной ценой'
+    }
+    gavel.auction.service.api -> gavel.bff.routes '201 Accepted, version N+1'
+    gavel.bff.routes -> gavel.web '201'
+
+    gavel.auction.service.eventstore -> gavel.auction.service.outbox 'NOTIFY'
+    gavel.auction.service.outbox -> gavel.broker 'publish PriceChanged'
+    gavel.broker -> gavel.bff.sse 'PriceChanged'
+    gavel.bff.sse -> gavel.web 'event: price, id: N+1' {
+      notes 'Все подписчики лота, включая автора ставки'
+    }
+  }
+
+  dynamic view flow_list_lot {
+    title 'Сценарий: выставить лот и открыть торги'
+    description 'Catalog → outbox → брокер → Auction. Между контекстами только события.'
+    autoLayout TopBottom
+
+    seller -> gavel.web 'новый лот'
+    gavel.web -> gavel.bff.routes 'POST /lots'
+    gavel.bff.routes -> gavel.catalog.service.api 'ListLot'
+    gavel.catalog.service.api -> gavel.catalog.service.lot 'validate'
+    gavel.catalog.service.lot -> gavel.catalog.service.repository 'save'
+    gavel.catalog.service.repository -> gavel.catalog.db 'lot + outbox(LotListed), одна транзакция'
+    gavel.catalog.service.api -> gavel.bff.routes '201 lot_id'
+    gavel.bff.routes -> gavel.web '201'
+
+    gavel.catalog.service.repository -> gavel.catalog.service.outbox 'NOTIFY'
+    gavel.catalog.service.outbox -> gavel.broker 'publish LotListed'
+    gavel.broker -> gavel.auction.service.consumer 'LotListed' {
+      notes 'At-least-once: consumer идемпотентен по lot_id'
+    }
+    gavel.auction.service.consumer -> gavel.auction.service.aggregate 'OpenAuction(lot_id, start_price, ends_at)'
+    gavel.auction.service.aggregate -> gavel.auction.service.events 'AuctionOpened'
+    gavel.auction.service.events -> gavel.auction.service.eventstore 'append, version 1'
+    gavel.auction.service.eventstore -> gavel.auction.db 'commit'
+  }
+
+  dynamic view flow_proxy_bid {
+    title 'Сценарий: автоставка (proxy bidding)'
+    description 'A держит максимум 200 при цене 100. B ставит максимум 150. Система перебивает за A до 160, B узнаёт, что перебит, сразу в ответе.'
+    autoLayout TopBottom
+
+    bidder -> gavel.web 'B: максимум 150'
+    gavel.web -> gavel.bff.routes 'POST /lots/{id}/bids {max: 150}'
+    gavel.bff.routes -> gavel.auction.service.api 'PlaceBid(B, 150)'
+    gavel.auction.service.api -> gavel.auction.service.aggregate 'load: лидер A (max 200, секрет), цена 100, шаг 10' {
+      notes 'Pricing policy: максимумы {A:200, B:150} → лидер A (200 > 150), цена = min(200, 150 + 10) = 160'
+    }
+    gavel.auction.service.aggregate -> gavel.auction.service.events 'MaxBidPlaced(B,150) приватно; PriceChanged(160, A) публично' {
+      notes 'Инвариант: цена не убывает; цена ≤ второй максимум + шаг'
+    }
+    gavel.auction.service.events -> gavel.auction.service.eventstore 'append'
+    gavel.auction.service.eventstore -> gavel.auction.db 'commit'
+    gavel.auction.service.api -> gavel.bff.routes '201 {outbid: true, price: 160}' {
+      notes 'B видит, что перебит, не дожидаясь SSE. Максимум A не раскрывается'
+    }
+    gavel.bff.routes -> gavel.web '201'
+    gavel.auction.service.outbox -> gavel.broker 'PriceChanged(160, A)'
+    gavel.broker -> gavel.bff.sse 'PriceChanged'
+    gavel.bff.sse -> gavel.web 'event: price 160, leader A' {
+      notes 'Все подписчики. Ни 150, ни 200 наружу не уходят'
+    }
+  }
+
+  dynamic view flow_sse_reconnect {
+    title 'Сценарий: переподключение SSE'
+    description 'Last-Event-ID = версия потока. Пропущенные ставки дозапрашиваются у Auction, без отдельного API.'
+    autoLayout TopBottom
+
+    gavel.web -> gavel.bff.sse 'GET /lots/{id}/events, Last-Event-ID: 7' {
+      notes 'EventSource переподключается сам'
+    }
+    gavel.bff.sse -> gavel.auction.service.history 'events?since=7'
+    gavel.auction.service.history -> gavel.auction.service.eventstore 'read stream from 8'
+    gavel.auction.service.eventstore -> gavel.auction.db 'select'
+    gavel.auction.service.history -> gavel.bff.sse '[8, 9]'
+    gavel.bff.sse -> gavel.web 'replay: id 8, id 9' {
+      notes 'Затем живой поток из брокера'
+    }
+    gavel.bff.sse -> gavel.broker 'subscribe lot'
+  }
+
+  dynamic view flow_analytics {
+    title 'Сценарий: событие попадает в аналитику'
+    description 'Без consumer-сервиса: ClickHouse сам читает брокер. Горячий путь ставки от этого не зависит.'
+    autoLayout TopBottom
+
+    gavel.auction.service.outbox -> gavel.broker 'PriceChanged(160, A, v9)'
+    gavel.broker -> gavel.analytics.clickhouse 'Kafka/NATS engine → MaterializedView' {
+      notes 'Батчи, async insert. Отставание секунды'
+    }
+    observability -> gavel.analytics.clickhouse 'дашборд: средняя цена закрытия по категориям'
+    gavel.bff.composer -> gavel.analytics.clickhouse 'график цены лота за всё время'
+    gavel.bff.composer -> gavel.web 'страница лота с графиком' {
+      notes 'Текущая цена при этом идёт из Auction, а не из ClickHouse'
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "gavel",
+  "version": "1.0.0",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "arch": "likec4 start architecture",
+    "arch:validate": "likec4 validate architecture",
+    "arch:build": "likec4 build architecture -o site --title \"Gavel — архитектура\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/batazor/gavel.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/batazor/gavel/issues"
+  },
+  "homepage": "https://github.com/batazor/gavel#readme",
+  "devDependencies": {
+    "likec4": "^1.60.0"
+  },
+  "private": true
+}

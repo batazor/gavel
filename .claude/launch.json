@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "likec4",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["likec4", "start", "architecture", "--port", "5173"],
+      "port": 5173
+    }
+  ]
+}

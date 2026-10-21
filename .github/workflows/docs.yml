@@ -1,0 +1,66 @@
+# Публикация архитектурной документации (LikeC4) в GitHub Pages.
+# Экономно (ADR-0007): только push в main и только если менялась модель или docs. ~1 минута.
+# Один раз в настройках репозитория: Settings → Pages → Source: GitHub Actions.
+
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'architecture/**'
+      - 'docs/**'
+      - 'VISION.md'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run arch:validate
+      - name: Build LikeC4 site
+        run: >
+          npx likec4 build architecture
+          --output site
+          --base "/${{ github.event.repository.name }}/"
+          --title "Gavel — архитектура"
+      - name: Attach markdown docs
+        # ADR, VISION и use-cases кладём рядом как есть: читаются по прямой ссылке и в репозитории
+        run: |
+          mkdir -p site/docs
+          cp -r docs/adr docs/use-cases.md site/docs/
+          cp VISION.md site/docs/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
