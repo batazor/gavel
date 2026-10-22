@@ -1,0 +1,15 @@
+{
+  "eventId": "payments-event-attempt-1",
+  "eventType": "PaymentAttemptStarted",
+  "schemaVersion": 1,
+  "aggregateVersion": 2,
+  "occurredAtMillis": 1700000000000,
+  "correlationId": "payments-correlation-2",
+  "payload": {
+    "paymentAttemptId": "attempt-1",
+    "auctionId": "auction-1",
+    "settlementRound": 1,
+    "candidateId": "user-1",
+    "amount": { "minorUnits": 12500, "currencyCode": "USD" }
+  }
+}

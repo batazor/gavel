@@ -1,0 +1,91 @@
+groups:
+  - name: gavel.payments.recording
+    interval: 30s
+    rules:
+      - record: gavel:payments:availability:ratio30d
+        expr: avg_over_time((max(up{job="payments"}) > bool 0)[30d:1m])
+      - record: gavel:payments:rpc_server_latency:p99_5m
+        expr: histogram_quantile(0.99, sum by (le, rpc_service, rpc_method) (rate(gavel_rpc_server_duration_seconds_bucket{service="payments"}[5m])))
+      - record: gavel:payments:rpc_server_failure_ratio:rate5m
+        expr: sum(rate(gavel_rpc_server_requests_total{service="payments",grpc_code!="OK"}[5m])) / clamp_min(sum(rate(gavel_rpc_server_requests_total{service="payments"}[5m])), 0.000001)
+
+  - name: gavel.payments.alerts
+    rules:
+      - alert: PaymentsUnavailable
+        expr: absent(up{job="payments"}) or sum(up{job="payments"}) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: payments
+          slo: availability
+        annotations:
+          summary: Payments has no healthy target
+          description: No Payments instance has been scrapeable for two minutes.
+          dashboard_uid: gavel-payments
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/payments/ops/Helm/README.md
+
+      - alert: PaymentsRestartStorm
+        expr: sum(increase(kube_pod_container_status_restarts_total{container="gavel-payments"}[15m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: payments
+          slo: availability
+        annotations:
+          summary: Payments containers are restarting repeatedly
+          description: More than three restarts were observed during the last 15 minutes.
+          dashboard_uid: gavel-payments
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/payments/ops/Helm/README.md
+
+      - alert: PaymentsBootstrapMetricsMissing
+        expr: absent(gavel_service_info{service="payments"}) and sum(up{job="payments"}) > 0
+        for: 10m
+        labels:
+          severity: ticket
+          team: platform
+          service: payments
+          slo: telemetry
+        annotations:
+          summary: Payments bootstrap metric is missing
+          description: The target is scrapeable but does not expose its service identity metric.
+          dashboard_uid: gavel-payments
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/payments/ops/Helm/README.md
+
+      - alert: PaymentsRpcFailureRatioHigh
+        expr: gavel:payments:rpc_server_failure_ratio:rate5m > 0.05
+        for: 10m
+        labels: {severity: warning, team: platform, service: payments, slo: rpc}
+        annotations:
+          summary: Payments gRPC failure ratio exceeds 5%
+          description: Transport failures and domain rejections must be separated by grpc_code and trace.
+          dashboard_uid: gavel-payments
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/payments/ops/Helm/README.md
+
+      - alert: PaymentsInvalidCallbackSignatures
+        expr: sum(rate(gavel_payments_callback_total{outcome="invalid_signature"}[5m])) > 0.1
+        for: 10m
+        labels: {severity: warning, team: platform, service: payments, slo: security}
+        annotations:
+          summary: Payments receives invalid provider callback signatures
+          description: Verify provider secret rotation, clock skew and callback route abuse.
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/payments/ops/Helm/README.md
+
+      - alert: PaymentsOutboxLagHigh
+        expr: max(gavel_payments_outbox_backlog_age_seconds) > 300
+        for: 10m
+        labels: {severity: warning, team: platform, service: payments, slo: events}
+        annotations:
+          summary: Payments outbox publication is delayed
+          description: Oldest unpublished payment event is more than five minutes old.
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/payments/ops/Helm/README.md
+
+      - alert: PaymentsReconciliationStalled
+        expr: max_over_time(gavel_payments_outbox_backlog_age_seconds[15m]) > 900
+        for: 15m
+        labels: {severity: warning, team: platform, service: payments, slo: reconciliation}
+        annotations:
+          summary: Payments reconciliation or event delivery is stalled
+          description: Inspect provider reachability, stale attempts and outbox CDC health.
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/payments/ops/Helm/README.md

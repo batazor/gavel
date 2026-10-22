@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package gavel.payments.v1;
+
+service PaymentsService {
+  rpc AttemptPayment(AttemptPaymentRequest) returns (AttemptPaymentResponse);
+  rpc ExpirePayment(ExpirePaymentRequest) returns (ExpirePaymentResponse);
+}
+
+message Money {
+  uint64 minor_units = 1;
+  string currency_code = 2;
+}
+
+message AttemptPaymentRequest {
+  string auction_id = 1;
+  uint32 settlement_round = 2;
+  string candidate_id = 3;
+  Money amount = 4;
+  string idempotency_key = 5;
+  string correlation_id = 6;
+  string consistency_token = 7;
+}
+
+message AttemptPaymentResponse {
+  oneof outcome {
+    PaymentAttemptResult result = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message PaymentAttemptResult {
+  string payment_attempt_id = 1;
+  PaymentAttemptStatus status = 2;
+  string recovery_url = 3;
+  uint64 version = 4;
+  string checked_at_token = 5;
+}
+
+message ExpirePaymentRequest {
+  string payment_attempt_id = 1;
+  string idempotency_key = 2;
+  string correlation_id = 3;
+  string consistency_token = 4;
+}
+
+message ExpirePaymentResponse {
+  oneof outcome {
+    PaymentExpired expired = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message PaymentExpired {
+  string payment_attempt_id = 1;
+  uint64 version = 2;
+  string checked_at_token = 3;
+}
+
+message DomainRejection {
+  string reason = 1;
+  string safe_message = 2;
+  PaymentRejectionCode code = 3;
+}
+
+enum PaymentRejectionCode {
+  PAYMENT_REJECTION_CODE_UNSPECIFIED = 0;
+  PAYMENT_REJECTION_CODE_NOT_FOUND = 1;
+  PAYMENT_REJECTION_CODE_INVALID_STATE = 2;
+  PAYMENT_REJECTION_CODE_IDEMPOTENCY_CONFLICT = 3;
+  PAYMENT_REJECTION_CODE_PERMISSION_DENIED = 4;
+  PAYMENT_REJECTION_CODE_ALREADY_SUCCEEDED = 5;
+}
+
+enum PaymentAttemptStatus {
+  PAYMENT_ATTEMPT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_ATTEMPT_STATUS_PROCESSING = 1;
+  PAYMENT_ATTEMPT_STATUS_RECOVERY_REQUIRED = 2;
+  PAYMENT_ATTEMPT_STATUS_SUCCEEDED = 3;
+  PAYMENT_ATTEMPT_STATUS_EXPIRED = 4;
+}

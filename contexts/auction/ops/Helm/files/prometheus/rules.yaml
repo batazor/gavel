@@ -1,0 +1,108 @@
+groups:
+  - name: gavel.auction.recording
+    interval: 30s
+    rules:
+      - record: gavel:auction:availability:ratio30d
+        expr: avg_over_time((max(up{job="auction"}) > bool 0)[30d:1m])
+      - record: gavel:auction:rpc_server_latency:p99_5m
+        expr: histogram_quantile(0.99, sum by (le, rpc_service, rpc_method) (rate(gavel_rpc_server_duration_seconds_bucket{service="auction"}[5m])))
+      - record: gavel:auction:rpc_server_failure_ratio:rate5m
+        expr: sum(rate(gavel_rpc_server_requests_total{service="auction",grpc_code!="OK"}[5m])) / clamp_min(sum(rate(gavel_rpc_server_requests_total{service="auction"}[5m])), 0.000001)
+      - record: gavel:auction:command_failure_ratio:rate5m
+        expr: sum(rate(gavel_auction_commands_total{outcome=~"failed|rejected"}[5m])) / clamp_min(sum(rate(gavel_auction_commands_total{outcome!="started"}[5m])), 0.000001)
+      - record: gavel:auction:redis_failure_ratio:rate5m
+        expr: sum(rate(gavel_auction_cache_operations_total{tier="redis",outcome="failure"}[5m])) / clamp_min(sum(rate(gavel_auction_cache_operations_total{tier="redis"}[5m])), 0.000001)
+
+  - name: gavel.auction.alerts
+    rules:
+      - alert: AuctionUnavailable
+        expr: absent(up{job="auction"}) or sum(up{job="auction"}) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: auction
+          slo: availability
+        annotations:
+          summary: Auction has no healthy target
+          description: No Auction instance has been scrapeable for two minutes.
+          dashboard_uid: gavel-auction
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/auction/ops/Helm/README.md
+
+      - alert: AuctionRestartStorm
+        expr: sum(increase(kube_pod_container_status_restarts_total{container="gavel-auction"}[15m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: auction
+          slo: availability
+        annotations:
+          summary: Auction containers are restarting repeatedly
+          description: More than three restarts were observed during the last 15 minutes.
+          dashboard_uid: gavel-auction
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/auction/ops/Helm/README.md
+
+      - alert: AuctionBootstrapMetricsMissing
+        expr: absent(gavel_service_info{service="auction"}) and sum(up{job="auction"}) > 0
+        for: 10m
+        labels:
+          severity: ticket
+          team: platform
+          service: auction
+          slo: telemetry
+        annotations:
+          summary: Auction bootstrap metric is missing
+          description: The target is scrapeable but does not expose its service identity metric.
+          dashboard_uid: gavel-auction
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/auction/ops/Helm/README.md
+
+      - alert: AuctionRpcFailureRatioHigh
+        expr: gavel:auction:rpc_server_failure_ratio:rate5m > 0.05
+        for: 10m
+        labels: {severity: warning, team: platform, service: auction, slo: rpc}
+        annotations:
+          summary: Auction gRPC failure ratio exceeds 5%
+          description: Transport failures and domain rejections must be separated by grpc_code and trace.
+          dashboard_uid: gavel-auction
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/auction/ops/Helm/README.md
+
+      - alert: AuctionCommandFailureRatioHigh
+        expr: gavel:auction:command_failure_ratio:rate5m > 0.05
+        for: 10m
+        labels: {severity: warning, team: auction, service: auction, slo: commands}
+        annotations:
+          summary: Auction command failure ratio exceeds 5%
+          description: Inspect bounded operation/outcome metrics, dependency health and recent deploys.
+          dashboard_uid: gavel-auction
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/auction/ops/Helm/README.md
+
+      - alert: AuctionInboxPayloadConflict
+        expr: increase(gavel_auction_inbox_total{outcome="conflict"}[10m]) > 0
+        for: 0m
+        labels: {severity: warning, team: auction, service: auction, slo: consumers}
+        annotations:
+          summary: Auction quarantined a conflicting event payload
+          description: The same producer event id arrived with different bytes; inspect the owner contract and quarantine without replaying private data.
+          dashboard_uid: gavel-auction
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/auction/ops/Helm/README.md
+
+      - alert: AuctionConsumerFailures
+        expr: increase(gavel_auction_consumer_events_total{outcome="failed"}[10m]) > 5
+        for: 5m
+        labels: {severity: warning, team: auction, service: auction, slo: consumers}
+        annotations:
+          summary: Auction event consumers are repeatedly failing
+          description: Check Catalog/Payments schema versions, broker lag and PostgreSQL readiness.
+          dashboard_uid: gavel-auction
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/auction/ops/Helm/README.md
+
+      - alert: AuctionRedisFailureRatioHigh
+        expr: gavel:auction:redis_failure_ratio:rate5m > 0.10
+        for: 10m
+        labels: {severity: warning, team: auction, service: auction, slo: current-price}
+        annotations:
+          summary: Auction Redis cache failure ratio exceeds 10%
+          description: PostgreSQL fallback preserves correctness; inspect Redis latency, circuit breaker activity and fallback load.
+          dashboard_uid: gavel-auction
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/auction/ops/Helm/README.md

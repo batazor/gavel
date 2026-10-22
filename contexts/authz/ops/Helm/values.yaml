@@ -1,0 +1,66 @@
+replicaCount: 3
+
+image:
+  repository: ghcr.io/batazor/gavel-authz
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  httpPort: 8080
+  grpcPort: 9090
+
+rpc:
+  enabled: true
+  allowedPrincipals:
+    - cluster.local/ns/gavel/sa/gavel-auction
+    - cluster.local/ns/gavel/sa/gavel-catalog
+    - cluster.local/ns/gavel/sa/gavel-payments
+    - cluster.local/ns/gavel/sa/gavel-notify
+    - cluster.local/ns/gavel/sa/gavel-bff
+    - cluster.local/ns/gavel/sa/gavel-processes
+  allowedApplications:
+    - gavel-auction
+    - gavel-catalog
+    - gavel-payments
+    - gavel-notify
+    - gavel-bff
+    - gavel-processes
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+monitoring:
+  enabled: true
+  scrapeInterval: 15s
+
+runtime:
+  dependencyTimeoutMs: 2000
+  receiptLeaseMs: 30000
+  workerIntervalMs: 5000
+  spiffePrefix: spiffe://cluster.local/ns/gavel/sa/
+  trustedProxyCidrs: ""
+
+externalSecrets:
+  database:
+    name: gavel-authz-database
+    key: url
+  spicedb:
+    name: gavel-authz-spicedb
+    endpointKey: endpoint
+    credentialKey: credential
+  hmac:
+    name: gavel-authz-hmac
+    principalKey: principal
+    fingerprintKey: fingerprint
+
+migrations:
+  enabled: true
+
+spicedbSchema:
+  enabled: true
+  image: ghcr.io/authzed/zed:v0.36.0

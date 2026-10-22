@@ -1,0 +1,56 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: local-compose
+    environment: development
+
+rule_files:
+  - /workspace/contexts/*/ops/Helm/files/prometheus/*.yaml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: analytics
+    static_configs:
+      - targets: ["host.docker.internal:9101"]
+
+  - job_name: auction
+    static_configs:
+      - targets: ["host.docker.internal:9102"]
+
+  - job_name: authz
+    static_configs:
+      - targets: ["host.docker.internal:9103"]
+
+  - job_name: bff
+    static_configs:
+      - targets: ["host.docker.internal:9104"]
+
+  - job_name: catalog
+    static_configs:
+      - targets: ["host.docker.internal:9105"]
+
+  - job_name: notify
+    static_configs:
+      - targets: ["host.docker.internal:9106"]
+
+  - job_name: payments
+    static_configs:
+      - targets: ["host.docker.internal:9107"]
+
+  - job_name: process-worker
+    static_configs:
+      - targets: ["host.docker.internal:9108"]
+
+  # Point this at the Temporal metrics endpoint used by local development.
+  - job_name: temporal
+    static_configs:
+      - targets: ["host.docker.internal:8000"]

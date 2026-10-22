@@ -1,0 +1,240 @@
+groups:
+  - name: gavel.processes.recording
+    interval: 30s
+    rules:
+      - record: gavel:process_worker_availability:ratio30d
+        expr: avg_over_time((max(up{job="process-worker"}) > bool 0)[30d:1m])
+      - record: gavel:temporal_availability:ratio30d
+        expr: avg_over_time((min(max by (temporal_service) (up{job="temporal"})) > bool 0)[30d:1m])
+      - record: gavel:process_workflow_terminal:rate5m
+        expr: sum by (workflow_type, outcome) (rate(gavel_process_workflow_terminal_total[5m]))
+      - record: gavel:process_workflow_failure_ratio:rate30m
+        expr: |
+          sum by (workflow_type) (rate(gavel_process_workflow_terminal_total{outcome="unexpected_failure"}[30m]))
+          /
+          clamp_min(sum by (workflow_type) (rate(gavel_process_workflow_terminal_total[30m])), 0.000001)
+      - record: gavel:temporal_workflow_schedule_to_start:p99_5m
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le, namespace, task_queue) (
+              rate(temporal_workflow_task_schedule_to_start_latency_seconds_bucket[5m])
+            )
+          )
+      - record: gavel:temporal_activity_schedule_to_start:p99_5m
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le, namespace, task_queue) (
+              rate(temporal_activity_schedule_to_start_latency_seconds_bucket[5m])
+            )
+          )
+      - record: gavel:temporal_long_request:p99_5m
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le, namespace, operation) (
+              rate(temporal_long_request_latency_seconds_bucket[5m])
+            )
+          )
+      - record: gavel:processes:rpc_client_latency:p99_5m
+        expr: histogram_quantile(0.99, sum by (le, rpc_service, rpc_method) (rate(gavel_rpc_client_duration_seconds_bucket{service="processes"}[5m])))
+      - record: gavel:processes:rpc_client_failure_ratio:rate5m
+        expr: sum(rate(gavel_rpc_client_requests_total{service="processes",grpc_code!="OK"}[5m])) / clamp_min(sum(rate(gavel_rpc_client_requests_total{service="processes"}[5m])), 0.000001)
+
+  - name: gavel.processes.alerts
+    rules:
+      - alert: ProcessWorkerUnavailable
+        expr: absent(up{job="process-worker"}) or sum(up{job="process-worker"}) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: processes
+          slo: availability
+        annotations:
+          summary: No process worker target is healthy
+          description: Auction lifecycle, settlement and withdrawal workflows cannot make progress.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#processworkerunavailable
+
+      - alert: TemporalServiceUnavailable
+        expr: absent(up{job="temporal"}) or min(max by (temporal_service) (up{job="temporal"})) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: temporal
+          slo: availability
+        annotations:
+          summary: A Temporal service role has no healthy target
+          description: At least one discovered Temporal role cannot serve workflow progress.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#temporalserviceunavailable
+
+      - alert: TemporalServiceReplicasDegraded
+        expr: (min(count by (temporal_service) (up{job="temporal"} == 1)) < 2) and (min(max by (temporal_service) (up{job="temporal"})) > 0)
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          service: temporal
+          slo: availability
+        annotations:
+          summary: A Temporal service role has fewer than two healthy targets
+          description: The role is available but has reduced failure tolerance.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#temporalserviceunavailable
+
+      - alert: AuctionWorkflowOverdue
+        expr: max(gavel_process_overdue_auction_workflows) > 0
+        for: 1m
+        labels:
+          severity: page
+          team: platform
+          service: processes
+          slo: auction_close_deadline
+        annotations:
+          summary: Auction close confirmation is more than two minutes overdue
+          description: At least one AuctionLifecycle missed its business deadline; value={{ $value }}.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#auctionworkflowoverdue
+
+      - alert: WorkflowFailureRatioHigh
+        expr: |
+          (gavel:process_workflow_failure_ratio:rate30m > 0.01)
+          and on (workflow_type)
+          (sum by (workflow_type) (increase(gavel_process_workflow_terminal_total[30m])) >= 20)
+        for: 10m
+        labels:
+          severity: page
+          team: platform
+          service: processes
+          slo: workflow_success
+        annotations:
+          summary: Unexpected workflow failures exceed 1%
+          description: Workflow {{ $labels.workflow_type }} has an unexpected terminal failure ratio of {{ $value | humanizePercentage }}.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#workflowfailureratiohigh
+
+      - alert: WorkflowFailureBudgetBurn
+        expr: |
+          (gavel:process_workflow_failure_ratio:rate30m > 0.001)
+          and on (workflow_type)
+          (sum by (workflow_type) (increase(gavel_process_workflow_terminal_total[30m])) >= 100)
+        for: 30m
+        labels:
+          severity: ticket
+          team: platform
+          service: processes
+          slo: workflow_success
+        annotations:
+          summary: Workflow failure ratio is burning the 0.1% budget
+          description: Workflow {{ $labels.workflow_type }} exceeds the 30-day target in the short window.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#workflowfailureratiohigh
+
+      - alert: TemporalWorkerLongRequestLatencyHigh
+        expr: gavel:temporal_long_request:p99_5m > 1
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          service: processes
+          slo: worker_temporal_latency
+        annotations:
+          summary: Worker to Temporal long-poll P99 exceeds one second
+          description: Operation {{ $labels.operation }} P99 is {{ $value | humanizeDuration }}.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#temporalworkerlatencyhigh
+
+      - alert: TemporalWorkerLongRequestFailures
+        expr: sum by (namespace, operation) (rate(temporal_long_request_failure_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: processes
+          slo: worker_temporal_latency
+        annotations:
+          summary: Worker long-poll requests to Temporal are failing
+          description: Operation {{ $labels.operation }} fails at {{ $value | humanize }} requests/s.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#temporalworkerlatencyhigh
+
+      - alert: TemporalWorkflowScheduleToStartHigh
+        expr: gavel:temporal_workflow_schedule_to_start:p99_5m > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          service: processes
+          slo: schedule_to_start
+        annotations:
+          summary: Workflow tasks wait more than five seconds at P99
+          description: Task queue {{ $labels.task_queue }} P99 is {{ $value | humanizeDuration }}.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#temporalworkerlatencyhigh
+
+      - alert: TemporalActivityScheduleToStartHigh
+        expr: gavel:temporal_activity_schedule_to_start:p99_5m > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          service: processes
+          slo: schedule_to_start
+        annotations:
+          summary: Activity tasks wait more than five seconds at P99
+          description: Task queue {{ $labels.task_queue }} P99 is {{ $value | humanizeDuration }}.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#temporalworkerlatencyhigh
+
+      - alert: TemporalWorkerSlotsExhausted
+        expr: min by (namespace, task_queue, worker_type) (temporal_worker_task_slots_available) <= 0
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          service: processes
+          slo: worker_capacity
+        annotations:
+          summary: Temporal worker execution slots are exhausted
+          description: No free {{ $labels.worker_type }} slot remains on task queue {{ $labels.task_queue }}.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#temporalworkerlatencyhigh
+
+      - alert: TemporalWorkerHasNoPollers
+        expr: max by (namespace, task_queue, poller_type) (temporal_num_pollers) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: processes
+          slo: worker_capacity
+        annotations:
+          summary: Temporal task queue has no active poller
+          description: No {{ $labels.poller_type }} polls task queue {{ $labels.task_queue }}.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#processworkerunavailable
+
+      - alert: ProcessBusinessMetricsMissing
+        expr: absent(gavel_process_overdue_auction_workflows) and sum(up{job="process-worker"}) > 0
+        for: 15m
+        labels:
+          severity: ticket
+          team: platform
+          service: processes
+          slo: telemetry
+        annotations:
+          summary: Processes business watchdog metric is missing
+          description: Workers are scrapeable but cannot prove auction close timeliness.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md
+
+      - alert: ProcessOwnerRpcFailureRatioHigh
+        expr: gavel:processes:rpc_client_failure_ratio:rate5m > 0.05
+        for: 10m
+        labels: {severity: warning, team: platform, service: processes, slo: rpc}
+        annotations:
+          summary: Processes owner-RPC failure ratio exceeds 5%
+          description: Inspect rpc_service, rpc_method and grpc_code, then correlate the Temporal activity trace.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md

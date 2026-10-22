@@ -1,0 +1,61 @@
+name: gavel-observability
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.13.4
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../../contexts:/workspace/contexts:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - alertmanager
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../../../contexts/analytics/ops/Helm/files/grafana:/var/lib/grafana/dashboards/Analytics:ro
+      - ../../../contexts/auction/ops/Helm/files/grafana:/var/lib/grafana/dashboards/Auction:ro
+      - ../../../contexts/authz/ops/Helm/files/grafana:/var/lib/grafana/dashboards/Authz:ro
+      - ../../../contexts/bff/ops/Helm/files/grafana:/var/lib/grafana/dashboards/BFF:ro
+      - ../../../contexts/catalog/ops/Helm/files/grafana:/var/lib/grafana/dashboards/Catalog:ro
+      - ../../../contexts/notify/ops/Helm/files/grafana:/var/lib/grafana/dashboards/Notify:ro
+      - ../../../contexts/payments/ops/Helm/files/grafana:/var/lib/grafana/dashboards/Payments:ro
+      - ../../../contexts/processes/ops/Helm/files/grafana:/var/lib/grafana/dashboards/Processes:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  alertmanager-data:
+  grafana-data:

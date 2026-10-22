@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gavel.fullname" . }}
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "gavel.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "gavel.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "gavel.fullname" . }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ include "gavel.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: AUTHZ_HTTP_ADDR
+              value: {{ printf "0.0.0.0:%v" .Values.service.httpPort | quote }}
+            - name: AUTHZ_GRPC_ADDR
+              value: {{ printf "0.0.0.0:%v" .Values.service.grpcPort | quote }}
+            - name: AUTHZ_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.database.name | quote }}
+                  key: {{ .Values.externalSecrets.database.key | quote }}
+            - name: AUTHZ_SPICEDB_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.spicedb.name | quote }}
+                  key: {{ .Values.externalSecrets.spicedb.endpointKey | quote }}
+            - name: AUTHZ_SPICEDB_CREDENTIAL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.spicedb.name | quote }}
+                  key: {{ .Values.externalSecrets.spicedb.credentialKey | quote }}
+            - name: AUTHZ_PRINCIPAL_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.hmac.name | quote }}
+                  key: {{ .Values.externalSecrets.hmac.principalKey | quote }}
+            - name: AUTHZ_FINGERPRINT_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.hmac.name | quote }}
+                  key: {{ .Values.externalSecrets.hmac.fingerprintKey | quote }}
+            - name: AUTHZ_DEPENDENCY_TIMEOUT_MS
+              value: {{ .Values.runtime.dependencyTimeoutMs | quote }}
+            - name: AUTHZ_RECEIPT_LEASE_MS
+              value: {{ .Values.runtime.receiptLeaseMs | quote }}
+            - name: AUTHZ_WORKER_INTERVAL_MS
+              value: {{ .Values.runtime.workerIntervalMs | quote }}
+            - name: AUTHZ_SPIFFE_PREFIX
+              value: {{ .Values.runtime.spiffePrefix | quote }}
+            - name: AUTHZ_TRUSTED_PROXY_CIDRS
+              value: {{ .Values.runtime.trustedProxyCidrs | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.httpPort }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ .Values.service.grpcPort }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 1
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true

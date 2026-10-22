@@ -1,6 +1,5 @@
 # Публикация архитектурной документации (LikeC4) в GitHub Pages.
 # Экономно (ADR-0007): только push в main и только если менялась модель или docs. ~1 минута.
-# Один раз в настройках репозитория: Settings → Pages → Source: GitHub Actions.
 
 name: docs
 
@@ -8,8 +7,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'architecture/**'
       - 'docs/**'
+      - 'contexts/**'
       - 'VISION.md'
       - 'package.json'
       - 'package-lock.json'
@@ -36,19 +35,24 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run graphql:check
       - run: npm run arch:validate
+      - uses: authzed/action-spicedb-validate@v1
+        with:
+          validationfile: contexts/authz/schema/gavel.validation.yaml
       - name: Build LikeC4 site
         run: >
-          npx likec4 build architecture
+          npx likec4 build .
           --output site
           --base "/${{ github.event.repository.name }}/"
           --title "Gavel — архитектура"
       - name: Attach markdown docs
-        # ADR, VISION и use-cases кладём рядом как есть: читаются по прямой ссылке и в репозитории
+        # ADR, VISION, контексты и юзкейсы кладём рядом как есть: читаются по прямой ссылке и в репозитории
         run: |
           mkdir -p site/docs
-          cp -r docs/adr docs/use-cases.md site/docs/
-          cp VISION.md site/docs/
+          cp -r docs/adr contexts site/docs/
+          cp README.md VISION.md site/docs/
+          find site/docs -name '*.c4' -delete
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

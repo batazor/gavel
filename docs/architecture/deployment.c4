@@ -1,0 +1,245 @@
+// Как это живёт в Kubernetes с Istio.
+// Cloudflare защищает public edge; identity-aware limits, mTLS, retries, timeouts и JWT — в mesh (ADR-0002/0016).
+// Resource permissions вычисляет SpiceDB; Istio AuthorizationPolicy не заменяет Authz.
+// Namespace на bounded context: сервис и его БД живут рядом (ADR-0004).
+deployment {
+
+  prod = environment 'Production' {
+
+    k8s = cluster 'Kubernetes' {
+
+      edgeNs = namespace 'edge' {
+        tunnelPod = pod 'cloudflared' {
+          description '≥2 replicas across zones; исходящие authenticated connections в Cloudflare Tunnel. Публичного listener у origin нет.'
+        }
+      }
+
+      // ---- Вход ----
+      istioSystem = namespace 'istio-system' {
+        ingress = pod 'Istio Ingress Gateway' {
+          #mesh
+          description '''
+            Внутренняя точка входа; ≥3 replicas across zones, доступна только от cloudflared.
+            - RequestAuthentication: валидация JWT от IdP
+            - JWT проверяется, если передан; protected GraphQL operations требуют identity в Router/subgraph
+            - iss + sub передаются Cosmo Router и subgraphs как verified identity; JWT roles игнорируются
+            - Rate limit по user_id из claims
+            - Маршруты только на web и /graphql в Cosmo Router (BFF init); SpiceDB наружу не публикуется
+            - Исключение: /payment-provider-callbacks/* → payments без JWT, подпись проверяет соответствующий adapter (Payments init)
+            - GraphQL subscription transport допускает долгоживущие соединения и reconnect с afterVersion
+          '''
+        }
+      }
+
+      // ---- Приложение ----
+      webNs = namespace 'web' {
+        webPod = pod 'web' {
+          description '≥3 stateless replicas across zones'
+          instanceOf gavel.web
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+      }
+
+      bffNs = namespace 'bff' {
+        bffPod = pod 'cosmo-router' {
+          description '≥3 stateless replicas across zones; local execution config, PDB + graceful subscription drain'
+          instanceOf gavel.bff
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+        realtimePod = pod 'realtime-subgraph' {
+          description '≥3 stateless Rust replicas; replay/live seam and hot-lot coalescing'
+          instanceOf gavel.realtime
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+      }
+
+      authzNs = namespace 'authz' {
+        authzPod = pod 'authz-service' {
+          description '≥3 Rust API replicas across zones; internal gRPC only'
+          instanceOf gavel.authz.service
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+        spiceDbPod = pod 'spicedb' {
+          description '≥3 replicas across zones; reachable only from authz-service and migration job'
+          instanceOf gavel.authz.spicedb
+        }
+        authzReceiptsDb = pod 'authz-receipts-db' {
+          description 'Leader + ≥2 standby across zones; Authz mutation receipts and lease recovery'
+          instanceOf gavel.authz.receipts
+        }
+        spiceDbData = pod 'spicedb-db' {
+          description 'Leader + ≥2 standby across zones; isolated SpiceDB relationships/revisions datastore'
+          instanceOf gavel.authz.spicedbDb
+        }
+      }
+
+      auctionNs = namespace 'auction' {
+        auctionPod = pod 'auction-service' {
+          description '≥3 replicas; routing по auction_id, один writer-owner на stream'
+          instanceOf gavel.auction.service
+          envoy = sidecar 'envoy' {
+            #mesh
+            description 'mTLS, retries, timeouts, trace-context propagation'
+          }
+        }
+        auctionDb = pod 'auction-db' {
+          description 'N shards; каждый shard = leader + ≥2 standby across zones, synchronous quorum, automatic failover'
+          instanceOf gavel.auction.db
+        }
+        priceCache = pod 'price-cache' {
+          description 'HA Redis deployment across zones with automatic failover; disposable data, PostgreSQL fallback on miss/outage'
+          instanceOf gavel.auction.priceCache
+        }
+      }
+
+      catalogNs = namespace 'catalog' {
+        catalogPod = pod 'catalog-service' {
+          description '≥3 stateless replicas across zones; HTTP GraphQL + health/metrics, internal gRPC, supervised lease workers; external PostgreSQL/Authz/S3/HMAC refs'
+          instanceOf gavel.catalog.service
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+        catalogDb = pod 'catalog-db' {
+          description 'Leader + ≥2 standby across zones; list/details читают replicas'
+          instanceOf gavel.catalog.db
+        }
+      }
+
+      paymentsNs = namespace 'payments' {
+        paymentsPod = pod 'payments-service' {
+          description '≥3 stateless replicas across zones'
+          instanceOf gavel.payments.service
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+        paymentsDb = pod 'payments-db' {
+          description 'Leader + ≥2 standby across zones; synchronous quorum for payment outcomes'
+          instanceOf gavel.payments.db
+        }
+      }
+
+      notifyNs = namespace 'notify' {
+        notifyPod = pod 'notify-service' {
+          description '≥3 stateless replicas across zones'
+          instanceOf gavel.notify.service
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+        notifyDb = pod 'notify-db' {
+          description 'Leader + ≥2 standby across zones'
+          instanceOf gavel.notify.db
+        }
+      }
+
+      messagingNs = namespace 'messaging' {
+        cdcPod = pod 'kafka-connect-debezium' {
+          description '≥3 distributed workers; PostgreSQL connectors and Outbox Event Router; один replication slot на physical shard'
+          instanceOf gavel.cdc
+        }
+        brokerPod = pod 'redpanda' {
+          description '≥3 brokers across zones, replication factor 3, min ISR 2'
+          instanceOf gavel.broker
+        }
+      }
+
+      analyticsNs = namespace 'analytics' {
+        analyticsPod = pod 'analytics-service' {
+          description '≥3 read-only subgraph replicas across zones'
+          instanceOf gavel.analytics.service
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+        clickhousePod = pod 'clickhouse' {
+          description 'Replicated shards across zones; quorum metadata'
+          instanceOf gavel.analytics.clickhouse
+        }
+      }
+
+      processesNs = namespace 'processes' {
+        workerPod = pod 'process-worker' {
+          description '≥3 stateless workers across zones'
+          instanceOf gavel.processes
+          envoy = sidecar 'envoy' {
+            #mesh
+          }
+        }
+        temporalPod = pod 'temporal' {
+          description 'Несколько Temporal server replicas + отдельный HA Postgres across zones. Не путать с domain DB.'
+          instanceOf gavel.temporal
+        }
+      }
+
+      // ---- Платформа ----
+      obsNs = namespace 'observability' {
+        otelPod = pod 'otel-collector' {
+          instanceOf gavel.otel
+        }
+        prometheusPod = pod 'prometheus' {
+          description '≥2 replicas, Prometheus Operator, 15d PVC; ServiceMonitor/PrometheusRule discovery'
+          instanceOf gavel.prometheus
+        }
+        alertmanagerPod = pod 'alertmanager' {
+          description '≥2 replicas; page/warning/ticket routing and inhibition'
+          instanceOf gavel.alertmanager
+        }
+        grafanaPod = pod 'grafana' {
+          description '≥2 replicas; dashboards provisioned from Git'
+          instanceOf gavel.grafana
+        }
+      }
+
+      argocdNs = namespace 'argocd' {
+        argocd = pod 'ArgoCD' {
+          description 'GitOps: следит за веткой main, применяет Helm-релизы во все namespace выше (ADR-0007)'
+        }
+      }
+    }
+
+    idpInst = instanceOf idp
+    stripeInst = instanceOf stripe
+    emailProviderInst = instanceOf emailProvider
+    mediaStore = instanceOf gavel.catalog.media {
+      description 'HA S3-compatible object storage. MinIO используется в local/kind; production provider выбирается отдельно и не обязан жить в Kubernetes.'
+    }
+    telemetryBackends = instanceOf observability
+    cloudflareInst = instanceOf cloudflare
+  }
+
+  // Вход: Cloudflare -> outbound Tunnel connectors -> Istio ingress -> приложение.
+  prod.cloudflareInst -> prod.k8s.edgeNs.tunnelPod 'proxied HTTPS, WAF/DDoS/bot controls; WebSocket support'
+  prod.k8s.edgeNs.tunnelPod -> prod.k8s.istioSystem.ingress 'Cloudflare Tunnel; origin не опубликован в Internet'
+  prod.k8s.istioSystem.ingress -> prod.k8s.webNs.webPod 'HTML, островки'
+  prod.k8s.istioSystem.ingress -> prod.k8s.bffNs.bffPod '/graphql: queries, mutations, subscriptions. Subgraphs наружу не видны'
+  prod.k8s.istioSystem.ingress -> prod.k8s.paymentsNs.paymentsPod '/payment-provider-callbacks/*, без JWT'
+  prod.k8s.catalogNs.catalogPod -> prod.mediaStore 'S3-compatible control operations: presign, HEAD, delete'
+  prod.k8s.webNs.webPod -> prod.mediaStore 'presigned PUT и image GET идут вне GraphQL data plane'
+
+  // Меш отправляет свои span-ы в тот же коллектор
+  prod.k8s.istioSystem.ingress -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.bffNs.bffPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.bffNs.realtimePod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.authzNs.authzPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.auctionNs.auctionPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.catalogNs.catalogPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.paymentsNs.paymentsPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.notifyNs.notifyPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.analyticsNs.analyticsPod.envoy -[exports]-> prod.k8s.obsNs.otelPod 'span-ы, OTLP'
+  prod.k8s.processesNs.workerPod -[exports]-> prod.k8s.obsNs.prometheusPod 'ServiceMonitor: SDK + process SLI'
+  prod.k8s.processesNs.temporalPod -[exports]-> prod.k8s.obsNs.prometheusPod 'ServiceMonitor: OSS service metrics'
+  prod.k8s.obsNs.prometheusPod -> prod.k8s.obsNs.alertmanagerPod 'alerts'
+  prod.k8s.obsNs.prometheusPod -[exports]-> prod.telemetryBackends 'remote_write to Mimir'
+  prod.k8s.obsNs.grafanaPod -> prod.k8s.obsNs.prometheusPod 'PromQL'
+  prod.k8s.obsNs.grafanaPod -> prod.telemetryBackends 'Tempo / Mimir / Loki queries'
+}

@@ -1,0 +1,56 @@
+views {
+
+  // ---------- Deployment ----------
+
+  deployment view prod {
+    title '1. Kubernetes'
+    order 1
+    description 'Сверху вниз: Cloudflare → Tunnel → Istio ingress → приложение → данные. Sidecar-ы и меш — в отдельном виде.'
+    include
+      prod.cloudflareInst,
+      prod.k8s.edgeNs.*,
+      prod.k8s.istioSystem.*,
+      prod.k8s.webNs.*,
+      prod.k8s.bffNs.*,
+      prod.k8s.authzNs.*,
+      prod.k8s.auctionNs.*,
+      prod.k8s.catalogNs.*,
+      prod.mediaStore,
+      prod.k8s.messagingNs.*,
+      prod.k8s.analyticsNs.*,
+      prod.k8s.processesNs.*,
+      prod.k8s.paymentsNs.*,
+      prod.k8s.notifyNs.*,
+      prod.stripeInst,
+      prod.emailProviderInst,
+      prod.k8s.argocdNs.*,
+      prod.idpInst
+    exclude
+      prod.k8s.webNs.webPod.envoy,
+      prod.k8s.bffNs.bffPod.envoy,
+      prod.k8s.authzNs.authzPod.envoy,
+      prod.k8s.auctionNs.auctionPod.envoy,
+      prod.k8s.catalogNs.catalogPod.envoy,
+      prod.k8s.processesNs.workerPod.envoy,
+      prod.k8s.paymentsNs.paymentsPod.envoy,
+      prod.k8s.notifyNs.notifyPod.envoy
+    autoLayout TopBottom
+  }
+
+  deployment view prod_mesh {
+    title '2. Istio mesh и телеметрия'
+    order 2
+    description 'Что делает меш на пути запроса и куда уходят span-ы'
+    include
+      prod.cloudflareInst,
+      prod.k8s.edgeNs.*,
+      prod.k8s.istioSystem.*,
+      prod.k8s.bffNs.bffPod,
+      prod.k8s.bffNs.bffPod.*,
+      prod.k8s.auctionNs.auctionPod,
+      prod.k8s.auctionNs.auctionPod.*,
+      prod.k8s.obsNs.*,
+      prod.telemetryBackends
+    autoLayout TopBottom
+  }
+}

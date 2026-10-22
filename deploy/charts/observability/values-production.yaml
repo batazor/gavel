@@ -1,0 +1,41 @@
+# Overlay for production. Secret values are never committed:
+# kubectl -n observability create secret generic platform-alert-webhooks \
+#   --from-literal=page-url='https://...' \
+#   --from-literal=warning-url='https://...' \
+#   --from-literal=ticket-url='https://...'
+alertRouting:
+  enabled: true
+
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      externalLabels:
+        cluster: production
+        environment: production
+      podAntiAffinity: hard
+      resources:
+        requests:
+          cpu: "1"
+          memory: 4Gi
+        limits:
+          memory: 8Gi
+  alertmanager:
+    alertmanagerSpec:
+      podAntiAffinity: hard
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+  grafana:
+    replicas: 2
+    # HA replicas must use the external Postgres configured by this Secret;
+    # SQLite on a ReadWriteOnce PVC is not an HA topology.
+    persistence:
+      enabled: false
+    envFromSecret: grafana-database
+    admin:
+      existingSecret: grafana-admin
+      userKey: admin-user
+      passwordKey: admin-password

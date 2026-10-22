@@ -1,0 +1,50 @@
+groups:
+  - name: gavel.analytics.recording
+    interval: 30s
+    rules:
+      - record: gavel:analytics:availability:ratio30d
+        expr: avg_over_time((max(up{job="analytics"}) > bool 0)[30d:1m])
+
+  - name: gavel.analytics.alerts
+    rules:
+      - alert: AnalyticsUnavailable
+        expr: absent(up{job="analytics"}) or sum(up{job="analytics"}) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: analytics
+          slo: availability
+        annotations:
+          summary: Analytics has no healthy target
+          description: No Analytics instance has been scrapeable for two minutes.
+          dashboard_uid: gavel-analytics
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/analytics/ops/Helm/README.md
+
+      - alert: AnalyticsRestartStorm
+        expr: sum(increase(kube_pod_container_status_restarts_total{container="gavel-analytics"}[15m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: analytics
+          slo: availability
+        annotations:
+          summary: Analytics containers are restarting repeatedly
+          description: More than three restarts were observed during the last 15 minutes.
+          dashboard_uid: gavel-analytics
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/analytics/ops/Helm/README.md
+
+      - alert: AnalyticsBootstrapMetricsMissing
+        expr: absent(gavel_service_info{service="analytics"}) and sum(up{job="analytics"}) > 0
+        for: 10m
+        labels:
+          severity: ticket
+          team: platform
+          service: analytics
+          slo: telemetry
+        annotations:
+          summary: Analytics bootstrap metric is missing
+          description: The target is scrapeable but does not expose its service identity metric.
+          dashboard_uid: gavel-analytics
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/analytics/ops/Helm/README.md

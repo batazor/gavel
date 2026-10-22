@@ -1,0 +1,41 @@
+[package]
+name = "gavel-payments"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+
+[[bin]]
+name = "gavel-payments"
+path = "src/main.rs"
+
+[dependencies]
+async-graphql.workspace = true
+async-graphql-axum.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+base64.workspace = true
+chrono = { workspace = true, features = ["serde"] }
+gavel-authz-prost = { package = "gavel_authz_community_neoeinstein-prost", version = "=0.4.0-00000000000000-16e6b397db2f.1", registry = "buf" }
+gavel-authz-tonic = { package = "gavel_authz_community_neoeinstein-tonic", version = "=0.4.1-00000000000000-16e6b397db2f.1", registry = "buf" }
+gavel-payments-prost = { package = "gavel_payments_community_neoeinstein-prost", version = "=0.4.0-20261022143347-ab5508e1a7a7.1", registry = "buf" }
+gavel-payments-tonic = { package = "gavel_payments_community_neoeinstein-tonic", version = "=0.4.1-20261022143347-ab5508e1a7a7.1", registry = "buf" }
+hmac.workspace = true
+metrics.workspace = true
+metrics-exporter-prometheus.workspace = true
+prost.workspace = true
+reqwest = { workspace = true, default-features = false, features = ["json", "rustls-tls"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "postgres", "json", "uuid", "chrono", "migrate"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tokio-stream = { workspace = true, features = ["net"] }
+tokio-util.workspace = true
+tonic-bsr = { package = "tonic", version = "=0.12.3" }
+tower = { workspace = true, features = ["util"] }
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
+url.workspace = true
+uuid = { workspace = true, features = ["serde", "v7"] }

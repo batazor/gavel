@@ -12,11 +12,11 @@ Accepted
 
 ## Decision
 
-- **Локальная разработка — kind.** Один скрипт поднимает кластер с Istio, OTel Collector, Postgres и брокером. Это же окружение используется для интеграционных тестов и записи Keploy.
+- **Локальная разработка — kind.** Один скрипт поднимает кластер с Istio, OTel Collector, Postgres, SpiceDB и брокером. Это же окружение используется для интеграционных тестов и записи Keploy.
 - **Деплой — Helm + ArgoCD.** По Helm-чарту на сервис, umbrella-чарт на систему. ArgoCD синхронизирует кластер с веткой `main` (GitOps), руками в кластер не ходим.
-- **CI — минимум на каждый PR, остальное заглушками.** На PR реально выполняется только дешёвое: `cargo fmt --check`, `cargo clippy`, `likec4 validate`. Тесты, Lean, сборка образов и helm lint обозначены в workflow как шаги с `if: false` или `workflow_dispatch`, чтобы pipeline читался целиком, но не тратил минуты. Включаем по мере надобности.
+- **CI — минимум на каждый PR, тяжёлое вручную.** На PR выполняются contract checks, Rust fmt/clippy для появившегося workspace и lint platform/service Helm charts. Полные тесты и Lean остаются выключенными; multi-stage images всех сервисов реально собираются matrix job только через `workflow_dispatch`, без push.
 
-- **Документация — GitHub Pages.** Отдельный workflow `docs.yml` собирает LikeC4-сайт и кладёт рядом ADR. Запускается только при push в `main` с изменениями в `architecture/`, `docs/` или `VISION.md`, около минуты.
+- **Документация — GitHub Pages.** Отдельный workflow `docs.yml` собирает LikeC4-сайт и кладёт рядом ADR. Запускается только при push в `main` с изменениями в `docs/`, `contexts/` или `VISION.md`, около минуты.
 
 ## Consequences
 

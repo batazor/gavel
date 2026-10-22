@@ -1,0 +1,19 @@
+views {
+  dynamic view flow_authorize_command {
+    title 'Авторизация пользовательской команды'
+    description 'BFF pre-check улучшает UX; owner service выполняет authoritative check; домен отдельно проверяет eligibility.'
+    autoLayout TopBottom
+
+    gavel.web -> gavel.bff.graphql '1. protected mutation + Bearer JWT'
+    gavel.bff.graphql -> gavel.authz.service.relationships '2. RegisterPrincipal; trusted BFF workload only'
+    gavel.authz.service.relationships -> gavel.authz.receipts '3. claim/complete durable idempotency receipt'
+    gavel.authz.service.relationships -> gavel.authz.spicedb '4. TOUCH platform member; return written-at revision'
+    gavel.bff.graphql -> gavel.authz.service.check '5. optional pre-check / BulkCheck at least as fresh'
+    gavel.bff.graphql -> gavel.auction.service.api '6. command + verifiable opaque principal'
+    gavel.auction.service.api -> gavel.authz.service.check '7. authoritative CheckPermission at required revision'
+    gavel.authz.service.check -> gavel.authz.spicedb '8. causal permission evaluation'
+    gavel.auction.service.api -> gavel.authz.service.relationships '9. owner-scoped TOUCH/delete when required'
+    gavel.auction.service.api -> gavel.auction.service.aggregate '10. after allow: evaluate domain invariants'
+    gavel.auction.service.api -> gavel.bff.graphql '11. typed result or stable GraphQL error'
+  }
+}

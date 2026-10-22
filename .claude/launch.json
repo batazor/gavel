@@ -4,7 +4,13 @@
     {
       "name": "likec4",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["likec4", "start", "architecture", "--port", "5173"],
+      "runtimeArgs": [
+        "likec4",
+        "start",
+        ".",
+        "--port",
+        "5173"
+      ],
       "port": 5173
     }
   ]

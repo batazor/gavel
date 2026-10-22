@@ -1,0 +1,156 @@
+views {
+
+  // ---------- C1 ----------
+
+  view index {
+    title 'C1. System Context'
+    order 1
+    description 'Gavel как чёрный ящик: кто им пользуется и от чего он зависит'
+    include bidder, seller, gavel, cloudflare, idp, stripe, emailProvider, observability
+    autoLayout TopBottom
+  }
+
+  // ---------- C2 ----------
+
+  view containers of gavel {
+    title 'C2. Containers'
+    order 2
+    description 'Деплоимые единицы. Public edge — Cloudflare; API-вход — только Cosmo BFF. Bounded context = группа: сервис + своя БД.'
+    include
+      bidder, seller,
+      *,
+      gavel.authz.*, gavel.auction.*, gavel.catalog.*, gavel.payments.*, gavel.notify.*, gavel.analytics.*,
+      cloudflare, idp, stripe, emailProvider, observability
+    exclude gavel.otel, observability -> gavel
+    autoLayout TopBottom
+  }
+
+  // ---------- C3 ----------
+
+  view bff of gavel.bff {
+    title 'C3. BFF'
+    order 3
+    description 'Сверху вниз: Cloudflare → Web/Cosmo federation execution → owner subgraphs / Realtime → доменные сервисы и аналитика'
+    include
+      gavel.web,
+      cloudflare,
+      gavel.broker,
+      *,
+      gavel.realtime, gavel.authz.service, gavel.auction.service, gavel.catalog.service, gavel.payments.service, gavel.analytics.service, gavel.analytics.clickhouse
+    exclude gavel.otel
+    autoLayout TopBottom
+  }
+
+  view auction of gavel.auction {
+    title 'C3. Auction'
+    order 4
+    description 'Command path идёт в authoritative агрегат; public currentPrice отдельно использует version-aware L1 → Redis → PostgreSQL fallback'
+    include
+      gavel.bff, gavel.processes, gavel.authz.service,
+      gavel.broker, gavel.cdc,
+      *,
+      gavel.auction.service.*,
+      gavel.auction.service.aggregate.*
+    exclude gavel.otel, gavel.catalog.service
+    autoLayout TopBottom
+  }
+
+  view catalog of gavel.catalog {
+    title 'C3. Catalog'
+    order 5
+    description 'Сверху вниз: Cosmo → Catalog; бинарный upload идёт из Web напрямую в S3-compatible storage по presigned URL'
+    include
+      gavel.bff, gavel.authz.service,
+      *,
+      gavel.catalog.service.*,
+      gavel.broker, gavel.cdc
+    exclude gavel.otel, gavel.auction.service
+    autoLayout TopBottom
+  }
+
+  view processes of gavel.processes {
+    title 'C3. Process worker'
+    order 6
+    description 'Сверху вниз: сигналы из брокера и Processes subgraph → workflow → activities → команды в домен. Состояние торгов здесь не живёт.'
+    include
+      gavel.bff, gavel.broker,
+      *,
+      gavel.temporal,
+      gavel.authz.service, gavel.auction.service, gavel.catalog.service, gavel.payments.service, gavel.notify.service
+    exclude gavel.otel
+    autoLayout TopBottom
+  }
+
+  view payments of gavel.payments {
+    title 'C3. Payments'
+    order 8
+    description 'Сверху вниз: Temporal-сага → provider-neutral Payments → внешний адаптер → callback → БД.'
+    include
+      gavel.processes, gavel.web, gavel.bff, gavel.authz.service, cloudflare,
+      *,
+      gavel.payments.service.*,
+      stripe, emailProvider, gavel.broker, gavel.cdc
+    exclude gavel.otel
+    autoLayout TopBottom
+  }
+
+  view notify of gavel.notify {
+    title 'C3. Notify'
+    order 9
+    description 'Processes задаёт бизнес-намерение; Notify владеет шаблоном, каналом, retry и статусом доставки.'
+    include
+      gavel.processes, gavel.authz.service,
+      *,
+      gavel.notify.service.*,
+      emailProvider, gavel.broker, gavel.cdc
+    exclude gavel.otel
+    autoLayout TopBottom
+  }
+
+  view analytics of gavel.analytics {
+    title 'C3. Analytics'
+    order 10
+    description 'Debezium читает публичный outbox, Redpanda доставляет его в ClickHouse, Analytics subgraph отдаёт график и историю через Cosmo'
+    include
+      gavel.auction.service, gavel.catalog.service,
+      gavel.broker, gavel.cdc,
+      *,
+      gavel.bff, observability
+    exclude gavel.otel
+    autoLayout TopBottom
+  }
+
+  view authz of gavel.authz {
+    title 'C3. Authz'
+    order 11
+    description 'Identity приходит из OAuth; edge/subgraphs и resource owners проверяют capabilities в SpiceDB; relationships пишут только owners.'
+    include
+      idp, gavel.bff, gavel.processes,
+      gavel.auction.service, gavel.catalog.service, gavel.payments.service, gavel.notify.service,
+      *, gavel.authz.service.*
+    exclude gavel.otel
+    autoLayout TopBottom
+  }
+
+  // ---------- Сквозное ----------
+
+  view observability of gavel {
+    title 'Телеметрия'
+    order 12
+    description 'Путь traces / metrics / logs от сервисов до Grafana'
+    include
+      gavel.bff,
+      gavel.authz.service,
+      gavel.auction.service,
+      gavel.catalog.service,
+      gavel.processes,
+      gavel.payments.service,
+      gavel.notify.service,
+      gavel.otel,
+      gavel.prometheus,
+      gavel.alertmanager,
+      gavel.grafana,
+      observability
+    autoLayout LeftRight
+  }
+}

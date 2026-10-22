@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package gavel.payments.v1;
+
+import "gavel/payments/v1/payments_service.proto";
+
+message PaymentEventEnvelope {
+  string event_id = 1;
+  uint32 schema_version = 2;
+  uint64 aggregate_version = 3;
+  uint64 occurred_at_millis = 4;
+  string correlation_id = 5;
+  oneof payload {
+    PaymentInstrumentReady payment_instrument_ready = 10;
+    PaymentInstrumentRevoked payment_instrument_revoked = 11;
+    PaymentAttemptStarted payment_attempt_started = 12;
+    PaymentRecoveryRequired payment_recovery_required = 13;
+    PaymentSucceeded payment_succeeded = 14;
+    PaymentExpiredEvent payment_expired = 15;
+  }
+}
+
+message PaymentInstrumentReady {
+  string instrument_id = 1;
+  string user_id = 2;
+}
+
+message PaymentInstrumentRevoked {
+  string instrument_id = 1;
+  string user_id = 2;
+}
+
+message PaymentAttemptStarted {
+  string payment_attempt_id = 1;
+  string auction_id = 2;
+  uint32 settlement_round = 3;
+  string candidate_id = 4;
+  Money amount = 5;
+}
+
+message PaymentRecoveryRequired {
+  string payment_attempt_id = 1;
+  string auction_id = 2;
+  uint32 settlement_round = 3;
+}
+
+message PaymentSucceeded {
+  string payment_attempt_id = 1;
+  string auction_id = 2;
+  uint32 settlement_round = 3;
+}
+
+message PaymentExpiredEvent {
+  string payment_attempt_id = 1;
+  string auction_id = 2;
+  uint32 settlement_round = 3;
+}

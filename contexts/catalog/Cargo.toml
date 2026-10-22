@@ -1,0 +1,45 @@
+[package]
+name = "gavel-catalog"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+
+[[bin]]
+name = "gavel-catalog"
+path = "src/main.rs"
+
+[dependencies]
+async-graphql.workspace = true
+async-graphql-axum.workspace = true
+async-trait.workspace = true
+axum.workspace = true
+base64.workspace = true
+chrono.workspace = true
+gavel-authz = { path = "../authz" }
+hmac.workspace = true
+metrics.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+reqwest = { workspace = true, default-features = false, features = ["json", "rustls-tls"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "postgres", "json", "uuid", "chrono", "migrate"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tokio-stream = { workspace = true, features = ["net"] }
+tokio-util.workspace = true
+tonic.workspace = true
+tower.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
+url.workspace = true
+uuid = { workspace = true, features = ["serde", "v7"] }
+
+[build-dependencies]
+protoc-bin-vendored.workspace = true
+tonic-build.workspace = true
+
+[dev-dependencies]
+gavel-auction = { path = "../auction" }

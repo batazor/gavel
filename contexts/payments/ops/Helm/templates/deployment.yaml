@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gavel.fullname" . }}
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "gavel.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "gavel.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "gavel.fullname" . }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ include "gavel.name" . }}
+              app.kubernetes.io/instance: {{ .Release.Name }}
+      containers:
+        - name: {{ include "gavel.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: HTTP_ADDR
+              value: "0.0.0.0:{{ .Values.service.port }}"
+            - name: GRPC_ADDR
+              value: "0.0.0.0:{{ .Values.rpc.port }}"
+            - name: AUTHZ_ENDPOINT
+              value: {{ .Values.config.authzEndpoint | quote }}
+            - name: PAYMENT_PROVIDER_ENDPOINT
+              value: {{ .Values.config.providerEndpoint | quote }}
+            - name: PROCESSES_SPIFFE_ID
+              value: {{ .Values.config.processesSpiffeId | quote }}
+            - name: DATABASE_URL
+              valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.databaseUrlKey | quote }}}}
+            - name: PAYMENT_PROVIDER_SECRET
+              valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.providerSecretKey | quote }}}}
+            - name: PAYMENT_CALLBACK_SECRET
+              valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.callbackSecretKey | quote }}}}
+            - name: PAYMENT_FINGERPRINT_SECRET
+              valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.fingerprintSecretKey | quote }}}}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            {{- if .Values.rpc.enabled }}
+            - name: grpc
+              containerPort: {{ .Values.rpc.port }}
+              protocol: TCP
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 1
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true

@@ -1,0 +1,18 @@
+{
+  "eventId": "evt-01JTEST",
+  "aggregateId": "auction-42",
+  "aggregateVersion": 7,
+  "schemaVersion": 1,
+  "occurredAt": "2026-10-22T09:00:00Z",
+  "correlationId": "trace-42",
+  "causationId": "command-42",
+  "bidRecorded": {
+    "bidId": "bid-7",
+    "bidderAlias": "bidder-2",
+    "resultingPrice": {
+      "minorUnits": 12500,
+      "currencyCode": "USD"
+    },
+    "recordedAt": "2026-10-22T09:00:00Z"
+  }
+}

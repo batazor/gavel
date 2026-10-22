@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package gavel.auction.v1;
+
+import "gavel/auction/v1/auction_service.proto";
+import "google/protobuf/timestamp.proto";
+
+// AuctionPublicEvent is the value stored in the Auction transactional outbox.
+// The broker key and aggregate_id are the auction id. Private maxima and
+// identities are intentionally not representable by this contract.
+message AuctionPublicEvent {
+  string event_id = 1;
+  string aggregate_id = 2;
+  uint64 aggregate_version = 3;
+  uint32 schema_version = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+  string correlation_id = 6;
+  string causation_id = 7;
+
+  oneof payload {
+    AuctionOpenedEvent auction_opened = 10;
+    BidRecordedEvent bid_recorded = 11;
+    PriceChangedEvent price_changed = 12;
+    DeadlineExtendedEvent deadline_extended = 13;
+    AuctionRescheduledEvent auction_rescheduled = 14;
+    AuctionClosedEvent auction_closed = 15;
+    AuctionCancelledEvent auction_cancelled = 16;
+    AuctionUnsoldEvent auction_unsold = 17;
+    WinnerConfirmedEvent winner_confirmed = 18;
+  }
+}
+
+message AuctionOpenedEvent {
+  google.protobuf.Timestamp ends_at = 1;
+}
+
+message BidRecordedEvent {
+  string bid_id = 1;
+  string bidder_alias = 2;
+  Money resulting_price = 3;
+  google.protobuf.Timestamp recorded_at = 4;
+}
+
+message PriceChangedEvent {
+  Money price = 1;
+  google.protobuf.Timestamp ends_at = 2;
+}
+
+message DeadlineExtendedEvent {
+  google.protobuf.Timestamp ends_at = 1;
+}
+
+message AuctionRescheduledEvent {
+  google.protobuf.Timestamp ends_at = 1;
+}
+
+message AuctionClosedEvent {
+  Money closing_price = 1;
+}
+
+message AuctionCancelledEvent {}
+
+message AuctionUnsoldEvent {}
+
+message WinnerConfirmedEvent {}

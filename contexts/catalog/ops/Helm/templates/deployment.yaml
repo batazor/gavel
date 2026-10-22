@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gavel.fullname" . }}
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "gavel.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "gavel.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "gavel.fullname" . }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ include "gavel.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: CATALOG_HTTP_ADDR
+              value: {{ printf "0.0.0.0:%v" .Values.service.httpPort | quote }}
+            - name: CATALOG_GRPC_ADDR
+              value: {{ printf "0.0.0.0:%v" .Values.service.grpcPort | quote }}
+            - name: CATALOG_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.database.name | quote }}
+                  key: {{ .Values.externalSecrets.database.key | quote }}
+            - name: CATALOG_AUTHZ_URL
+              value: {{ .Values.runtime.authzUrl | quote }}
+            - name: CATALOG_S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.objectStorage.name | quote }}
+                  key: {{ .Values.externalSecrets.objectStorage.endpointKey | quote }}
+            - name: CATALOG_S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.objectStorage.name | quote }}
+                  key: {{ .Values.externalSecrets.objectStorage.accessKey | quote }}
+            - name: CATALOG_S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.objectStorage.name | quote }}
+                  key: {{ .Values.externalSecrets.objectStorage.secretKey | quote }}
+            - name: CATALOG_FINGERPRINT_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.hmac.name | quote }}
+                  key: {{ .Values.externalSecrets.hmac.fingerprintKey | quote }}
+            - name: CATALOG_CURSOR_HMAC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.hmac.name | quote }}
+                  key: {{ .Values.externalSecrets.hmac.cursorKey | quote }}
+            - name: CATALOG_S3_REGION
+              value: {{ .Values.runtime.s3Region | quote }}
+            - name: CATALOG_S3_BUCKET
+              value: {{ .Values.runtime.s3Bucket | quote }}
+            - name: CATALOG_S3_PATH_STYLE
+              value: {{ .Values.runtime.s3PathStyle | quote }}
+            - name: CATALOG_IMAGE_DELIVERY_BASE_URL
+              value: {{ .Values.runtime.imageDeliveryBaseUrl | quote }}
+            - name: CATALOG_DEPENDENCY_TIMEOUT_MS
+              value: {{ .Values.runtime.dependencyTimeoutMs | quote }}
+            - name: CATALOG_WORKER_INTERVAL_MS
+              value: {{ .Values.runtime.workerIntervalMs | quote }}
+            - name: CATALOG_WORKER_LEASE_MS
+              value: {{ .Values.runtime.workerLeaseMs | quote }}
+            - name: CATALOG_READY_IMAGE_TTL_MS
+              value: {{ .Values.runtime.readyImageTtlMs | quote }}
+            - name: CATALOG_UPLOAD_TTL_MS
+              value: {{ .Values.runtime.uploadTtlMs | quote }}
+            - name: CATALOG_SPIFFE_PREFIX
+              value: {{ .Values.runtime.spiffePrefix | quote }}
+            - name: CATALOG_TRUSTED_PROXY_CIDRS
+              value: {{ .Values.runtime.trustedProxyCidrs | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.httpPort }}
+              protocol: TCP
+            {{- if .Values.rpc.enabled }}
+            - name: grpc
+              containerPort: {{ .Values.service.grpcPort }}
+              protocol: TCP
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 1
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true

@@ -1,0 +1,75 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+type Query {
+  paymentAttempt(id: ID!): PaymentAttempt
+  myPaymentInstrument: PaymentInstrument
+}
+
+type Mutation {
+  beginPaymentInstrumentRegistration(input: BeginRegistrationInput!, idempotencyKey: String!): PaymentInstrumentRegistration!
+  continuePayment(attemptId: ID!, idempotencyKey: String!): PaymentContinuation!
+  revokePaymentInstrument(idempotencyKey: String!): PaymentInstrument!
+}
+
+type PaymentInstrument @key(fields: "id") {
+  id: ID!
+  status: PaymentInstrumentStatus!
+  display: String
+  version: Int!
+}
+
+type PaymentAttempt @key(fields: "id") {
+  id: ID!
+  auctionId: ID!
+  status: PaymentAttemptStatus!
+  recoveryUrl: String
+  version: Int!
+}
+
+type PaymentInstrumentRegistration {
+  instrument: PaymentInstrument!
+  providerUrl: String!
+}
+
+type PaymentContinuation {
+  attempt: PaymentAttempt!
+  providerUrl: String
+}
+
+input BeginRegistrationInput {
+  recoveryEmail: String!
+  termsVersion: String!
+}
+
+interface PaymentError {
+  code: PaymentErrorCode!
+  message: String!
+}
+
+enum PaymentErrorCode {
+  INVALID_INPUT
+  NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_STATE
+  IDEMPOTENCY_CONFLICT
+  IN_PROGRESS
+  DEPENDENCY_UNAVAILABLE
+  ALREADY_SUCCEEDED
+  INTERNAL
+}
+
+enum PaymentInstrumentStatus {
+  MISSING
+  PENDING
+  READY
+  REVOKED
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  PROCESSING
+  RECOVERY_REQUIRED
+  SUCCEEDED
+  EXPIRED
+}

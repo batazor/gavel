@@ -1,0 +1,21 @@
+{
+  "eventId": "catalog-event-1",
+  "eventType": "LotListed",
+  "schemaVersion": 1,
+  "aggregateVersion": 1,
+  "occurredAtMillis": 1700000000000,
+  "correlationId": "catalog-correlation-1",
+  "payload": {
+    "auctionId": "auction-1",
+    "lotId": "lot-1",
+    "sellerId": "seller-1",
+    "startPriceMinor": 100,
+    "currencyCode": "USD",
+    "bidStepMinor": 10,
+    "closingPolicy": {
+      "scheduledEndMillis": 1700000060000,
+      "inactivityMillis": null,
+      "hardDeadlineMillis": null
+    }
+  }
+}

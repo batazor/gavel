@@ -1,0 +1,65 @@
+schemaFile: ./gavel.zed
+
+relationships: |-
+  platform:gavel#member@user:seller
+  platform:gavel#member@user:bidder
+  platform:gavel#member@user:admin
+  platform:gavel#administrator@user:admin
+  platform:gavel#process_worker@service_account:processes
+  lot:lot1#platform@platform:gavel
+  lot:lot1#seller@user:seller
+  auction:lot1#platform@platform:gavel
+  auction:lot1#lot@lot:lot1
+  auction:lot1#participant@user:bidder
+  payment_profile:bidder#owner@user:bidder
+  payment_attempt:attempt1#platform@platform:gavel
+  payment_attempt:attempt1#auction@auction:lot1
+  payment_attempt:attempt1#owner@user:bidder
+  notification:notice1#platform@platform:gavel
+  notification:notice1#recipient@user:bidder
+  operation:operation1#owner@user:seller
+
+assertions:
+  assertTrue:
+    - platform:gavel#create_lot@user:seller
+    - platform:gavel#register_payment_instrument@user:bidder
+    - lot:lot1#edit@user:seller
+    - lot:lot1#is_seller@user:seller
+    - lot:lot1#withdraw@user:admin
+    - lot:lot1#view_seller_state@user:admin
+    - lot:lot1#execute_withdraw@service_account:processes
+    - auction:lot1#place_bid@user:bidder
+    - auction:lot1#view_personal_state@user:bidder
+    - auction:lot1#view_personal_state@user:seller
+    - auction:lot1#reschedule@user:seller
+    - auction:lot1#close@service_account:processes
+    - auction:lot1#cancel@service_account:processes
+    - auction:lot1#reopen@service_account:processes
+    - auction:lot1#settle@service_account:processes
+    - payment_profile:bidder#manage@user:bidder
+    - payment_attempt:attempt1#view@user:bidder
+    - payment_attempt:attempt1#continue_payment@user:bidder
+    - payment_attempt:attempt1#process@service_account:processes
+    - notification:notice1#view@user:bidder
+    - notification:notice1#deliver@service_account:processes
+    - operation:operation1#view@user:seller
+  assertFalse:
+    - platform:gavel#create_lot@user:stranger
+    - lot:lot1#edit@user:bidder
+    - lot:lot1#is_seller@user:admin
+    - lot:lot1#execute_withdraw@user:admin
+    - lot:lot1#withdraw@user:bidder
+    - auction:lot1#view_personal_state@user:stranger
+    - auction:lot1#reschedule@user:bidder
+    - auction:lot1#place_bid@user:stranger
+    - auction:lot1#close@user:admin
+    - auction:lot1#cancel@user:admin
+    - auction:lot1#reopen@user:admin
+    - payment_profile:bidder#manage@user:seller
+    - payment_attempt:attempt1#view@user:seller
+    - payment_attempt:attempt1#process@user:admin
+    - notification:notice1#view@user:seller
+    - notification:notice1#deliver@user:admin
+    - operation:operation1#view@user:bidder
+
+validation: {}

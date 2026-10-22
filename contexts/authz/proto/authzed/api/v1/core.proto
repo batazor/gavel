@@ -1,0 +1,42 @@
+// Derived from authzed/api at the revision documented in ../../UPSTREAM.md.
+// Unused definitions and validation annotations are intentionally omitted.
+syntax = "proto3";
+
+package authzed.api.v1;
+
+// Relationship connects a resource to a subject through a relation.
+message Relationship {
+  ObjectReference resource = 1;
+  string relation = 2;
+  SubjectReference subject = 3;
+}
+
+// SubjectReference identifies the subject side of a relationship.
+message SubjectReference {
+  ObjectReference object = 1;
+  string optional_relation = 2;
+}
+
+// ObjectReference identifies a resource or subject object.
+message ObjectReference {
+  string object_type = 1;
+  string object_id = 2;
+}
+
+// ZedToken identifies an authoritative SpiceDB revision.
+message ZedToken {
+  string token = 1;
+}
+
+// RelationshipUpdate mutates one relationship in a transaction.
+message RelationshipUpdate {
+  enum Operation {
+    OPERATION_UNSPECIFIED = 0;
+    OPERATION_CREATE = 1;
+    OPERATION_TOUCH = 2;
+    OPERATION_DELETE = 3;
+  }
+
+  Operation operation = 1;
+  Relationship relationship = 2;
+}

@@ -1,0 +1,60 @@
+{{- if .Values.alertRouting.enabled }}
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: gavel-platform-routing
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gavel-observability.labels" . | nindent 4 }}
+    gavel.io/alert-routing: platform
+spec:
+  route:
+    receiver: platform-warning
+    groupBy: [alertname, cluster, namespace, service]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 4h
+    routes:
+      - receiver: platform-page
+        matchers:
+          - name: severity
+            value: page
+            matchType: "="
+        groupWait: 10s
+        repeatInterval: 30m
+      - receiver: platform-ticket
+        matchers:
+          - name: severity
+            value: ticket
+            matchType: "="
+        repeatInterval: 24h
+  inhibitRules:
+    - sourceMatch:
+        - name: severity
+          value: page
+          matchType: "="
+      targetMatch:
+        - name: severity
+          value: warning
+          matchType: "="
+      equal: [namespace, service]
+  receivers:
+    - name: platform-page
+      webhookConfigs:
+        - sendResolved: true
+          urlSecret:
+            name: {{ .Values.alertRouting.secretName }}
+            key: {{ .Values.alertRouting.pageUrlKey }}
+    - name: platform-warning
+      webhookConfigs:
+        - sendResolved: true
+          urlSecret:
+            name: {{ .Values.alertRouting.secretName }}
+            key: {{ .Values.alertRouting.warningUrlKey }}
+    - name: platform-ticket
+      webhookConfigs:
+        - sendResolved: true
+          urlSecret:
+            name: {{ .Values.alertRouting.secretName }}
+            key: {{ .Values.alertRouting.ticketUrlKey }}
+{{- end }}

@@ -1,0 +1,11 @@
+{
+  "eventId": "catalog-event-3",
+  "eventType": "LotWithdrawn",
+  "schemaVersion": 1,
+  "aggregateVersion": 3,
+  "occurredAtMillis": 1700000002000,
+  "correlationId": "catalog-correlation-3",
+  "payload": {
+    "lotId": "lot-1"
+  }
+}

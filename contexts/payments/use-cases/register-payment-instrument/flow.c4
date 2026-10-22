@@ -1,0 +1,29 @@
+// Диаграмма юзкейса. Модель — в docs/architecture/model.c4.
+views {
+
+  dynamic view flow_register_payment_instrument {
+    title 'Подготовка платёжного инструмента'
+    description 'До первой ставки: явное разрешение на автоматическое списание и provider-neutral PaymentInstrumentReady.'
+    autoLayout TopBottom
+
+    bidder -> gavel.web 'добавить платёжный инструмент, принять условия'
+    gavel.web -> gavel.bff.graphql 'mutation beginPaymentInstrumentRegistration(input)'
+    gavel.bff.graphql -> gavel.payments.service.api 'BeginInstrumentRegistration(user, email, terms_version)'
+    gavel.payments.service.api -> gavel.authz.service.check 'fail-closed register permission'
+    gavel.payments.service.api -> gavel.payments.service.profile 'create / load PaymentInstrument'
+    gavel.payments.service.profile -> gavel.payments.service.providerAdapter 'PrepareInstrument(stable opaque key)'
+    gavel.payments.service.api -> gavel.authz.service.relationships 'TOUCH owner grant; compensating delete on failed commit'
+    gavel.payments.service.providerAdapter -> stripe 'provider-specific registration' {
+      notes 'Stripe — первый адаптер; реквизиты в Gavel не попадают'
+    }
+    gavel.web -> stripe 'provider-hosted flow'
+    stripe -> cloudflare 'signed provider callback'
+    cloudflare -> gavel.payments.service.webhook 'no-cache callback route via Tunnel/Istio'
+    gavel.payments.service.webhook -> gavel.payments.service.profile 'verify raw body + leased inbox claim; MarkInstrumentReady'
+    gavel.payments.service.repository -> gavel.payments.db 'instrument Ready + authorization + outbox'
+    gavel.cdc -> gavel.payments.db 'capture outbox from WAL'
+    gavel.cdc -> gavel.broker 'PaymentInstrumentReady(user_id)'
+    gavel.auction.service.consumer -> gavel.broker 'subscribe PaymentInstrumentReady'
+    gavel.auction.service.consumer -> gavel.auction.db 'eligibility projection'
+  }
+}

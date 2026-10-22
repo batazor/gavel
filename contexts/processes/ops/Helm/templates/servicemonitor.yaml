@@ -1,0 +1,42 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "gavel.fullname" . }}
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "gavel.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.monitoring.scrapeInterval }}
+      relabelings:
+        - targetLabel: job
+          replacement: process-worker
+{{- if .Values.temporalMonitoring.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "gavel.fullname" . }}-temporal
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- toYaml .Values.temporalMonitoring.serviceSelector | nindent 6 }}
+  endpoints:
+    - port: {{ .Values.temporalMonitoring.metricsPort }}
+      path: /metrics
+      interval: {{ .Values.monitoring.scrapeInterval }}
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_service_name]
+          targetLabel: temporal_service
+        - targetLabel: job
+          replacement: temporal
+{{- end }}
+{{- end }}

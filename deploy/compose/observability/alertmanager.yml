@@ -1,0 +1,15 @@
+route:
+  receiver: local-ui
+  group_by: [alertname, cluster, namespace, service]
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  # Local Compose keeps alerts in the Alertmanager UI and sends no external messages.
+  - name: local-ui
+
+inhibit_rules:
+  - source_matchers: ['severity="page"']
+    target_matchers: ['severity="warning"']
+    equal: [namespace, service]

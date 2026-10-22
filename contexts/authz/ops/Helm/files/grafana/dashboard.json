@@ -1,0 +1,23 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "panels": [
+    {"id": 1, "title": "Availability (30d)", "type": "stat", "targets": [{"expr": "gavel:authz:availability:ratio30d"}], "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}},
+    {"id": 2, "title": "Permission request rate", "type": "timeseries", "targets": [{"expr": "gavel:authz:permission_requests:rate5m"}], "gridPos": {"h": 8, "w": 9, "x": 6, "y": 0}},
+    {"id": 3, "title": "Dependency failure ratio", "type": "timeseries", "targets": [{"expr": "gavel:authz:permission_dependency_failure_ratio:rate5m"}], "gridPos": {"h": 8, "w": 9, "x": 15, "y": 0}},
+    {"id": 4, "title": "Permission average latency", "type": "timeseries", "targets": [{"expr": "gavel:authz:permission_average_latency_seconds:rate5m"}], "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}},
+    {"id": 5, "title": "Permission outcomes", "type": "timeseries", "targets": [{"expr": "sum by (operation, outcome) (rate(gavel_authz_permission_checks_total[$__rate_interval]))"}], "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}},
+    {"id": 6, "title": "Receipt outcomes", "type": "timeseries", "targets": [{"expr": "sum by (operation, outcome) (rate(gavel_authz_receipts_total[$__rate_interval]))"}], "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}},
+    {"id": 7, "title": "Receipt failure ratio", "type": "timeseries", "targets": [{"expr": "gavel:authz:receipt_failure_ratio:rate15m"}], "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}},
+    {"id": 8, "title": "Relationship mutations", "type": "timeseries", "targets": [{"expr": "sum by (mutation) (rate(gavel_authz_relationship_mutations_total[$__rate_interval]))"}], "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}},
+    {"id": 9, "title": "Healthy targets", "type": "stat", "targets": [{"expr": "sum(up{job=\"authz\"})"}], "gridPos": {"h": 4, "w": 6, "x": 18, "y": 24}}
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["gavel", "authz"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "title": "Gavel / Authz",
+  "uid": "gavel-authz",
+  "version": 2
+}

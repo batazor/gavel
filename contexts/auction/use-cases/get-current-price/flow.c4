@@ -1,0 +1,24 @@
+// Диаграмма юзкейса. Модель — в docs/architecture/model.c4.
+views {
+
+  dynamic view flow_get_current_price {
+    title 'Получить текущую публичную цену'
+    description 'Version-aware L1 → Redis L2 → authoritative PostgreSQL projection. Cache не участвует в PlaceBid.'
+    autoLayout TopBottom
+
+    bidder -> gavel.web 'открывает или обновляет цену'
+    gavel.web -> gavel.bff.graphql 'query currentPrice(auctionId)'
+    gavel.bff.graphql -> gavel.auction.service.api 'currentPrice'
+    gavel.auction.service.api -> gavel.auction.service.priceRead 'read public snapshot'
+    gavel.auction.service.priceRead -> gavel.auction.priceCache 'L1 miss/stale: Redis GET with singleflight' {
+      notes 'Свежий L1 отвечает без внешнего вызова; snapshot с меньшей version игнорируется'
+    }
+    gavel.auction.service.priceRead -> gavel.auction.service.history 'L2 miss/timeout/open circuit/older version: authoritative fallback'
+    gavel.auction.service.history -> gavel.auction.db 'read leader projection'
+    gavel.auction.service.priceRead -> gavel.auction.priceCache 'best-effort CAS populate only if version is newer' {
+      notes 'Ошибка cache fill не ломает успешное чтение PostgreSQL'
+    }
+    gavel.auction.service.api -> gavel.bff.graphql 'amount + currency + version'
+    gavel.bff.graphql -> gavel.web 'GraphQL result'
+  }
+}

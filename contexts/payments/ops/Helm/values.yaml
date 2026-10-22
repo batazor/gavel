@@ -1,0 +1,46 @@
+replicaCount: 3
+
+image:
+  repository: ghcr.io/batazor/gavel-payments
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+
+config:
+  authzEndpoint: http://gavel-authz.gavel.svc.cluster.local:9090
+  providerEndpoint: https://api.stripe.com/
+  processesSpiffeId: spiffe://cluster.local/ns/gavel/sa/gavel-processes
+
+externalSecret:
+  name: gavel-payments-runtime
+  databaseUrlKey: database-url
+  providerSecretKey: provider-secret
+  callbackSecretKey: callback-secret
+  fingerprintSecretKey: fingerprint-secret
+
+rpc:
+  enabled: true
+  port: 9090
+  allowedPrincipals:
+    - cluster.local/ns/gavel/sa/gavel-processes
+  allowedApplications:
+    - gavel-processes
+  allowedHttpPrincipals:
+    - cluster.local/ns/gavel/sa/gavel-bff
+
+podDisruptionBudget:
+  minAvailable: 2
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+monitoring:
+  enabled: true
+  scrapeInterval: 15s

@@ -1,0 +1,567 @@
+model {
+
+  // ---------- Люди ----------
+
+  bidder = actor 'Участник торгов' {
+    description 'Смотрит лоты, делает ставки, следит за ценой в реальном времени'
+  }
+
+  seller = actor 'Продавец' {
+    description 'Выставляет лоты, задаёт стартовую цену и срок'
+  }
+
+  // ---------- Внешние системы ----------
+
+  idp = external 'OAuth / OIDC провайдер' {
+    description 'Внешняя аутентификация. Выдаёт JWT; canonical principal строится из проверенных iss + sub. Resource permissions здесь не хранятся.'
+    icon tech:oauth
+  }
+
+  stripe = external 'Stripe' {
+    description 'Первый внешний платёжный провайдер. Подключён через сменный adapter Payments.'
+    icon tech:stripe
+  }
+
+  emailProvider = external 'Email provider' {
+    description 'Доставка транзакционных писем о необходимости восстановить оплату. Конкретный провайдер будет выбран позже.'
+  }
+
+  observability = external 'Grafana stack' {
+    description 'Долговременные backends Tempo (traces), Mimir (metrics), Loki (logs). Self-hosted operational Grafana/Prometheus живут внутри Gavel.'
+    icon tech:grafana
+  }
+
+  cloudflare = external 'Cloudflare' {
+    description 'Обязательный public edge: DNS/TLS, DDoS/WAF/bot controls, coarse rate limits и CDN для immutable Web assets. Origin доступен только через Cloudflare Tunnel.'
+  }
+
+  // ---------- Наша система ----------
+  // Микросервисы: один bounded context = один сервис + своя БД (ADR-0004).
+
+  gavel = system 'Gavel' {
+    description 'Аукцион. Лоты, ставки, завершение торгов, определение победителя.'
+
+    web = webapp 'Web UI' {
+      technology 'Astro'
+      description 'SSR + островки интерактивности. Queries, mutations и live updates через federated GraphQL.'
+      icon tech:astro
+    }
+
+    bff = container 'Cosmo Router' {
+      technology 'WunderGraph Cosmo Router, Go, Apache-2.0'
+      description 'Единственная публичная API-точка. Self-hosted Federation execution: validation, query planning, composition, subscriptions и telemetry. Без доменных правил (BFF init).'
+
+      graphql = component 'Federation execution' {
+        description 'Публичный /graphql. Исполняет persisted queries, mutations и subscriptions по локально скомпонованному execution config.'
+      }
+    }
+
+    realtime = container 'Realtime subgraph' {
+      technology 'Rust, GraphQL Federation'
+      description 'Узкий BFF adapter для Gavel delivery semantics; Cosmo остаётся публичным transport.'
+      icon tech:rust
+
+      subscription = component 'Auction updates subscription' {
+        description 'afterVersion → replay из Auction → live Redpanda; coalesces price updates, не теряет terminal events.'
+      }
+    }
+
+    // ----- Authorization project -----
+
+    authz = context 'Authz' {
+      description 'Fine-grained authorization. OAuth подтверждает identity; SpiceDB вычисляет permissions; домены проверяют eligibility отдельно.'
+
+      service = container 'authz-service' {
+        technology 'Rust'
+        description 'Внутренний policy API и scoped relationship writer. Проверяет caller workload identity; raw SpiceDB credentials другим проектам не выдаются.'
+
+        check = component 'Permission API' {
+          description 'CheckPermission/BulkCheckPermission с ZedToken consistency'
+        }
+        relationships = component 'Relationship API' {
+          description 'RegisterPrincipal и idempotent TOUCH/delete; caller ограничен compile-time workload allowlist'
+        }
+        schema = component 'Gavel schema' {
+          description 'Versioned .zed contract: platform, lot, auction, payment profile/attempt, notification, operation'
+        }
+      }
+
+      spicedb = container 'SpiceDB' {
+        technology 'SpiceDB'
+        description 'Вычисляет permissions и хранит revisions; API доступен только authz-service и schema migration job.'
+      }
+
+      receipts = database 'authz-receipts-db' {
+        technology 'PostgreSQL'
+        description 'Durable mutation receipts: fingerprint, lease и safe result. Не хранит raw identity claims или tuple ids.'
+      }
+
+      spicedbDb = database 'spicedb-db' {
+        technology 'PostgreSQL'
+        description 'Отдельный HA datastore SpiceDB: relationships и revisions; не доменное состояние.'
+      }
+    }
+
+    // ----- Bounded context: Auction -----
+
+    auction = context 'Auction' {
+      #domain
+      description 'Ядро. Торги: ставки, завершение, победитель. Event sourced, инварианты доказаны в Lean.'
+
+      service = container 'auction-service' {
+        technology 'Rust'
+        description 'Hexagonal: адаптеры снаружи, домен внутри, домен не знает об инфраструктуре.'
+        icon tech:rust
+
+        api = component 'Federation + command adapter' {
+          description 'GraphQL fields и внутренние команды PlaceBid, RescheduleAuction, CloseAuction, ForfeitSettlementCandidate, ConfirmWinner. Проверяет проекцию платёжной готовности.'
+        }
+
+        aggregate = component 'Auction aggregate' {
+          #domain
+          description '''
+            Английский аукцион с proxy bidding (Auction init).
+            Инварианты:
+            - цена не убывает
+            - лидер держит наибольший максимум
+            - цена ≤ второй максимум + шаг
+            - settlement candidate и его amount не превышают максимум; closing price не переписывается
+            - победитель появляется только после успешной оплаты
+            - аукцион завершается ровно один раз и не раньше ends_at
+            - ends_at никогда не превышает hard_deadline
+          '''
+
+          closing = component 'Closing policy' {
+            #domain
+            description '''
+              Value object: scheduled_end, inactivity, hard_deadline — задаёт продавец.
+              ends_at = min(hard_deadline, max(scheduled_end, last_bid_at + inactivity)).
+              Пересчёт при каждой ставке. Anti-sniping — частный случай. См. contexts/auction/README.md.
+            '''
+          }
+
+          policy = component 'Pricing policy' {
+            #domain
+            description '''
+              Доменная политика внутри агрегата, не доменный сервис: работает только над состоянием этого аукциона.
+              Чистая функция (максимумы, шаг) → (лидер, цена). Без планировщика.
+            '''
+          }
+        }
+
+        events = component 'Domain events' {
+          #domain
+          description '''
+            Приватные: AuctionOpened(policy), MaxBidPlaced(user, max), DeadlineExtended, AuctionRescheduled, AuctionClosed, AuctionCancelled, SettlementCandidateSelected, SettlementCandidateForfeited, WinnerConfirmed, AuctionUnsold.
+            Публичная проекция: BidRecorded(alias, resulting_price, version) для каждой принятой ставки; PriceChanged при изменении цены; безопасные lifecycle events. Максимумы, user_id и идентификатор лидера наружу не выходят.
+          '''
+        }
+
+        eventstore = component 'Event store' {
+          description 'Append-only журнал событий, версия потока = optimistic lock. Строка outbox пишется в той же транзакции.'
+        }
+
+        outbox = component 'Transactional outbox' {
+          description 'Публичные события атомарно пишутся рядом с журналом. Публикацию выполняет Debezium, сервис не содержит relay.'
+        }
+
+        consumer = component 'Event consumer' {
+          description 'LotListed → OpenAuction; PaymentInstrumentReady/Revoked → проекция допуска к ставкам'
+        }
+
+        history = component 'Event history query' {
+          description 'Операционная проекция текущей цены и events since version. Обслуживает быстрый price read и subscription replay; ClickHouse не используется.'
+        }
+        priceRead = component 'Current price read module' {
+          description 'Интерфейс currentPrice: version-aware L1 (500 ms) → Redis L2 → authoritative PostgreSQL fallback. Singleflight на hot key; cache никогда не используется командами.'
+        }
+        priceCacheProjector = component 'Price cache projector' {
+          description 'PriceChanged из Redpanda → atomic compare-by-version в Redis. At-least-once и старые события безопасны.'
+        }
+      }
+
+      db = database 'auction-db' {
+        technology 'PostgreSQL'
+        description 'Shard-ready по auction_id. Каждый production shard: leader + ≥2 standby. Ставки и current price читают leader; history может читать replica с lag/version guard.'
+      }
+
+      priceCache = database 'price-cache' {
+        technology 'Redis'
+        description 'Восстанавливаемый L2-cache публичной текущей цены. HA across zones; key по auction_id, value содержит amount, currency, version, updated_at.'
+        style {
+          icon none
+        }
+      }
+    }
+
+    // ----- Bounded context: Catalog -----
+
+    catalog = context 'Catalog' {
+      #domain
+      description 'Описание лотов: название, фото, категория. Read-heavy, без торговой логики.'
+
+      service = container 'catalog-service' {
+        technology 'Rust'
+        description 'Tokio HTTP Federation + internal gRPC runtime, DDD application layer, supervised media/Authz reconciliation workers и bounded telemetry.'
+        icon tech:rust
+
+        api = component 'Federation + command adapter' {
+          description 'Verified-principal GraphQL, trusted Processes SPIFFE gRPC, deadlines, durable HMAC receipts и stable error outcomes.'
+        }
+        lot = component 'Lot' {
+          #domain
+          description 'Агрегат лота. Событие LotListed запускает торги.'
+        }
+        mediaAsset = component 'Lot image lifecycle' {
+          description 'PENDING → READY → ATTACHED. Проверяет владельца, size/type/checksum и скрывает отсутствие общей транзакции с object storage.'
+        }
+        objectStorage = component 'Object storage adapter' {
+          description 'Узкий S3-compatible interface: presign PUT, HeadObject, DeleteObject. Provider-specific endpoint, credentials и URL скрыты.'
+        }
+        repository = component 'Lot repository'
+        outbox = component 'Transactional outbox' {
+          description 'LotListed пишется в одной транзакции с лотом; публикацию выполняет Debezium'
+        }
+      }
+
+      db = database 'catalog-db' {
+        technology 'PostgreSQL'
+        description 'Лоты и медиа-ссылки. Production HA: leader + ≥2 standby; list/details идут в read replicas, commands и read-your-writes — в leader.'
+      }
+
+      media = container 'Media object storage' {
+        technology 'S3-compatible API'
+        description 'Бинарные изображения под server-generated keys. MinIO — adapter для local/kind; production provider сменный и обязан соответствовать durability/availability SLO.'
+      }
+    }
+
+    // ----- Bounded context: Payments -----
+
+    payments = context 'Payments' {
+      #domain
+      description 'Provider-neutral платёжная готовность и попытки оплаты. Хранит инструменты, разрешения и бизнес-статусы, но не данные карты и не settlement workflow (Payments init).'
+
+      service = container 'payments-service' {
+        technology 'Rust'
+        description 'Управляет PaymentInstrument, DebitAuthorization и PaymentAttempt; provider-specific API изолированы во внешнем адаптере.'
+        icon tech:rust
+
+        api = component 'Federation + command adapter' {
+          description 'GraphQL fields и внутренние команды BeginInstrumentRegistration, AttemptPayment, ContinuePayment, ExpirePayment; readiness и статус для Auction/Cosmo.'
+        }
+        profile = component 'Payment instrument' {
+          #domain
+          description 'Missing → Ready → Revoked. Provider, непрозрачные refs, recovery email и DebitAuthorization; без данных карты.'
+        }
+        webhook = component 'Provider callback' {
+          description 'Отдельный Cloudflare/Istio route вне GraphQL. Адаптер проверяет подпись и дедуплицирует по provider_event_ref. Без JWT.'
+        }
+        payment = component 'Payment aggregate' {
+          #domain
+          description 'Pending → Processing | RecoveryRequired | Succeeded | Expired. Одна попытка на settlement round, один успех на аукцион.'
+        }
+        providerAdapter = component 'Payment provider adapter' {
+          description 'Реализует PrepareInstrument, Charge, ContinuePayment, Cancel и переводит внешний lifecycle в нейтральные исходы. Первый adapter — Stripe.'
+        }
+        repository = component 'Payment repository'
+        outbox = component 'Transactional outbox' {
+          description 'Публичные payment events пишутся атомарно; публикацию выполняет Debezium'
+        }
+      }
+
+      db = database 'payments-db' {
+        technology 'PostgreSQL'
+        description 'Provider refs, разрешения и попытки. Production HA: leader + ≥2 standby; commands/callbacks всегда leader, status replica только с lag guard.'
+      }
+    }
+
+    // ----- Bounded context: Notify -----
+
+    notify = context 'Notify' {
+      #domain
+      description 'Provider-neutral уведомления: шаблоны, каналы, идемпотентность и история доставки. Не принимает settlement-решения.'
+
+      service = container 'notify-service' {
+        technology 'Rust'
+        description 'Принимает логические уведомления и доставляет их через сменные channel adapters.'
+        icon tech:rust
+
+        api = component 'Notification API' {
+          description 'Idempotent SendNotification(notification_id, recipient, template, data)'
+        }
+        notification = component 'Notification aggregate' {
+          #domain
+          description 'Pending → Sent | Failed; дедупликация, retry policy и audit доставки'
+        }
+        template = component 'Template renderer' {
+          description 'Версионированные шаблоны candidate/recovery/winner без settlement-логики'
+        }
+        channelAdapter = component 'Email channel adapter' {
+          description 'Скрывает API конкретного email provider'
+        }
+        repository = component 'Notification repository'
+        outbox = component 'Transactional outbox' {
+          description 'NotificationSent/Failed пишутся атомарно; публикацию выполняет Debezium'
+        }
+      }
+
+      db = database 'notify-db' {
+        technology 'PostgreSQL'
+        description 'Логические уведомления, delivery attempts и outbox. Production HA: leader + ≥2 standby.'
+      }
+    }
+
+    // ----- Bounded context: Analytics -----
+
+    analytics = context 'Analytics' {
+      description 'Аналитическая история торгов и полная безопасная история ставок. Только публичные неизменяемые события, eventually consistent (Analytics init).'
+
+      service = container 'analytics-service' {
+        technology 'Rust, GraphQL Federation'
+        description 'Read-only subgraph. Выдаёт cursor pages истории ставок и графики; не обслуживает authoritative current price.'
+        icon tech:rust
+
+        api = component 'Analytics subgraph' {
+          description 'Federated fields над безопасными ClickHouse projections.'
+        }
+      }
+
+      clickhouse = database 'ClickHouse' {
+        technology 'ClickHouse'
+        description 'Replicated shards. Kafka engine читает Redpanda в MaterializedView; потеря одной replica не останавливает ingestion/read.'
+        style {
+          icon none
+        }
+      }
+    }
+
+    // ----- Слой процессов (Processes init) -----
+    // Факты идут в брокер, намерения во времени — в Temporal.
+
+    processes = container 'Process worker' {
+      technology 'Rust, Temporal SDK'
+      description 'Workflow и activities. Состояние торгов не хранит: ждёт таймеры, слушает сигналы, шлёт идемпотентные команды.'
+      icon tech:rust
+
+      api = component 'Processes subgraph' {
+        description 'Узкий adapter для запуска process commands и чтения Operation; router не обращается к Temporal напрямую.'
+      }
+
+      subscriber = component 'Event subscriber' {
+        description 'AuctionOpened → AuctionLifecycle; SettlementCandidateSelected → SettleAuction; PaymentSucceeded/RecoveryRequired/Expired → signal'
+      }
+      lifecycle = component 'AuctionLifecycle workflow' {
+        description 'Durable-таймер на текущий ends_at. По сигналу сбрасывает таймер. По срабатыванию → CloseAuction(now). Решений о продлении не принимает.'
+      }
+      withdraw = component 'WithdrawLot saga' {
+        description 'CancelAuction, если ставок нет → WithdrawLot в Catalog. При отказе — компенсация.'
+      }
+      settle = component 'SettleAuction saga' {
+        description 'Уведомление и автоматическая попытка через Payments; при RecoveryRequired — 2ч timer; затем forfeiture и следующий кандидат до WinnerConfirmed или AuctionUnsold.'
+      }
+      activities = component 'Activities' {
+        description 'Команды в Auction, Catalog, Payments и Notify. Идемпотентны, с retry. Отказ владельца — штатный исход.'
+      }
+    }
+
+    temporal = container 'Temporal' {
+      technology 'Temporal server cluster + HA Postgres'
+      description 'Несколько server replicas, durable timers и task queues; отдельный HA Postgres. Не хранилище домена и не шина.'
+    }
+
+    // ----- Инфраструктура -----
+
+    broker = container 'Redpanda' {
+      technology 'Kafka API'
+      description 'Production: ≥3 brokers, RF=3, min ISR=2. Топики по владельцу, key = aggregate id; источник — outbox, долгий retention (ADR-0012/0014).'
+      icon tech:kafka-icon
+    }
+
+    cdc = container 'Kafka Connect + Debezium' {
+      technology 'Kafka Connect, Debezium PostgreSQL connector'
+      description 'Читает только transactional outbox каждого Postgres shard через WAL и публикует публичные события с Outbox Event Router. Не делает CDC доменных таблиц.'
+      icon tech:kafka-icon
+    }
+
+    otel = container 'OTel Collector' {
+      technology 'OpenTelemetry Collector'
+      description 'Принимает OTLP от сервисов и меша, отправляет в Grafana stack.'
+      icon tech:opentelemetry-icon
+    }
+
+    prometheus = container 'Prometheus Operator stack' {
+      technology 'kube-prometheus-stack, Prometheus Operator, Prometheus'
+      description 'Обнаруживает targets через ServiceMonitor, оценивает PrometheusRule и хранит 15 дней operational metrics. HA replicas; remote write в Mimir.'
+    }
+
+    alertmanager = container 'Alertmanager' {
+      technology 'Alertmanager HA'
+      description 'Группирует, ингибирует и маршрутизирует page/warning/ticket; credentials получателей только в Secrets.'
+    }
+
+    grafana = container 'Grafana' {
+      technology 'Grafana, provisioned dashboards'
+      description 'Self-hosted UI для Prometheus, Tempo, Mimir, Loki и ClickHouse. Dashboard JSON управляется из Git.'
+      icon tech:grafana
+    }
+  }
+
+  // ---------- Связи ----------
+  // Направление связей = направление чтения: сверху вниз, слева направо.
+
+  bidder -> cloudflare 'Web и GraphQL через public edge'
+  seller -> cloudflare 'Web и GraphQL через public edge'
+  cloudflare -> gavel.web 'HTML и immutable assets; personalized content не кэшируется'
+  cloudflare -> gavel.bff.graphql '/graphql: queries, mutations, subscriptions; no cache'
+
+  gavel.web -> idp 'логин по OAuth, получает JWT'
+
+  gavel.web -> gavel.bff.graphql 'логический GraphQL interface через Cloudflare; optional Bearer JWT' {
+    technology 'HTTPS'
+  }
+
+  // Cosmo композит только Federation interfaces; правила и authoritative checks остаются у владельцев
+  gavel.bff.graphql -> gavel.authz.service.check 'viewer capabilities; optional edge pre-check'
+  gavel.bff.graphql -> gavel.auction.service.api 'Auction fields, PlaceBid, RescheduleAuction; public currentPrice P99 < 200 ms'
+  gavel.bff.graphql -> gavel.catalog.service.api 'Lot fields, media upload intent, ListLot, UpdateLot'
+  gavel.bff.graphql -> gavel.analytics.service.api 'cursor bid history, price chart'
+  gavel.bff.graphql -> gavel.payments.service.api 'payment registration, recovery and status fields'
+  gavel.bff.graphql -> gavel.processes.api 'start process command, Operation status'
+  gavel.bff.graphql -> gavel.realtime.subscription 'subscription auctionUpdates(afterVersion)'
+  gavel.realtime.subscription -> gavel.auction.service.history 'replay since stream version'
+
+  // Auction: команда → агрегат → события → журнал → БД; Realtime и outbox читают зафиксированное
+  gavel.auction.service.api -> gavel.auction.service.aggregate 'PlaceBid, CloseAuction, ForfeitCandidate, ConfirmWinner'
+  gavel.auction.service.api -> gavel.authz.service.check 'authoritative auction permission check'
+  gavel.auction.service.api -> gavel.authz.service.relationships 'provision auction and participant relations'
+  gavel.auction.service.consumer -> gavel.auction.service.aggregate 'OpenAuction; update payment readiness projection'
+  gavel.auction.service.aggregate -[emits]-> gavel.auction.service.events 'emits'
+  gavel.auction.service.events -> gavel.auction.service.eventstore 'append, expected version'
+  gavel.auction.service.eventstore -[writes]-> gavel.auction.db 'events + outbox, одна транзакция'
+  gavel.auction.service.eventstore -> gavel.auction.service.history 'чтение потока'
+  gavel.auction.service.eventstore -> gavel.auction.service.outbox 'публичные строки outbox'
+  gavel.auction.service.api -> gavel.auction.service.priceRead 'currentPrice query only'
+  gavel.auction.service.priceRead -> gavel.auction.priceCache 'L2 read; version-aware populate on miss'
+  gavel.auction.service.priceRead -> gavel.auction.service.history 'authoritative fallback on L2 miss/error'
+  gavel.auction.service.priceCacheProjector -> gavel.broker 'subscribe: PriceChanged'
+  gavel.auction.service.priceCacheProjector -> gavel.auction.priceCache 'atomic compare-by-version'
+
+  // Catalog
+  gavel.catalog.service.api -> gavel.catalog.service.lot 'команды: ListLot, UpdateLot'
+  gavel.catalog.service.api -> gavel.catalog.service.mediaAsset 'request / complete image upload'
+  gavel.catalog.service.api -> gavel.authz.service.check 'create/edit/withdraw permission'
+  gavel.catalog.service.api -> gavel.authz.service.relationships 'provision lot seller relations'
+  gavel.catalog.service.lot -> gavel.catalog.service.repository 'save / load'
+  gavel.catalog.service.mediaAsset -> gavel.catalog.service.repository 'save state / attach to lot'
+  gavel.catalog.service.mediaAsset -> gavel.catalog.service.objectStorage 'presign / verify / delete'
+  gavel.catalog.service.objectStorage -> gavel.catalog.media 'S3-compatible operations'
+  gavel.web -> gavel.catalog.media 'presigned PUT; image GET' {
+    technology 'HTTPS, S3-compatible data plane'
+  }
+  gavel.catalog.service.repository -[writes]-> gavel.catalog.db 'lot + outbox, одна транзакция'
+  gavel.catalog.service.repository -> gavel.catalog.service.outbox 'публичные строки outbox'
+
+  // Между сервисами — только через брокер. Стрелка = зависимость: подписчик -> брокер.
+  gavel.auction.service.consumer -> gavel.broker 'subscribe: LotListed, PaymentInstrumentReady, PaymentInstrumentRevoked'
+  gavel.realtime.subscription -> gavel.broker 'subscribe: PriceChanged, AuctionClosed, PaymentRecoveryRequired, PaymentSucceeded, WinnerConfirmed'
+
+  // Слой процессов
+  gavel.processes -> gavel.temporal 'task queues, таймеры, история workflow'
+  gavel.processes.subscriber -> gavel.broker 'subscribe: AuctionOpened, DeadlineExtended, SettlementCandidateSelected, payments.events'
+  gavel.processes.subscriber -> gavel.processes.lifecycle 'start / signal'
+  gavel.processes.lifecycle -> gavel.processes.activities 'CloseAuction(now)'
+  gavel.processes.withdraw -> gavel.processes.activities 'CancelAuction, WithdrawLot'
+  gavel.processes.activities -> gavel.auction.service.api 'команды с временем' {
+    technology 'HTTP, mTLS меша'
+  }
+  gavel.processes.activities -> gavel.catalog.service.api 'WithdrawLot' {
+    technology 'HTTP, mTLS меша'
+  }
+  gavel.processes.api -> gavel.processes.withdraw 'start WithdrawLot saga'
+
+  // Payments
+  gavel.processes.subscriber -> gavel.processes.settle 'start / signal'
+  gavel.processes.settle -> gavel.processes.activities 'NotifyCandidate, AttemptPayment, ExpirePayment, ForfeitCandidate, ConfirmWinner'
+  gavel.processes.activities -> gavel.payments.service.api 'AttemptPayment(auction, round, candidate, amount)' {
+    technology 'HTTP, mTLS меша'
+  }
+  gavel.payments.service.api -> gavel.payments.service.profile 'setup / readiness'
+  gavel.payments.service.api -> gavel.authz.service.check 'profile/attempt permission'
+  gavel.payments.service.api -> gavel.authz.service.relationships 'provision payment owner relations'
+  gavel.payments.service.api -> gavel.payments.service.payment 'attempt / retry / expire'
+  gavel.payments.service.profile -> gavel.payments.service.providerAdapter 'PrepareInstrument'
+  gavel.payments.service.payment -> gavel.payments.service.providerAdapter 'Charge, ContinuePayment, Cancel'
+  gavel.payments.service.providerAdapter -> stripe 'первый provider-specific adapter' {
+    technology 'HTTPS'
+  }
+  stripe -> cloudflare 'signed provider callback через public edge' {
+    technology 'HTTPS webhook'
+  }
+  cloudflare -> gavel.payments.service.webhook '/payment-provider-callbacks/*; no cache/challenge' {
+    technology 'HTTPS webhook'
+  }
+  gavel.payments.service.webhook -> gavel.payments.service.providerAdapter 'verify + map provider outcome'
+  gavel.payments.service.providerAdapter -> gavel.payments.service.profile 'InstrumentPrepared / InstrumentRevoked'
+  gavel.payments.service.providerAdapter -> gavel.payments.service.payment 'Processing / RecoveryRequired / Succeeded'
+  gavel.payments.service.profile -> gavel.payments.service.repository 'save / load'
+  gavel.payments.service.payment -> gavel.payments.service.repository 'save / load'
+  gavel.payments.service.repository -[writes]-> gavel.payments.db 'payment + outbox, одна транзакция'
+  gavel.payments.service.repository -> gavel.payments.service.outbox 'публичные строки outbox'
+  gavel.web -> stripe 'provider-hosted registration / recovery' {
+    technology 'HTTPS'
+  }
+
+  // Notify
+  gavel.processes.activities -> gavel.notify.service.api 'SendNotification(candidate, recovery, winner)' {
+    technology 'HTTP, mTLS меша'
+  }
+  gavel.processes.activities -> gavel.authz.service.check 'service_account:processes capabilities'
+  gavel.notify.service.api -> gavel.notify.service.notification 'create or return existing notification'
+  gavel.notify.service.api -> gavel.authz.service.check 'send notification permission'
+  gavel.notify.service.api -> gavel.authz.service.relationships 'provision notification relations'
+  gavel.notify.service.notification -> gavel.notify.service.template 'render versioned template'
+  gavel.notify.service.notification -> gavel.notify.service.channelAdapter 'deliver with retry'
+  gavel.notify.service.channelAdapter -> emailProvider 'send transactional email' {
+    technology 'HTTPS'
+  }
+  gavel.notify.service.notification -> gavel.notify.service.repository 'save / load'
+  gavel.notify.service.repository -[writes]-> gavel.notify.db 'notification + outbox, одна транзакция'
+  gavel.notify.service.repository -> gavel.notify.service.outbox 'публичные строки outbox'
+
+  // CDC читает только outbox из WAL; ClickHouse читает публичные события прямо из брокера
+  gavel.cdc -> gavel.auction.db 'capture auction outbox via WAL'
+  gavel.cdc -> gavel.catalog.db 'capture catalog outbox via WAL'
+  gavel.cdc -> gavel.payments.db 'capture payments outbox via WAL'
+  gavel.cdc -> gavel.notify.db 'capture notify outbox via WAL'
+  gavel.cdc -> gavel.broker 'Outbox Event Router: publish public events'
+  gavel.analytics.clickhouse -> gavel.broker 'subscribe: BidRecorded, PriceChanged, AuctionClosed, WinnerConfirmed, LotListed, payments.events' {
+    technology 'Kafka engine'
+  }
+  gavel.analytics.service.api -> gavel.analytics.clickhouse 'cursor bid history и график цены' {
+    description 'Не на горячем пути: отставание на секунды допустимо'
+  }
+  gavel.grafana -> gavel.analytics.clickhouse 'дашборды торгов' {
+    technology 'Grafana ClickHouse datasource'
+  }
+
+  // Телеметрия
+  gavel.bff -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.realtime -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.analytics.service -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.authz.service -> gavel.authz.spicedb 'Check/BulkCheck, relationship and schema API'
+  gavel.authz.service.relationships -> gavel.authz.receipts 'claim/complete idempotency receipts'
+  gavel.authz.spicedb -> gavel.authz.spicedbDb 'relationships, revisions'
+  gavel.authz.service -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.processes -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.payments.service -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.notify.service -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.auction.service -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.catalog.service -[exports]-> gavel.otel 'OTLP/gRPC'
+  gavel.otel -[exports]-> observability 'OTLP'
+  gavel.processes -[exports]-> gavel.prometheus 'Prometheus scrape: Temporal SDK + process SLI'
+  gavel.temporal -[exports]-> gavel.prometheus 'Prometheus scrape: OSS service metrics'
+  gavel.prometheus -> gavel.alertmanager 'firing/resolved alerts'
+  gavel.prometheus -[exports]-> observability 'remote_write to Mimir'
+  gavel.grafana -> gavel.prometheus 'operational PromQL'
+  gavel.grafana -> observability 'Tempo / Mimir / Loki queries'
+}

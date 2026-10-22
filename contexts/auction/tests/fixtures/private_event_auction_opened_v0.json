@@ -1,0 +1,13 @@
+{
+  "auction_id": "auction-legacy",
+  "lot_id": "lot-legacy",
+  "seller_id": "seller-legacy",
+  "start_price_minor": 100,
+  "currency": "USD",
+  "bid_step_minor": 10,
+  "scheduled_end_millis": 1000,
+  "inactivity_millis": null,
+  "hard_deadline_millis": null,
+  "opened_at_millis": 100,
+  "ends_at_millis": 1000
+}

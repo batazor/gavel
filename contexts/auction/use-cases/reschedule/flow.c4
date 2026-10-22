@@ -1,0 +1,34 @@
+// Диаграмма юзкейса. Модель — в docs/architecture/model.c4.
+views {
+
+  dynamic view flow_reschedule {
+    title 'Продавец меняет время окончания'
+    description 'RescheduleAuction в любой момент, пока торги открыты. Нельзя в прошлое. Тип политики меняется только до первой ставки.'
+    autoLayout TopBottom
+
+    seller -> gavel.web 'перенести окончание на 20:00'
+    gavel.web -> gavel.bff.graphql 'mutation rescheduleAuction(id, scheduledEnd: 20:00)'
+    gavel.bff.graphql -> gavel.auction.service.api 'RescheduleAuction(seller, 20:00)'
+    gavel.auction.service.api -> gavel.auction.db 'lookup idempotency key + fingerprint' {
+      notes 'Exact replay → stored result; conflicting payload → IDEMPOTENCY_CONFLICT'
+    }
+    gavel.auction.service.api -> gavel.authz.service.check 'authoritative auction#reschedule, fail-closed'
+    gavel.auction.service.api -> gavel.auction.service.aggregate 'проверка: продавец лота, торги открыты, 20:00 > now' {
+      notes 'Closing policy пересчитывает ends_at с новым scheduled_end. hard_deadline не превышается'
+    }
+    gavel.auction.service.aggregate -> gavel.auction.service.events 'AuctionRescheduled(ends_at = 20:00)'
+    gavel.auction.service.events -> gavel.auction.service.eventstore 'append, expected version = N'
+    gavel.auction.service.eventstore -> gavel.auction.db 'event + projection + outbox + command result, одна транзакция' {
+      notes 'OCC conflict → bounded retry сервиса'
+    }
+    gavel.auction.service.api -> gavel.bff.graphql 'Auction {endsAt: 20:00}'
+    gavel.bff.graphql -> gavel.web 'GraphQL result'
+    gavel.cdc -> gavel.broker 'AuctionRescheduled from outbox'
+    gavel.broker -> gavel.processes.subscriber 'AuctionRescheduled'
+    gavel.processes.subscriber -> gavel.processes.lifecycle 'signal DeadlineChanged(20:00)' {
+      notes 'Таймер сброшен. Если новый ends_at уже в прошлом относительно таймера — срабатывает сразу'
+    }
+    gavel.broker -> gavel.realtime.subscription 'AuctionRescheduled'
+    gavel.bff.graphql -> gavel.web 'subscription: endsAt 20:00'
+  }
+}

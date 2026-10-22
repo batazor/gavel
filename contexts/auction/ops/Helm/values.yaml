@@ -1,0 +1,50 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/batazor/gavel-auction
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+
+rpc:
+  enabled: true
+  port: 9090
+  allowedPrincipals:
+    - cluster.local/ns/gavel/sa/gavel-processes
+  allowedApplications:
+    - gavel-processes
+
+runtime:
+  dependencyTimeoutMillis: 500
+
+database:
+  existingSecret: gavel-auction-database
+  urlKey: url
+
+redis:
+  url: redis://gavel-redis:6379/
+
+authz:
+  url: http://gavel-authz:9090
+
+commandFingerprint:
+  existingSecret: gavel-auction-command-fingerprint
+  key: key-hex
+
+migrations:
+  enabled: true
+  backoffLimit: 3
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+monitoring:
+  enabled: true
+  scrapeInterval: 15s

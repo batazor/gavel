@@ -1,0 +1,91 @@
+/** A person authenticated by the configured OAuth/OIDC trust boundary. */
+definition user {}
+
+/** A workload authenticated by mesh workload identity. */
+definition service_account {}
+
+/** Global Gavel capabilities and trusted workloads. */
+definition platform {
+    /** Human operators allowed to administer Catalog resources. */
+    relation administrator: user
+
+    /** Verified and currently enabled Gavel users. */
+    relation member: user
+
+    /** The Temporal process worker workload identity. */
+    relation process_worker: service_account
+
+    permission administer = administrator
+    permission create_lot = member
+    permission participate_in_auction = member
+    permission register_payment_instrument = member
+    permission operate_catalog = process_worker
+    permission operate_auctions = process_worker
+    permission operate_payments = process_worker
+    permission send_notifications = process_worker
+}
+
+/** Catalog lot and its seller-owned capabilities. */
+definition lot {
+    relation platform: platform
+    relation seller: user
+
+    permission admin_override = platform->administer
+    permission is_seller = seller
+    permission edit = seller + admin_override
+    permission withdraw = seller + admin_override
+    permission execute_withdraw = platform->operate_catalog
+    permission reschedule_auction = seller + admin_override
+    permission view_seller_state = seller + admin_override
+}
+
+/** Auction-specific relationships and commands. */
+definition auction {
+    relation platform: platform
+    relation lot: lot
+    relation participant: user
+
+    /** Eligibility such as open state and payment readiness remains in Auction. */
+    permission place_bid = platform->participate_in_auction
+    permission view_personal_state = participant + lot->is_seller
+    permission reschedule = lot->reschedule_auction
+    permission close = platform->operate_auctions
+    permission cancel = platform->operate_auctions
+    permission reopen = platform->operate_auctions
+    permission settle = platform->operate_auctions
+}
+
+/** Provider-neutral payment instrument owned by one user. */
+definition payment_profile {
+    relation owner: user
+
+    permission manage = owner
+    permission view = owner
+}
+
+/** One settlement payment attempt. */
+definition payment_attempt {
+    relation platform: platform
+    relation auction: auction
+    relation owner: user
+
+    permission view = owner
+    permission continue_payment = owner
+    permission process = platform->operate_payments
+}
+
+/** Logical user notification and its recipient. */
+definition notification {
+    relation platform: platform
+    relation recipient: user
+
+    permission view = recipient
+    permission deliver = platform->send_notifications
+}
+
+/** BFF operation resource returned for an asynchronous user command. */
+definition operation {
+    relation owner: user
+
+    permission view = owner
+}

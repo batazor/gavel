@@ -1,0 +1,64 @@
+groups:
+  - name: gavel.notify.recording
+    interval: 30s
+    rules:
+      - record: gavel:notify:availability:ratio30d
+        expr: avg_over_time((max(up{job="notify"}) > bool 0)[30d:1m])
+      - record: gavel:notify:rpc_server_latency:p99_5m
+        expr: histogram_quantile(0.99, sum by (le, rpc_service, rpc_method) (rate(gavel_rpc_server_duration_seconds_bucket{service="notify"}[5m])))
+      - record: gavel:notify:rpc_server_failure_ratio:rate5m
+        expr: sum(rate(gavel_rpc_server_requests_total{service="notify",grpc_code!="OK"}[5m])) / clamp_min(sum(rate(gavel_rpc_server_requests_total{service="notify"}[5m])), 0.000001)
+
+  - name: gavel.notify.alerts
+    rules:
+      - alert: NotifyUnavailable
+        expr: absent(up{job="notify"}) or sum(up{job="notify"}) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: notify
+          slo: availability
+        annotations:
+          summary: Notify has no healthy target
+          description: No Notify instance has been scrapeable for two minutes.
+          dashboard_uid: gavel-notify
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/notify/ops/Helm/README.md
+
+      - alert: NotifyRestartStorm
+        expr: sum(increase(kube_pod_container_status_restarts_total{container="gavel-notify"}[15m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: notify
+          slo: availability
+        annotations:
+          summary: Notify containers are restarting repeatedly
+          description: More than three restarts were observed during the last 15 minutes.
+          dashboard_uid: gavel-notify
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/notify/ops/Helm/README.md
+
+      - alert: NotifyBootstrapMetricsMissing
+        expr: absent(gavel_service_info{service="notify"}) and sum(up{job="notify"}) > 0
+        for: 10m
+        labels:
+          severity: ticket
+          team: platform
+          service: notify
+          slo: telemetry
+        annotations:
+          summary: Notify bootstrap metric is missing
+          description: The target is scrapeable but does not expose its service identity metric.
+          dashboard_uid: gavel-notify
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/notify/ops/Helm/README.md
+
+      - alert: NotifyRpcFailureRatioHigh
+        expr: gavel:notify:rpc_server_failure_ratio:rate5m > 0.05
+        for: 10m
+        labels: {severity: warning, team: platform, service: notify, slo: rpc}
+        annotations:
+          summary: Notify gRPC failure ratio exceeds 5%
+          description: Transport failures and domain rejections must be separated by grpc_code and trace.
+          dashboard_uid: gavel-notify
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/notify/ops/Helm/README.md

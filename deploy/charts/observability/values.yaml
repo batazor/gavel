@@ -1,0 +1,59 @@
+alertRouting:
+  # Production enables this and creates the referenced Secret out of band.
+  enabled: false
+  secretName: platform-alert-webhooks
+  pageUrlKey: page-url
+  warningUrlKey: warning-url
+  ticketUrlKey: ticket-url
+
+kube-prometheus-stack:
+  fullnameOverride: gavel-monitoring
+  prometheusOperator:
+    enabled: true
+  prometheus:
+    prometheusSpec:
+      replicas: 2
+      retention: 15d
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorNamespaceSelector: {}
+      ruleSelectorNilUsesHelmValues: false
+      ruleNamespaceSelector: {}
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: [ReadWriteOnce]
+            resources:
+              requests:
+                storage: 50Gi
+  alertmanager:
+    alertmanagerSpec:
+      replicas: 2
+      # This config owns platform-wide routing, not only alerts carrying the
+      # observability namespace label.
+      alertmanagerConfigMatcherStrategy:
+        type: None
+      alertmanagerConfigSelector:
+        matchLabels:
+          gavel.io/alert-routing: platform
+      alertmanagerConfigNamespaceSelector: {}
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: [ReadWriteOnce]
+            resources:
+              requests:
+                storage: 5Gi
+  grafana:
+    enabled: true
+    sidecar:
+      dashboards:
+        enabled: true
+        searchNamespace: ALL
+        label: grafana_dashboard
+        labelValue: "1"
+        folderAnnotation: grafana_folder
+        provider:
+          foldersFromFilesStructure: true
+    persistence:
+      enabled: true
+      size: 10Gi

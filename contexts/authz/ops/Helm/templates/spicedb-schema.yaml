@@ -1,0 +1,70 @@
+{{- if .Values.spicedbSchema.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gavel.fullname" . }}-spicedb-schema
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+data:
+  gavel.zed: |-
+    {{- .Files.Get "files/spicedb/gavel.zed" | nindent 4 }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "gavel.fullname" . }}-spicedb-schema
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "gavel.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: schema-write
+          image: {{ .Values.spicedbSchema.image | quote }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - schema
+            - write
+            - /schema/gavel.zed
+            - --endpoint=$(SPICEDB_ENDPOINT)
+            - --token=$(SPICEDB_TOKEN)
+            - --insecure
+          env:
+            - name: SPICEDB_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.spicedb.name | quote }}
+                  key: {{ .Values.externalSecrets.spicedb.endpointKey | quote }}
+            - name: SPICEDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.spicedb.name | quote }}
+                  key: {{ .Values.externalSecrets.spicedb.credentialKey | quote }}
+          volumeMounts:
+            - name: schema
+              mountPath: /schema
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+      volumes:
+        - name: schema
+          configMap:
+            name: {{ include "gavel.fullname" . }}-spicedb-schema
+{{- end }}

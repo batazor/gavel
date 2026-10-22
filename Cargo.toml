@@ -1,0 +1,49 @@
+[workspace]
+resolver = "2"
+members = [
+  "contexts/analytics",
+  "contexts/auction",
+  "contexts/authz",
+  "contexts/bff",
+  "contexts/catalog",
+  "contexts/notify",
+  "contexts/payments",
+  "contexts/processes",
+]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+async-graphql = "=7.0.16"
+async-graphql-axum = "=7.0.16"
+async-trait = "=0.1.89"
+axum = "=0.8.6"
+base64 = "=0.22.1"
+chrono = "=0.4.42"
+futures-util = "=0.3.31"
+hmac = "=0.12.1"
+metrics = "=0.24.2"
+metrics-exporter-prometheus = { version = "=0.17.2", default-features = false }
+prost = "=0.13.5"
+prost-types = "=0.13.5"
+protoc-bin-vendored = "=3.2.0"
+redis = "=0.27.6"
+reqwest = { version = "=0.12.28", default-features = false }
+serde = "=1.0.228"
+serde_json = "=1.0.145"
+sha2 = "=0.10.9"
+sqlx = "=0.8.6"
+thiserror = "=2.0.17"
+tokio = "=1.48.0"
+tokio-stream = "=0.1.17"
+tokio-util = "=0.7.16"
+tonic = "=0.13.1"
+tonic-build = "=0.13.1"
+tower = "=0.5.2"
+tracing = "=0.1.41"
+tracing-subscriber = "=0.3.20"
+uuid = "=1.18.1"
+url = "=2.5.7"

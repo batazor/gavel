@@ -1,0 +1,21 @@
+# Buf workspace (v2). Один модуль на bounded context, имя = путь в BSR.
+version: v2
+modules:
+  - path: contexts/auction/proto
+    name: buf.build/gavel/auction
+  - path: contexts/authz/proto
+    name: buf.build/gavel/authz
+  - path: contexts/catalog/proto
+    name: buf.build/gavel/catalog
+  - path: contexts/notify/proto
+    name: buf.build/gavel/notify
+  - path: contexts/payments/proto
+    name: buf.build/gavel/payments
+lint:
+  use:
+    - STANDARD
+  except:
+    - PACKAGE_VERSION_SUFFIX
+breaking:
+  use:
+    - FILE

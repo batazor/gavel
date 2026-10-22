@@ -1,0 +1,24 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+type Query {
+  operation(id: ID!): Operation
+}
+
+type Mutation {
+  withdrawLot(lotId: ID!, idempotencyKey: String!): Operation!
+}
+
+type Operation @key(fields: "id") {
+  id: ID!
+  status: OperationStatus!
+  failureCode: String
+}
+
+enum OperationStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  REJECTED
+  FAILED
+}

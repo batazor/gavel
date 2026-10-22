@@ -1,0 +1,67 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+type Query {
+  auction(id: ID!): Auction
+  currentPrice(auctionId: ID!): CurrentPrice
+}
+
+type Mutation {
+  placeBid(input: PlaceBidInput!, idempotencyKey: String!): PlaceBidResult!
+  rescheduleAuction(input: RescheduleAuctionInput!, idempotencyKey: String!): Auction!
+}
+
+extend type Lot @key(fields: "id") {
+  id: ID!
+  auction: Auction
+}
+
+type Auction @key(fields: "id") {
+  id: ID!
+  lotId: ID!
+  status: AuctionStatus!
+  currentPrice: CurrentPrice!
+  endsAt: String!
+  viewer: AuctionViewer
+}
+
+"""Публичная вычисленная цена, не секретный maximumAmount лидера."""
+type CurrentPrice {
+  amount: String!
+  currency: String!
+  """Auction stream version, на которой получен snapshot; клиент не применяет меньшую версию поверх большей."""
+  version: Int!
+}
+
+type AuctionViewer {
+  isLeader: Boolean!
+  isSettlementCandidate: Boolean!
+  isWinner: Boolean!
+  canBid: Boolean!
+}
+
+type PlaceBidResult {
+  auction: Auction!
+  acceptedVersion: Int!
+  outbid: Boolean!
+}
+
+input PlaceBidInput {
+  auctionId: ID!
+  maximumAmount: String!
+  currency: String!
+}
+
+input RescheduleAuctionInput {
+  auctionId: ID!
+  scheduledEnd: String!
+}
+
+enum AuctionStatus {
+  SCHEDULED
+  OPEN
+  SETTLING
+  SOLD
+  UNSOLD
+  CANCELLED
+}

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gavel operations flow prototype</title>
+  <style>
+    :root { font-family: Inter, system-ui, sans-serif; color: #171716; background: #f5f0e8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px 18px 80px; }
+    main { width: min(980px, 100%); margin: auto; }
+    h1 { margin: 0; font-size: clamp(28px, 5vw, 48px); letter-spacing: -.04em; }
+    h2 { margin: 0 0 16px; font-size: 16px; }
+    p { color: #716b63; line-height: 1.55; }
+    .eyebrow { color: #984329; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .panel { margin-top: 22px; overflow: hidden; border: 1px solid #e0d7ca; border-radius: 18px; background: #fcfaf6; box-shadow: 0 18px 55px rgba(54,43,28,.08); }
+    .panel-head { padding: 18px 20px; border-bottom: 1px solid #e7ded1; }
+    .state { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px; }
+    .fact { padding: 14px; border-radius: 12px; background: #f5f0e8; }
+    .fact small { display: block; color: #716b63; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .fact strong { display: block; margin-top: 7px; }
+    .message { margin: 0 20px 20px; padding: 12px 14px; border-left: 3px solid #bd5634; background: #fff; font-size: 13px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 9px; padding: 20px; }
+    button { border: 1px solid #d8cec0; border-radius: 10px; background: #fff; padding: 10px 13px; color: inherit; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    button:hover { border-color: #bd5634; }
+    button.primary { border-color: #bd5634; background: #bd5634; color: white; }
+    .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 14px 20px 0; }
+    .tabs button.active { background: #171716; color: white; }
+    .scenario { padding: 20px; }
+    .steps { display: grid; gap: 10px; margin-top: 16px; }
+    .steps button { display: flex; align-items: center; text-align: left; }
+    .steps button::before { content: attr(data-step); display: grid; place-items: center; width: 25px; height: 25px; margin-right: 10px; border-radius: 50%; background: #f5f0e8; }
+    .log { margin: 0; padding: 0 20px 20px 38px; color: #716b63; font: 12px/1.6 ui-monospace, monospace; }
+    @media (max-width: 720px) { .state { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Throwaway logic prototype</div>
+  <h1>Operations flow</h1>
+  <p>This demo asks whether an operator can move payment recovery, customer review and lot publication through clear legal states—without accidentally confirming a winner, restoring access or publishing an incomplete lot.</p>
+
+  <section class="panel">
+    <div class="panel-head"><div class="eyebrow">Current state</div><h2>What the system believes now</h2></div>
+    <div class="state" id="state"></div>
+    <div class="message" id="message"></div>
+    <ol class="log" id="log"></ol>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div class="eyebrow">Free play</div><h2>Try actions in any order</h2></div>
+    <div class="actions" id="actions"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div class="eyebrow">Guided walkthroughs</div><h2>Cases worth arguing about</h2></div>
+    <div class="tabs" id="tabs"></div>
+    <div class="scenario" id="scenario"></div>
+  </section>
+</main>
+<script>
+  const initialState = () => ({
+    focus: 'inbox',
+    settlement: 'recovery_required',
+    customer: 'review',
+    lot: 'draft_media',
+    winnerConfirmed: false,
+    lastMessage: 'Seven exceptions are waiting in the operations inbox.',
+    log: [],
+  });
+
+  function transition(state, action) {
+    const next = { ...state, log: [...state.log] };
+    const accept = (message) => { next.lastMessage = message; next.log.unshift('✓ ' + message); return next; };
+    const reject = (message) => { next.lastMessage = 'Blocked: ' + message; next.log.unshift('× ' + message); return next; };
+    switch (action) {
+      case 'reset': return initialState();
+      case 'open_settlement': next.focus = 'settlement'; return accept('Opened settlement STL-4912.');
+      case 'open_recovery':
+        if (state.settlement !== 'recovery_required') return reject('Recovery can only open while customer action is required.');
+        next.settlement = 'processing'; return accept('Customer opened recovery; provider outcome is pending.');
+      case 'payment_succeeded':
+        if (!['recovery_required', 'processing'].includes(state.settlement)) return reject('A terminal settlement cannot succeed twice.');
+        next.settlement = 'succeeded'; next.winnerConfirmed = true; return accept('Payment succeeded; winner confirmed exactly once.');
+      case 'expire_recovery':
+        if (state.settlement === 'succeeded') return reject('A confirmed payment wins the race against expiry.');
+        if (!['recovery_required', 'processing'].includes(state.settlement)) return reject('Only an active recovery window can expire.');
+        next.settlement = 'expired'; next.winnerConfirmed = false; return accept('Recovery expired; workflow may select candidate 2.');
+      case 'open_customer': next.focus = 'customer'; return accept('Opened identity review USR-0834.');
+      case 'approve_customer':
+        if (state.customer !== 'review') return reject('Only a pending review can be approved.');
+        next.customer = 'active'; return accept('Review approved; member access restored.');
+      case 'restrict_customer':
+        if (state.customer !== 'review') return reject('Only a pending review can be restricted.');
+        next.customer = 'restricted'; return accept('Customer restricted; bid eligibility removed.');
+      case 'start_lot': next.focus = 'lot'; next.lot = 'draft_media'; return accept('Started a new lot draft.');
+      case 'complete_media':
+        if (state.lot !== 'draft_media') return reject('Media can only complete from the media step.');
+        next.lot = 'draft_details'; return accept('Media ready; immutable details may be entered.');
+      case 'complete_details':
+        if (state.lot !== 'draft_details') return reject('Details require ready media.');
+        next.lot = 'draft_pricing'; return accept('Details complete; pricing and closing policy unlocked.');
+      case 'complete_pricing':
+        if (state.lot !== 'draft_pricing') return reject('Pricing requires complete lot details.');
+        next.lot = 'review'; return accept('Pricing valid; lot is ready for final review.');
+      case 'publish_lot':
+        if (state.lot !== 'review') return reject('Incomplete drafts cannot be published.');
+        next.lot = 'listed'; return accept('LotListed committed; auction opening scheduled idempotently.');
+      default: return reject('Unknown action.');
+    }
+  }
+
+  const labels = {
+    reset: 'Reset all', open_settlement: 'Open settlement', open_recovery: 'Open recovery', payment_succeeded: 'Payment succeeded', expire_recovery: 'Expire recovery',
+    open_customer: 'Open customer review', approve_customer: 'Approve customer', restrict_customer: 'Restrict customer', start_lot: 'Start lot', complete_media: 'Complete media',
+    complete_details: 'Complete details', complete_pricing: 'Complete pricing', publish_lot: 'Publish lot',
+  };
+  const scenarios = {
+    recovery: { name: 'Recovery succeeds', text: 'The customer completes a challenge before the timer expires. Winner confirmation must happen once.', actions: ['open_settlement', 'open_recovery', 'payment_succeeded', 'expire_recovery'] },
+    expiry: { name: 'Recovery expires', text: 'The deadline wins. The first candidate is forfeited and a late success must not overwrite the result.', actions: ['open_settlement', 'expire_recovery', 'payment_succeeded'] },
+    publication: { name: 'Safe publication', text: 'Try publishing too early, then complete every required stage in order.', actions: ['start_lot', 'publish_lot', 'complete_media', 'complete_details', 'complete_pricing', 'publish_lot'] },
+  };
+
+  let state = initialState();
+  let activeScenario = 'recovery';
+  const stateEl = document.querySelector('#state');
+  const messageEl = document.querySelector('#message');
+  const logEl = document.querySelector('#log');
+  const actionsEl = document.querySelector('#actions');
+  const tabsEl = document.querySelector('#tabs');
+  const scenarioEl = document.querySelector('#scenario');
+
+  function dispatch(action) { state = transition(state, action); render(); }
+  function render() {
+    stateEl.innerHTML = [['Focus', state.focus], ['Settlement', state.settlement], ['Customer', state.customer], ['Lot', state.lot], ['Winner', state.winnerConfirmed ? 'confirmed' : 'not confirmed']].map(([key, value]) => `<div class="fact"><small>${key}</small><strong>${value}</strong></div>`).join('');
+    messageEl.textContent = state.lastMessage;
+    logEl.innerHTML = state.log.slice(0, 6).map(item => `<li>${item}</li>`).join('');
+    actionsEl.innerHTML = Object.entries(labels).map(([action, label]) => `<button class="${action === 'reset' ? '' : 'primary'}" data-action="${action}">${label}</button>`).join('');
+    tabsEl.innerHTML = Object.entries(scenarios).map(([key, value]) => `<button class="${key === activeScenario ? 'active' : ''}" data-tab="${key}">${value.name}</button>`).join('');
+    const scenario = scenarios[activeScenario];
+    scenarioEl.innerHTML = `<p>${scenario.text}</p><div class="steps">${scenario.actions.map((action, index) => `<button data-action="${action}" data-step="${index + 1}">${labels[action]}</button>`).join('')}</div>`;
+    document.querySelectorAll('[data-action]').forEach(button => button.onclick = () => dispatch(button.dataset.action));
+    document.querySelectorAll('[data-tab]').forEach(button => button.onclick = () => { activeScenario = button.dataset.tab; state = initialState(); render(); });
+  }
+  render();
+</script>
+</body>
+</html>

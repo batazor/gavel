@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package gavel.authz.v1;
+
+service AuthzService {
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse);
+  rpc BulkCheckPermissions(BulkCheckPermissionsRequest) returns (BulkCheckPermissionsResponse);
+  rpc RegisterPrincipal(RegisterPrincipalRequest) returns (RegisterPrincipalResponse);
+  rpc WriteRelationships(WriteRelationshipsRequest) returns (WriteRelationshipsResponse);
+}
+
+message ResourceReference {
+  string resource_type = 1;
+  string resource_id = 2;
+}
+
+message PrincipalReference {
+  string principal_type = 1;
+  string principal_id = 2;
+}
+
+message PermissionCheck {
+  ResourceReference resource = 1;
+  string permission = 2;
+  PrincipalReference principal = 3;
+}
+
+message CheckPermissionRequest {
+  PermissionCheck check = 1;
+  string consistency_token = 2;
+}
+
+message CheckPermissionResponse {
+  PermissionDecision decision = 1;
+  string checked_at_token = 2;
+}
+
+message BulkCheckPermissionsRequest {
+  repeated PermissionCheck checks = 1;
+  string consistency_token = 2;
+}
+
+message BulkCheckPermissionsResponse {
+  repeated PermissionDecision decisions = 1;
+  string checked_at_token = 2;
+}
+
+message Relationship {
+  ResourceReference resource = 1;
+  string relation = 2;
+  PrincipalReference subject = 3;
+}
+
+message WriteRelationshipsRequest {
+  repeated Relationship updates = 1;
+  string idempotency_key = 2;
+  repeated Relationship deletions = 3;
+}
+
+message WriteRelationshipsResponse {
+  oneof outcome {
+    RelationshipsWritten written = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message RelationshipsWritten {
+  string written_at_token = 1;
+}
+
+message RegisterPrincipalRequest {
+  string issuer = 1;
+  string subject = 2;
+  string idempotency_key = 3;
+}
+
+message RegisterPrincipalResponse {
+  oneof outcome {
+    PrincipalRegistered registered = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message PrincipalRegistered {
+  string principal_id = 1;
+  string written_at_token = 2;
+}
+
+message DomainRejection {
+  string reason = 1;
+  string safe_message = 2;
+}
+
+enum PermissionDecision {
+  PERMISSION_DECISION_UNSPECIFIED = 0;
+  PERMISSION_DECISION_ALLOWED = 1;
+  PERMISSION_DECISION_DENIED = 2;
+}

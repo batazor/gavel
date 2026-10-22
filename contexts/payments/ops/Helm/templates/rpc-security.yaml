@@ -1,0 +1,54 @@
+{{- if .Values.rpc.enabled }}
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ include "gavel.fullname" . }}-rpc
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "gavel.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              {{- toYaml .Values.rpc.allowedHttpPrincipals | nindent 14 }}
+      to:
+        - operation:
+            ports: [{{ .Values.service.port | quote }}]
+            paths: ["/graphql"]
+    - to:
+        - operation:
+            ports: [{{ .Values.service.port | quote }}]
+            paths: ["/payment-provider-callbacks/stripe", "/healthz", "/readyz", "/metrics"]
+    - from:
+        - source:
+            principals:
+              {{- toYaml .Values.rpc.allowedPrincipals | nindent 14 }}
+      to:
+        - operation:
+            ports: [{{ .Values.rpc.port | quote }}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "gavel.fullname" . }}-rpc
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "gavel.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes: [Ingress]
+  ingress:
+    - ports:
+        - port: {{ .Values.service.port }}
+    - from:
+        {{- range .Values.rpc.allowedApplications }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ . | quote }}
+        {{- end }}
+      ports:
+        - port: {{ .Values.rpc.port }}
+{{- end }}

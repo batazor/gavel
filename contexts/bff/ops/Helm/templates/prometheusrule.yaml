@@ -1,0 +1,11 @@
+{{- if .Values.monitoring.enabled }}
+{{- $rules := .Files.Get "files/prometheus/rules.yaml" | fromYaml }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "gavel.fullname" . }}
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+spec:
+  {{- toYaml $rules | nindent 2 }}
+{{- end }}

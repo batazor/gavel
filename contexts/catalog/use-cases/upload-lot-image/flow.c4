@@ -1,0 +1,29 @@
+// Диаграмма юзкейса. Модель — в docs/architecture/model.c4.
+views {
+
+  dynamic view flow_upload_lot_image {
+    title 'Загрузить изображение лота'
+    description 'Catalog выдаёт presigned PUT; бинарный файл идёт напрямую в S3-compatible object storage.'
+    autoLayout TopBottom
+
+    seller -> gavel.web 'выбирает изображение'
+    gavel.web -> gavel.bff.graphql 'mutation requestLotImageUpload'
+    gavel.bff.graphql -> gavel.catalog.service.api 'RequestLotImageUpload'
+    gavel.catalog.service.api -> gavel.catalog.service.mediaAsset 'validate; generate image id + opaque key'
+    gavel.catalog.service.mediaAsset -> gavel.catalog.service.repository 'claim idempotency key; save PENDING before presign'
+    gavel.catalog.service.repository -> gavel.catalog.db 'commit PENDING or return replay/conflict'
+    gavel.catalog.service.mediaAsset -> gavel.catalog.service.objectStorage 'bounded presign PUT; retry reuses durable key'
+    gavel.catalog.service.api -> gavel.bff.graphql 'imageId + uploadUrl + headers'
+    gavel.bff.graphql -> gavel.web 'GraphQL result'
+    gavel.web -> gavel.catalog.media 'PUT image bytes using presigned URL'
+    gavel.web -> gavel.bff.graphql 'mutation completeLotImageUpload(imageId)'
+    gavel.bff.graphql -> gavel.catalog.service.api 'CompleteLotImageUpload'
+    gavel.catalog.service.mediaAsset -> gavel.catalog.service.objectStorage 'bounded HEAD unless READY replay'
+    gavel.catalog.service.objectStorage -> gavel.catalog.media 'S3 HeadObject'
+    gavel.catalog.service.mediaAsset -> gavel.catalog.service.repository 'atomic READY or INVALID + cleanup eligibility'
+    gavel.catalog.service.repository -> gavel.catalog.db 'commit verified lifecycle state'
+    gavel.catalog.service.mediaAsset -> gavel.catalog.service.repository 'lease expired PENDING / orphan READY / INVALID'
+    gavel.catalog.service.mediaAsset -> gavel.catalog.service.objectStorage 'idempotent DELETE leased object'
+    gavel.catalog.service.mediaAsset -> gavel.catalog.service.repository 'complete cleanup or release lease for retry; never ATTACHED'
+  }
+}

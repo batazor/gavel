@@ -1,0 +1,23 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3")
+
+type Subscription {
+  auctionUpdates(auctionId: ID!, afterVersion: Int): AuctionUpdate!
+}
+
+type AuctionUpdate {
+  auctionId: ID!
+  version: Int!
+  kind: AuctionUpdateKind!
+  currentPrice: String
+  currency: String
+  endsAt: String
+}
+
+enum AuctionUpdateKind {
+  PRICE_CHANGED
+  DEADLINE_CHANGED
+  CLOSED
+  PAID
+  CANCELLED
+}

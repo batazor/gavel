@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package gavel.auction.v1;
+
+import "google/protobuf/timestamp.proto";
+
+service AuctionService {
+  rpc CloseAuction(CloseAuctionRequest) returns (CloseAuctionResponse);
+  rpc CancelAuction(CancelAuctionRequest) returns (CancelAuctionResponse);
+  rpc ForfeitSettlementCandidate(ForfeitSettlementCandidateRequest) returns (ForfeitSettlementCandidateResponse);
+  rpc ConfirmWinner(ConfirmWinnerRequest) returns (ConfirmWinnerResponse);
+}
+
+message Money {
+  uint64 minor_units = 1;
+  string currency_code = 2;
+}
+
+message DomainRejection {
+  string reason = 1;
+  string safe_message = 2;
+}
+
+message CloseAuctionRequest {
+  string auction_id = 1;
+  google.protobuf.Timestamp now = 2;
+  string idempotency_key = 3;
+}
+
+message CloseAuctionResponse {
+  oneof outcome {
+    AuctionClosed closed = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message AuctionClosed {
+  AuctionStatus status = 1;
+  Money closing_price = 2;
+  uint64 version = 3;
+}
+
+message CancelAuctionRequest {
+  string auction_id = 1;
+  string idempotency_key = 2;
+}
+
+message CancelAuctionResponse {
+  oneof outcome {
+    AuctionCancelled cancelled = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message AuctionCancelled {
+  uint64 version = 1;
+}
+
+message ForfeitSettlementCandidateRequest {
+  string auction_id = 1;
+  string candidate_id = 2;
+  uint32 settlement_round = 3;
+  string idempotency_key = 4;
+}
+
+message ForfeitSettlementCandidateResponse {
+  oneof outcome {
+    SettlementAdvanced advanced = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message SettlementAdvanced {
+  AuctionStatus status = 1;
+  uint32 settlement_round = 2;
+  uint64 version = 3;
+}
+
+message ConfirmWinnerRequest {
+  string auction_id = 1;
+  string candidate_id = 2;
+  string payment_id = 3;
+  string idempotency_key = 4;
+}
+
+message ConfirmWinnerResponse {
+  oneof outcome {
+    WinnerConfirmed confirmed = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message WinnerConfirmed {
+  uint64 version = 1;
+}
+
+enum AuctionStatus {
+  AUCTION_STATUS_UNSPECIFIED = 0;
+  AUCTION_STATUS_SETTLING = 1;
+  AUCTION_STATUS_SOLD = 2;
+  AUCTION_STATUS_UNSOLD = 3;
+  AUCTION_STATUS_CANCELLED = 4;
+}

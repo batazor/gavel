@@ -1,0 +1,45 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+extend type Auction @key(fields: "id") {
+  id: ID!
+  bidHistory(first: Int = 50, after: String): BidHistoryConnection!
+  priceHistory(first: Int = 200, after: String): PriceHistoryConnection!
+}
+
+type BidHistoryConnection {
+  edges: [BidHistoryEdge!]!
+  pageInfo: AnalyticsPageInfo!
+  asOfVersion: Int!
+}
+
+type BidHistoryEdge {
+  cursor: String!
+  node: PublicBid!
+}
+
+type PublicBid {
+  bidderAlias: String!
+  resultingPrice: String!
+  currency: String!
+  version: Int!
+  acceptedAt: String!
+}
+
+type PriceHistoryConnection {
+  edges: [PriceHistoryEdge!]!
+  pageInfo: AnalyticsPageInfo!
+}
+
+type PriceHistoryEdge {
+  cursor: String!
+  amount: String!
+  currency: String!
+  version: Int!
+  changedAt: String!
+}
+
+type AnalyticsPageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}

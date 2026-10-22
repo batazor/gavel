@@ -1,0 +1,68 @@
+definition user {}
+definition service_account {}
+
+definition platform {
+    relation administrator: user
+    relation member: user
+    relation process_worker: service_account
+    permission administer = administrator
+    permission create_lot = member
+    permission participate_in_auction = member
+    permission register_payment_instrument = member
+    permission operate_catalog = process_worker
+    permission operate_auctions = process_worker
+    permission operate_payments = process_worker
+    permission send_notifications = process_worker
+}
+
+definition lot {
+    relation platform: platform
+    relation seller: user
+    permission admin_override = platform->administer
+    permission is_seller = seller
+    permission edit = seller + admin_override
+    permission withdraw = seller + admin_override
+    permission execute_withdraw = platform->operate_catalog
+    permission reschedule_auction = seller + admin_override
+    permission view_seller_state = seller + admin_override
+}
+
+definition auction {
+    relation platform: platform
+    relation lot: lot
+    relation participant: user
+    permission place_bid = platform->participate_in_auction
+    permission view_personal_state = participant + lot->is_seller
+    permission reschedule = lot->reschedule_auction
+    permission close = platform->operate_auctions
+    permission cancel = platform->operate_auctions
+    permission reopen = platform->operate_auctions
+    permission settle = platform->operate_auctions
+}
+
+definition payment_profile {
+    relation owner: user
+    permission manage = owner
+    permission view = owner
+}
+
+definition payment_attempt {
+    relation platform: platform
+    relation auction: auction
+    relation owner: user
+    permission view = owner
+    permission continue_payment = owner
+    permission process = platform->operate_payments
+}
+
+definition notification {
+    relation platform: platform
+    relation recipient: user
+    permission view = recipient
+    permission deliver = platform->send_notifications
+}
+
+definition operation {
+    relation owner: user
+    permission view = owner
+}

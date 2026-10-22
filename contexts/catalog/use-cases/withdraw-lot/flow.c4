@@ -1,0 +1,31 @@
+// Диаграмма юзкейса. Модель — в docs/architecture/model.c4.
+views {
+
+  dynamic view flow_withdraw_lot {
+    title 'Снять лот (сага)'
+    description 'Снять можно только без ставок. Сага: отменить торги в Auction, потом снять лот в Catalog, при отказе — компенсация.'
+    autoLayout TopBottom
+
+    seller -> gavel.web 'снять лот'
+    gavel.web -> gavel.bff.graphql 'mutation withdrawLot(id)'
+    gavel.bff.graphql -> gavel.processes.api 'start WithdrawLot(lot_id, seller)' {
+      notes 'Возвращает Operation: сага идёт асинхронно'
+    }
+    gavel.temporal -> gavel.processes.withdraw 'run'
+    gavel.processes.withdraw -> gavel.processes.activities 'CancelAuction(lot_id)'
+    gavel.processes.activities -> gavel.auction.service.api 'gRPC CancelAuction' {
+      notes 'Агрегат: отмена только если ставок нет. Иначе 409 и сага завершается отказом'
+    }
+    gavel.processes.withdraw -> gavel.processes.activities 'WithdrawLot(lot_id)'
+    gavel.processes.activities -> gavel.catalog.service.api 'gRPC WithdrawLot' {
+      notes 'Trusted gavel-processes SPIFFE, mandatory deadline, stable idempotency key. Если Catalog отказал — ReopenAuction'
+    }
+    gavel.catalog.service.api -> gavel.authz.service.check 'lot:execute_withdraw at causal revision'
+    gavel.catalog.service.api -> gavel.catalog.db 'atomic WITHDRAWN + receipt + LotWithdrawn outbox'
+    gavel.cdc -> gavel.catalog.db 'capture outbox from WAL'
+    gavel.cdc -> gavel.broker 'LotWithdrawn'
+    gavel.broker -> gavel.realtime.subscription 'AuctionCancelled'
+    gavel.bff.graphql -> gavel.web 'subscription: cancelled'
+    gavel.catalog.service -[exports]-> gavel.otel 'bounded operation/outcome telemetry; identifiers redacted'
+  }
+}

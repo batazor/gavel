@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/batazor/gavel-notify
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+
+rpc:
+  enabled: true
+  port: 9090
+  allowedPrincipals:
+    - cluster.local/ns/gavel/sa/gavel-processes
+  allowedApplications:
+    - gavel-processes
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+monitoring:
+  enabled: true
+  scrapeInterval: 15s

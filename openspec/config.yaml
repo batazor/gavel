@@ -1,0 +1,39 @@
+schema: spec-driven
+
+context: |
+  Language: ru
+  All artifacts must be written in ru.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Gavel is a single Git monorepo. Use this root repo-local OpenSpec for every context; do not create per-context stores.
+  Bounded-context owners live in contexts/<context>/. Shared platform and cross-context decisions live in docs/ and deploy/.
+  A change may span contexts, but each domain rule, public contract, datastore and operational artifact must retain one explicit owner.
+  Federation SDL, public events, SpiceDB schema and process commands are contracts between owners.
+  README use cases contain Mermaid scenarios; flow.c4 keeps the same use case connected to the shared LikeC4 model.
+
+rules:
+  proposal:
+    - List every impacted bounded context and identify the primary owner of the change.
+    - State cross-context contracts, migration/compatibility impact and what is explicitly out of scope.
+  specs:
+    - Split requirements by user-visible capability, not by deployable service or implementation layer.
+    - For every cross-context scenario, name the authoritative owner and distinguish synchronous commands from asynchronous events.
+    - Never expose secret bid maxima, provider-specific payment objects or internal storage keys in public requirements.
+  design:
+    - Map each design decision to concrete monorepo paths and preserve service-owned data and contracts.
+    - Cover consistency, idempotency, failure recovery, authorization, observability and rollout when the change crosses contexts.
+    - Keep domain modules independent from infrastructure adapters and keep Cosmo Router free of business rules.
+  tasks:
+    - Group tasks by owning context or shared path and order producer contract changes before consumer changes.
+    - Include updates to affected GraphQL SDL, events, authorization, use-case README/Mermaid and LikeC4 views.
+    - Include relevant verification targets discoverable through make help.
+
+operations:
+  apply:
+    guidance:
+      - Modify only paths owned by the impacted contexts or shared areas named in the change.
+      - Run the relevant Makefile checks before marking tasks complete and report any unavailable check.
+      - Keep README Mermaid scenarios and LikeC4 flow.c4 views synchronized with implemented behavior.
+  archive:
+    guidance:
+      - Archive only after implementation and relevant contracts have been verified.
+      - Confirm that capability specs are synchronized and identify any deferred cross-context work.

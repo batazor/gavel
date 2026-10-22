@@ -5,10 +5,21 @@
     "doc": "docs"
   },
   "scripts": {
-    "arch": "likec4 start architecture",
-    "arch:validate": "likec4 validate architecture",
-    "arch:build": "likec4 build architecture -o site --title \"Gavel — архитектура\""
+    "storybook": "npm run storybook --workspace=@gavel/ui",
+    "storybook:build": "npm run build-storybook --workspace=@gavel/ui",
+    "ui:check": "npm run check --workspace=@gavel/ui",
+    "web": "npm run dev --workspace=@gavel/web",
+    "web:check": "npm run check --workspace=@gavel/web",
+    "web:build": "npm run build --workspace=@gavel/web",
+    "graphql:check": "wgc router compose -i contexts/bff/cosmo/supergraph.yaml -o /tmp/gavel-execution-config.json",
+    "graphql:compose": "wgc router compose -i contexts/bff/cosmo/supergraph.yaml -o contexts/bff/cosmo/execution-config.json",
+    "arch": "likec4 start .",
+    "arch:validate": "likec4 validate .",
+    "arch:build": "likec4 build . -o site --title \"Gavel — архитектура\""
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/batazor/gavel.git"
@@ -19,7 +30,8 @@
   },
   "homepage": "https://github.com/batazor/gavel#readme",
   "devDependencies": {
-    "likec4": "^1.60.0"
+    "likec4": "^1.60.0",
+    "wgc": "^0.133.0"
   },
   "private": true
 }

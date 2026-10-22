@@ -1,0 +1,47 @@
+// Диаграмма юзкейса. Модель — в docs/architecture/model.c4.
+views {
+
+  dynamic view flow_timer_close {
+    title 'Закрытие по дедлайну'
+    description 'Агрегат пересчитывает ends_at по политике при каждой ставке. Workflow только держит таймер и сбрасывает его по событиям.'
+    autoLayout TopBottom
+
+    gavel.cdc -> gavel.broker 'AuctionOpened(policy: scheduled_end 18:00, inactivity 1h, hard_deadline 23:00) from outbox'
+    gavel.broker -> gavel.processes.subscriber 'AuctionOpened'
+    gavel.processes.subscriber -> gavel.processes.lifecycle 'start AuctionLifecycle(auction_id, ends_at = 18:00)' {
+      notes 'Durable timer. Worker может упасть, таймер переживёт'
+    }
+    gavel.bff.graphql -> gavel.auction.service.api 'PlaceBid в 17:45'
+    gavel.auction.service.api -> gavel.auction.service.aggregate 'ставка принята' {
+      notes 'Closing policy: ends_at = min(23:00, max(18:00, 17:45 + 1h)) = 18:45 → DeadlineExtended'
+    }
+    gavel.cdc -> gavel.broker 'BidRecorded, PriceChanged, DeadlineExtended(18:45) from outbox'
+    gavel.broker -> gavel.processes.subscriber 'DeadlineExtended'
+    gavel.processes.subscriber -> gavel.processes.lifecycle 'signal DeadlineChanged(18:45)' {
+      notes 'Таймер сброшен на 18:45'
+    }
+    gavel.broker -> gavel.realtime.subscription 'DeadlineExtended'
+    gavel.bff.graphql -> gavel.web 'subscription: endsAt 18:45' {
+      notes 'Обратный отсчёт у всех подписчиков сдвинулся'
+    }
+    gavel.processes.lifecycle -> gavel.processes.activities '18:45: таймер сработал' {
+      notes 'Ставок с 17:45 не было'
+    }
+    gavel.processes.activities -> gavel.auction.service.api 'gRPC CloseAuction(now = 18:45, idempotencyKey)' {
+      notes 'Trusted workload identity + transport deadline. Exact replay возвращает stored typed result'
+    }
+    gavel.auction.service.api -> gavel.auction.db 'lookup idempotency key + fingerprint'
+    gavel.auction.service.api -> gavel.authz.service.check 'authoritative service permission close, fail-closed'
+    gavel.auction.service.api -> gavel.auction.service.aggregate 'закрыть' {
+      notes 'Инварианты: now ≥ ends_at; ровно один раз; первый candidate = лидер по proxy bidding, не «последний поставивший»'
+    }
+    gavel.auction.service.aggregate -> gavel.auction.service.events 'AuctionClosed, SettlementCandidateSelected'
+    gavel.auction.service.events -> gavel.auction.service.eventstore 'append, expected version = N'
+    gavel.auction.service.eventstore -> gavel.auction.db 'events + projection + safe outbox + command result, одна транзакция' {
+      notes 'OCC conflict → bounded retry; exhaustion/dependency failure → retryable gRPC status; too early → typed rejection'
+    }
+    gavel.cdc -> gavel.broker 'AuctionClosed, SettlementCandidateSelected from outbox'
+    gavel.broker -> gavel.realtime.subscription 'AuctionClosed'
+    gavel.bff.graphql -> gavel.web 'subscription: closed, payment pending'
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "registerPrincipal": {
+    "request": {
+      "issuer": "https://identity.example.test",
+      "subject": "opaque-provider-subject",
+      "idempotencyKey": "login-attempt-1"
+    },
+    "response": {
+      "registered": {
+        "principalId": "u1_fixture",
+        "writtenAtToken": "zed-token"
+      }
+    }
+  },
+  "writeRelationships": {
+    "updates": [],
+    "idempotencyKey": "relationship-change-1",
+    "deletions": [
+      {
+        "resource": { "resourceType": "auction", "resourceId": "auction-1" },
+        "relation": "participant",
+        "subject": { "principalType": "user", "principalId": "u1_fixture" }
+      }
+    ]
+  }
+}

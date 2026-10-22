@@ -1,0 +1,62 @@
+groups:
+  - name: gavel.authz.recording
+    interval: 30s
+    rules:
+      - record: gavel:authz:availability:ratio30d
+        expr: avg_over_time((max(up{job="authz"}) > bool 0)[30d:1m])
+      - record: gavel:authz:permission_requests:rate5m
+        expr: sum(rate(gavel_authz_permission_checks_total[5m]))
+      - record: gavel:authz:permission_dependency_failure_ratio:rate5m
+        expr: sum(rate(gavel_authz_permission_checks_total{outcome="dependency_failure"}[5m])) / clamp_min(sum(rate(gavel_authz_permission_checks_total[5m])), 0.000001)
+      - record: gavel:authz:permission_average_latency_seconds:rate5m
+        expr: sum(rate(gavel_authz_permission_duration_micros_total[5m])) / clamp_min(sum(rate(gavel_authz_permission_checks_total[5m])), 0.000001) / 1000000
+      - record: gavel:authz:receipt_failure_ratio:rate15m
+        expr: sum(rate(gavel_authz_receipts_total{outcome=~"failed|conflict|in_progress"}[15m])) / clamp_min(sum(rate(gavel_authz_receipts_total[15m])), 0.000001)
+
+  - name: gavel.authz.alerts
+    rules:
+      - alert: AuthzUnavailable
+        expr: absent(up{job="authz"}) or sum(up{job="authz"}) < 1
+        for: 2m
+        labels: {severity: page, team: platform, service: authz, slo: availability}
+        annotations:
+          summary: Authz has no healthy target
+          description: No Authz instance has been scrapeable for two minutes.
+          dashboard_uid: gavel-authz
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/authz/ops/Helm/README.md
+      - alert: AuthzPermissionDependencyFailuresHigh
+        expr: gavel:authz:permission_dependency_failure_ratio:rate5m > 0.02
+        for: 10m
+        labels: {severity: warning, team: platform, service: authz, slo: permissions}
+        annotations:
+          summary: Authz dependency failures exceed 2%
+          description: SpiceDB-backed permission checks are failing or timing out.
+          dashboard_uid: gavel-authz
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/authz/ops/Helm/README.md
+      - alert: AuthzPermissionLatencyHigh
+        expr: gavel:authz:permission_average_latency_seconds:rate5m > 0.25
+        for: 10m
+        labels: {severity: warning, team: platform, service: authz, slo: permissions}
+        annotations:
+          summary: Authz average permission latency exceeds 250ms
+          description: Permission decisions are slower than the service latency budget.
+          dashboard_uid: gavel-authz
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/authz/ops/Helm/README.md
+      - alert: AuthzReceiptFailuresHigh
+        expr: gavel:authz:receipt_failure_ratio:rate15m > 0.05
+        for: 15m
+        labels: {severity: warning, team: platform, service: authz, slo: mutations}
+        annotations:
+          summary: Authz receipt failures exceed 5%
+          description: Receipt failures, conflicts, or commands stuck in progress are elevated.
+          dashboard_uid: gavel-authz
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/authz/ops/Helm/README.md
+      - alert: AuthzReceiptRecoveryAbsent
+        expr: sum(increase(gavel_authz_receipts_total{outcome="in_progress"}[30m])) > 0 and sum(increase(gavel_authz_receipts_total{outcome="recovered"}[30m])) == 0
+        for: 15m
+        labels: {severity: ticket, team: platform, service: authz, slo: mutations}
+        annotations:
+          summary: Authz pending receipts are not recovering
+          description: Commands have remained in progress without an observed lease recovery.
+          dashboard_uid: gavel-authz
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/authz/ops/Helm/README.md

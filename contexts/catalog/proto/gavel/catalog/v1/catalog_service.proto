@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package gavel.catalog.v1;
+
+service CatalogService {
+  rpc WithdrawLot(WithdrawLotRequest) returns (WithdrawLotResponse);
+}
+
+message WithdrawLotRequest {
+  string lot_id = 1;
+  string idempotency_key = 2;
+  string correlation_id = 3;
+  string consistency_token = 4;
+}
+
+message WithdrawLotResponse {
+  oneof outcome {
+    LotWithdrawn withdrawn = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message LotWithdrawn {
+  uint64 version = 1;
+  string checked_at_token = 2;
+}
+
+message DomainRejection {
+  string reason = 1;
+  string safe_message = 2;
+}

@@ -1,0 +1,61 @@
+replicaCount: 3
+
+image:
+  repository: ghcr.io/batazor/gavel-catalog
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  httpPort: 8080
+  grpcPort: 9090
+
+rpc:
+  enabled: true
+  port: 9090
+  allowedPrincipals:
+    - cluster.local/ns/gavel/sa/gavel-processes
+  allowedApplications:
+    - gavel-processes
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+monitoring:
+  enabled: true
+  scrapeInterval: 15s
+
+runtime:
+  authzUrl: http://gavel-authz.authz.svc.cluster.local:9090
+  s3Region: us-east-1
+  s3Bucket: catalog-images
+  s3PathStyle: true
+  imageDeliveryBaseUrl: https://images.gavel.example
+  dependencyTimeoutMs: 2000
+  workerIntervalMs: 5000
+  workerLeaseMs: 30000
+  readyImageTtlMs: 86400000
+  uploadTtlMs: 900000
+  spiffePrefix: spiffe://cluster.local/ns/gavel/sa/
+  trustedProxyCidrs: ""
+
+externalSecrets:
+  database:
+    name: gavel-catalog-database
+    key: url
+  objectStorage:
+    name: gavel-catalog-object-storage
+    endpointKey: endpoint
+    accessKey: access-key
+    secretKey: secret-key
+  hmac:
+    name: gavel-catalog-hmac
+    fingerprintKey: fingerprint
+    cursorKey: cursor
+
+migrations:
+  enabled: true

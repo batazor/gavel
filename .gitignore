@@ -1,3 +1,42 @@
+# Node / LikeC4
 node_modules/
 .likec4/
 site/
+storybook-static/
+packages/ui/storybook-static/
+packages/web/dist/
+
+# Rust
+target/
+**/*.rs.bk
+.cargo/credentials
+.cargo/credentials.toml
+.netrc
+
+# Lean
+.lake/
+lake-packages/
+
+# Keploy
+keploy/reports/
+
+# Local env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Kubernetes local
+kubeconfig*
+!kubeconfig.example
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+contexts/bff/cosmo/execution-config.json
+
+# Helm dependency archives (Chart.lock stays versioned)
+deploy/charts/*/charts/

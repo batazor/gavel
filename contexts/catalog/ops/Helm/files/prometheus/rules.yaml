@@ -1,0 +1,98 @@
+groups:
+  - name: gavel.catalog.recording
+    interval: 30s
+    rules:
+      - record: gavel:catalog:availability:ratio30d
+        expr: avg_over_time((max(up{job="catalog"}) > bool 0)[30d:1m])
+      - record: gavel:catalog:rpc_latency_seconds:avg5m
+        expr: sum(rate(gavel_catalog_operation_duration_micros_total{operation="withdraw_lot"}[5m])) / clamp_min(sum(rate(gavel_catalog_operations_total{operation="withdraw_lot"}[5m])), 0.000001) / 1000000
+      - record: gavel:catalog:rpc_server_failure_ratio:rate5m
+        expr: sum(rate(gavel_catalog_operations_total{operation="withdraw_lot",outcome!="success"}[5m])) / clamp_min(sum(rate(gavel_catalog_operations_total{operation="withdraw_lot"}[5m])), 0.000001)
+      - record: gavel:catalog:graphql_operation_latency_seconds:avg5m
+        expr: sum(rate(gavel_catalog_operation_duration_micros_total{operation=~"lot_query|lots_query|request_upload|complete_upload|list_lot|update_lot"}[5m])) / clamp_min(sum(rate(gavel_catalog_operations_total{operation=~"lot_query|lots_query|request_upload|complete_upload|list_lot|update_lot"}[5m])), 0.000001) / 1000000
+      - record: gavel:catalog:dependency_failure_ratio:rate5m
+        expr: sum(rate(gavel_catalog_operations_total{outcome="dependency_failure"}[5m])) / clamp_min(sum(rate(gavel_catalog_operations_total[5m])), 0.000001)
+
+  - name: gavel.catalog.alerts
+    rules:
+      - alert: CatalogUnavailable
+        expr: absent(up{job="catalog"}) or sum(up{job="catalog"}) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: catalog
+          slo: availability
+        annotations:
+          summary: Catalog has no healthy target
+          description: No Catalog instance has been scrapeable for two minutes.
+          dashboard_uid: gavel-catalog
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/catalog/ops/Helm/README.md
+
+      - alert: CatalogRestartStorm
+        expr: sum(increase(kube_pod_container_status_restarts_total{container="gavel-catalog"}[15m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: catalog
+          slo: availability
+        annotations:
+          summary: Catalog containers are restarting repeatedly
+          description: More than three restarts were observed during the last 15 minutes.
+          dashboard_uid: gavel-catalog
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/catalog/ops/Helm/README.md
+
+      - alert: CatalogBootstrapMetricsMissing
+        expr: absent(gavel_service_info{service="catalog"}) and sum(up{job="catalog"}) > 0
+        for: 10m
+        labels:
+          severity: ticket
+          team: platform
+          service: catalog
+          slo: telemetry
+        annotations:
+          summary: Catalog bootstrap metric is missing
+          description: The target is scrapeable but does not expose its service identity metric.
+          dashboard_uid: gavel-catalog
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/catalog/ops/Helm/README.md
+
+      - alert: CatalogRpcFailureRatioHigh
+        expr: gavel:catalog:rpc_server_failure_ratio:rate5m > 0.05
+        for: 10m
+        labels: {severity: warning, team: platform, service: catalog, slo: rpc}
+        annotations:
+          summary: Catalog gRPC failure ratio exceeds 5%
+          description: Transport failures and domain rejections must be separated by grpc_code and trace.
+          dashboard_uid: gavel-catalog
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/catalog/ops/Helm/README.md
+
+      - alert: CatalogPendingMediaStuck
+        expr: gavel_catalog_pending_media_oldest_age_seconds > 1800
+        for: 10m
+        labels: {severity: warning, team: catalog, service: catalog, slo: media}
+        annotations:
+          summary: Catalog pending media is older than 30 minutes
+          description: Inspect S3 connectivity, verification failures and cleanup worker leases.
+          dashboard_uid: gavel-catalog
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/catalog/ops/Helm/README.md
+
+      - alert: CatalogOutboxBacklogHigh
+        expr: gavel_catalog_outbox_backlog > 1000
+        for: 10m
+        labels: {severity: warning, team: catalog, service: catalog, slo: events}
+        annotations:
+          summary: Catalog outbox backlog exceeds 1000 rows
+          description: Inspect Debezium/Redpanda delivery and unpublished rows before retention changes.
+          dashboard_uid: gavel-catalog
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/catalog/ops/Helm/README.md
+
+      - alert: CatalogReconciliationBacklogHigh
+        expr: gavel_catalog_reconciliation_backlog > 100
+        for: 15m
+        labels: {severity: ticket, team: catalog, service: catalog, slo: reconciliation}
+        annotations:
+          summary: Catalog reconciliation backlog exceeds 100 rows
+          description: Inspect Authz availability and lease recovery; do not delete grants without proof-of-absence.
+          dashboard_uid: gavel-catalog
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/catalog/ops/Helm/README.md

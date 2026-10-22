@@ -1,0 +1,13 @@
+{
+  "eventId": "catalog-event-2",
+  "eventType": "LotUpdated",
+  "schemaVersion": 1,
+  "aggregateVersion": 2,
+  "occurredAtMillis": 1700000001000,
+  "correlationId": "catalog-correlation-2",
+  "payload": {
+    "lotId": "lot-1",
+    "title": "Updated lot",
+    "description": "Public description"
+  }
+}

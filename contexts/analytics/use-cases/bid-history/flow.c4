@@ -1,0 +1,14 @@
+views {
+  dynamic view flow_bid_history {
+    title 'Полная публичная история ставок'
+
+    gavel.auction.service.eventstore -> gavel.auction.db '1. commit MaxBidPlaced + public BidRecorded outbox'
+    gavel.cdc -> gavel.auction.db '2. capture outbox from WAL'
+    gavel.cdc -> gavel.broker '3. publish BidRecorded, key = auction_id'
+    gavel.analytics.clickhouse -> gavel.broker '4. Kafka engine consumes BidRecorded'
+    gavel.analytics.service.api -> gavel.analytics.clickhouse '5. query cursor page by auction_id'
+    gavel.web -> gavel.bff.graphql '6. query lot(id) { bidHistory(first, after) }'
+
+    autoLayout TopBottom
+  }
+}

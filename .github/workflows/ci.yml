@@ -1,5 +1,5 @@
 # Экономный CI (ADR-0007).
-# На каждый PR выполняется только дешёвое. Тяжёлые шаги обозначены, но выключены:
+# На каждый PR выполняются contract checks, Rust lint и Helm lint. Тяжёлые шаги обозначены, но выключены:
 # `if: false` — чтобы pipeline читался целиком. Включать по мере надобности.
 
 name: ci
@@ -15,32 +15,58 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  architecture:
-    name: likec4 validate
+  contracts:
+    name: architecture + Protobuf + Federation + Authz
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bufbuild/buf-setup-action@v1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run arch:validate
+      - run: make buf-check
+      - run: make buf-breaking BUF_BREAKING_BASE="origin/${GITHUB_BASE_REF:-main}"
+      - run: make graphql-check
+      - run: make arch-validate
+      - uses: authzed/action-spicedb-validate@v1
+        with:
+          validationfile: contexts/authz/schema/gavel.validation.yaml
+
+  publish-buf-modules:
+    name: publish Buf modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: contracts
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bufbuild/buf-setup-action@v1
+      - name: Authenticate without persisting credentials in the repository
+        run: |
+          test -n "$BUF_TOKEN"
+          printf '%s' "$BUF_TOKEN" | buf registry login buf.build --token-stdin
+      - run: buf push --git-metadata
 
   rust-lint:
     name: fmt + clippy
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: false # включить, когда появится Cargo.toml
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - run: cargo fmt --all --check
-      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: for service in analytics auction authz bff catalog notify payments processes; do make -C "contexts/$service" fmt-check lint; done
 
   rust-test:
     name: tests (nextest + proptest)
@@ -52,7 +78,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@nextest
-      - run: cargo nextest run --workspace
+      - run: for service in analytics auction authz bff catalog notify payments processes; do make -C "contexts/$service" test; done
 
   lean:
     name: lean proofs
@@ -69,18 +95,25 @@ jobs:
     name: helm lint
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: false # включить, когда появятся чарты в deploy/charts
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4
-      - run: for c in deploy/charts/*; do helm lint "$c"; done
+      - run: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      - run: helm dependency build deploy/charts/observability
+      - run: helm lint deploy/charts/observability -f deploy/charts/observability/values-production.yaml
+      - run: for service in analytics auction authz bff catalog notify payments processes; do make -C "contexts/$service" helm-check; done
+      - run: for d in contexts/*/ops/Helm/files/grafana/*.json; do jq empty "$d"; done
 
   images:
-    name: build & push images
+    name: build ${{ matrix.service }} image
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: false # только по workflow_dispatch или тегу, когда дойдём до деплоя
+    if: github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [analytics, auction, authz, bff, catalog, notify, payments, processes]
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
-      - run: echo "docker buildx build --push ... (stub)"
+      - run: make -C "contexts/${{ matrix.service }}" image IMAGE="ghcr.io/batazor/gavel-${{ matrix.service }}:ci"

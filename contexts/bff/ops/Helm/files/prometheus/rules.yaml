@@ -1,0 +1,50 @@
+groups:
+  - name: gavel.bff.recording
+    interval: 30s
+    rules:
+      - record: gavel:bff:availability:ratio30d
+        expr: avg_over_time((max(up{job="bff"}) > bool 0)[30d:1m])
+
+  - name: gavel.bff.alerts
+    rules:
+      - alert: BFFUnavailable
+        expr: absent(up{job="bff"}) or sum(up{job="bff"}) < 1
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+          service: bff
+          slo: availability
+        annotations:
+          summary: BFF has no healthy target
+          description: No BFF instance has been scrapeable for two minutes.
+          dashboard_uid: gavel-bff
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/bff/ops/Helm/README.md
+
+      - alert: BFFRestartStorm
+        expr: sum(increase(kube_pod_container_status_restarts_total{container="gavel-bff"}[15m])) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          service: bff
+          slo: availability
+        annotations:
+          summary: BFF containers are restarting repeatedly
+          description: More than three restarts were observed during the last 15 minutes.
+          dashboard_uid: gavel-bff
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/bff/ops/Helm/README.md
+
+      - alert: BFFBootstrapMetricsMissing
+        expr: absent(gavel_service_info{service="bff"}) and sum(up{job="bff"}) > 0
+        for: 10m
+        labels:
+          severity: ticket
+          team: platform
+          service: bff
+          slo: telemetry
+        annotations:
+          summary: BFF bootstrap metric is missing
+          description: The target is scrapeable but does not expose its service identity metric.
+          dashboard_uid: gavel-bff
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/bff/ops/Helm/README.md

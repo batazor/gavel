@@ -1,0 +1,31 @@
+// Диаграмма юзкейса. Модель — в docs/architecture/model.c4.
+views {
+
+  dynamic view flow_proxy_bid {
+    title 'Автоставка (proxy bidding)'
+    description 'A держит максимум 200 при цене 100. B ставит максимум 150. Система перебивает за A до 160, B узнаёт, что перебит, сразу в ответе.'
+    autoLayout TopBottom
+
+    bidder -> gavel.web 'B: максимум 150'
+    gavel.web -> gavel.bff.graphql 'mutation placeBid(id, maximum: 150)'
+    gavel.bff.graphql -> gavel.auction.service.api 'PlaceBid(B, 150)'
+    gavel.auction.service.api -> gavel.auction.service.aggregate 'load: лидер A (max 200, секрет), цена 100, шаг 10' {
+      notes 'Pricing policy: максимумы {A:200, B:150} → лидер A (200 > 150), цена = min(200, 150 + 10) = 160'
+    }
+    gavel.auction.service.aggregate -> gavel.auction.service.events 'MaxBidPlaced(B,150) private; BidRecorded(alias-B,160) and PriceChanged(160) public' {
+      notes 'Инвариант: цена не убывает; цена ≤ второй максимум + шаг'
+    }
+    gavel.auction.service.events -> gavel.auction.service.eventstore 'append'
+    gavel.auction.service.eventstore -> gavel.auction.db 'commit'
+    gavel.auction.service.api -> gavel.bff.graphql 'PlaceBidResult {outbid: true, price: 160}' {
+      notes 'B видит, что перебит, не дожидаясь subscription update. Максимум A не раскрывается'
+    }
+    gavel.bff.graphql -> gavel.web 'GraphQL result'
+    gavel.cdc -> gavel.auction.db 'capture outbox from WAL'
+    gavel.cdc -> gavel.broker 'BidRecorded(alias-B,160), PriceChanged(160)'
+    gavel.broker -> gavel.realtime.subscription 'PriceChanged'
+    gavel.bff.graphql -> gavel.web 'subscription: price 160' {
+      notes 'Все подписчики. Личность лидера, 150 и 200 наружу не уходят'
+    }
+  }
+}

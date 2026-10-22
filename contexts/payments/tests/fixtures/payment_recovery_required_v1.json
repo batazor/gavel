@@ -1,0 +1,9 @@
+{
+  "eventId": "payments-event-recovery-1",
+  "eventType": "PaymentRecoveryRequired",
+  "schemaVersion": 1,
+  "aggregateVersion": 3,
+  "occurredAtMillis": 1700000001000,
+  "correlationId": "payments-correlation-2",
+  "payload": { "paymentAttemptId": "attempt-1", "auctionId": "auction-1", "settlementRound": 1 }
+}

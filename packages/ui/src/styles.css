@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+@theme {
+  --color-ink-950: #171716;
+  --color-ink-900: #242321;
+  --color-ink-700: #55514b;
+  --color-ink-500: #716b63;
+  --color-paper-50: #fcfaf6;
+  --color-paper-100: #f5f0e8;
+  --color-paper-200: #e7ded1;
+  --color-copper-400: #d87550;
+  --color-copper-500: #bd5634;
+  --color-copper-600: #984329;
+  --color-moss-400: #55a78e;
+  --color-moss-500: #2e7662;
+  --color-moss-600: #235d4d;
+  --color-gold-400: #e3ae45;
+  --font-sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --shadow-panel: 0 1px 0 rgba(23, 23, 22, 0.06), 0 16px 48px rgba(54, 43, 28, 0.08);
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--color-ink-950);
+  background: var(--color-paper-100);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+
+::selection {
+  color: var(--color-paper-50);
+  background: var(--color-copper-500);
+}
+
+.gavel-grid {
+  background-image:
+    linear-gradient(rgba(23, 23, 22, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 23, 22, 0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.react-flow__attribution { display: none; }
+.react-flow__controls { box-shadow: none; }
+.react-flow__controls-button {
+  border-color: var(--color-paper-200);
+  background: var(--color-paper-50);
+}

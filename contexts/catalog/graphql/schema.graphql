@@ -1,0 +1,100 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+type Query {
+  lot(id: ID!): Lot
+  lots(first: Int = 20, after: String): LotConnection!
+}
+
+type Mutation {
+  requestLotImageUpload(input: RequestLotImageUploadInput!, idempotencyKey: String!): LotImageUpload!
+  completeLotImageUpload(imageId: ID!, idempotencyKey: String!): UploadedLotImage!
+  listLot(input: ListLotInput!, idempotencyKey: String!): Lot!
+  updateLot(id: ID!, input: UpdateLotInput!, idempotencyKey: String!): Lot!
+}
+
+type Lot @key(fields: "id") {
+  id: ID!
+  title: String!
+  description: String
+  images: [LotImage!]!
+}
+
+type LotImage {
+  id: ID!
+  url: String!
+  alt: String!
+}
+
+type LotImageUpload {
+  imageId: ID!
+  uploadUrl: String!
+  expiresAt: String!
+  requiredHeaders: [UploadHeader!]!
+}
+
+type UploadHeader {
+  name: String!
+  value: String!
+}
+
+type UploadedLotImage {
+  imageId: ID!
+  status: LotImageUploadStatus!
+}
+
+enum LotImageUploadStatus {
+  PENDING
+  READY
+  ATTACHED
+}
+
+type LotConnection {
+  edges: [LotEdge!]!
+  pageInfo: PageInfo!
+}
+
+type LotEdge {
+  cursor: String!
+  node: Lot!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+input ListLotInput {
+  title: String!
+  description: String
+  """От 1 до 20 READY-изображений текущего продавца, без повторяющихся imageId."""
+  images: [LotImageInput!]!
+  startPrice: String!
+  currency: String!
+  """Шаг ставки; при отсутствии используется совместимый server default."""
+  bidStep: String
+  scheduledEnd: String!
+  """Окно inactivity в целых секундах; null отключает продление."""
+  inactivitySeconds: Int
+  """Абсолютный hard deadline в RFC3339; null означает отсутствие cap."""
+  hardDeadline: String
+}
+
+input LotImageInput {
+  imageId: ID!
+  alt: String!
+}
+
+input RequestLotImageUploadInput {
+  contentType: String!
+  contentLength: Int!
+  """SHA-256 содержимого: Base64 от 32 raw digest bytes, совместимый с x-amz-checksum-sha256."""
+  checksumSha256: String!
+}
+
+input UpdateLotInput {
+  title: String
+  description: String
+  """Опциональная optimistic version; конфликт не приводит к частичному update."""
+  expectedVersion: Int
+}

@@ -1,0 +1,19 @@
+// Архитектурный dynamic view; пошаговый сценарий для GitHub/GitLab находится в README Mermaid block.
+views {
+
+  dynamic view flow_settlement_notifications {
+    title 'Settlement-уведомления'
+    description 'Processes задаёт намерение; Notify владеет идемпотентностью, шаблоном, delivery retry и terminal status.'
+    autoLayout TopBottom
+
+    gavel.processes.activities -> gavel.notify.service.api 'SendNotification(notification_id, recipient, template, data)'
+    gavel.notify.service.api -> gavel.notify.service.notification 'create or return existing'
+    gavel.notify.service.notification -> gavel.notify.service.template 'render versioned template'
+    gavel.notify.service.notification -> gavel.notify.service.channelAdapter 'deliver with retry'
+    gavel.notify.service.channelAdapter -> emailProvider 'send transactional email'
+    gavel.notify.service.notification -> gavel.notify.service.repository 'save terminal status'
+    gavel.notify.service.repository -> gavel.notify.db 'notification + outbox, one transaction'
+    gavel.cdc -> gavel.notify.db 'capture outbox from WAL'
+    gavel.cdc -> gavel.broker 'NotificationSent | NotificationFailed'
+  }
+}
