@@ -61,3 +61,11 @@ crowded in a half column (three labels); cream check (ground moved to #f4f3f1, s
 7. Phone: sidebar folds to a 48px bar + sheet; KPI tabs become a 2-up grid with the odd cell spanning; tables fold state and
    seller into the subline; the bid panel stacks form over history.
 Still short: lot photographs are flat slots (no honest picture exists); the Prototype labs keep the old composition.
+
+## Brand chrome restored (2026-10-23, after review)
+The owner asked for the old character back. Kept from the run: the composition of every screen, the KPI strip, the tables,
+the data rules, the states, the closing board, document scroll. Restored as the brand's own devices, allowed on purpose:
+parchment ground #f5f0e8 and paper cards (`palette-cream`), Avenir Next / Figtree instead of the dealt Geist (`font-not-dealt`),
+the tracked GAVEL wordmark (`micro-label`), a dark ink sidebar with the copper mark, the copper primary button,
+12px panels with a faint warm shadow (0 4px 14px at 6%), a copper meta line over panel titles.
+Inspect with `--allow font-not-dealt,micro-label,palette-cream,palette-claude`.

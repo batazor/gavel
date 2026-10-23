@@ -1,7 +1,11 @@
 {
  "url": "http://localhost:6006/iframe.html?id=pages-product-map--lots&viewMode=story",
- "at": "2026-10-23T03:58:21.658Z",
- "allow": [],
+ "at": "2026-10-23T04:09:49.091Z",
+ "allow": [
+  "font-not-dealt",
+  "micro-label",
+  "palette-cream"
+ ],
  "viewports": [
   {
    "width": 1440,
@@ -9,7 +13,7 @@
    "load": "load",
    "screens": 1,
    "filled": [
-    0.26
+    0.34
    ],
    "motion": {
     "elements": 1,
@@ -54,9 +58,9 @@
      "lines": 1,
      "size": 21,
      "vw": 1.5,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
-     "tracking": -0.01,
+     "tracking": -0.02,
      "leading": 1.33,
      "top": 25,
      "tag": "h1",
@@ -69,7 +73,7 @@
      "words": 1,
      "lines": 1,
      "size": 21,
-     "font": "Geist"
+     "font": "Avenir Next"
     },
     "headings": [],
     "headingSummary": {
@@ -84,7 +88,7 @@
     "type": {
      "families": [
       {
-       "family": "Geist",
+       "family": "Avenir Next",
        "share": 0.94,
        "mono": false
       },
@@ -102,20 +106,22 @@
       21
      ],
      "sizeCount": 4,
-     "notLoaded": [],
+     "notLoaded": [
+      "Avenir Next"
+     ],
      "body": {
-      "font": "Geist",
+      "font": "Avenir Next",
       "size": 12.3,
       "leading": 1.43,
       "weight": 400,
       "tracking": 0,
-      "contrast": 6.2
+      "contrast": 6.4
      },
-     "measureChars": 64,
+     "measureChars": 65,
      "max": {
       "size": 21,
       "vw": 1.5,
-      "font": "Geist",
+      "font": "Avenir Next",
       "text": "Lots"
      },
      "monoShare": 0.06,
@@ -131,9 +137,11 @@
       "GV-2817",
       "GV-2802"
      ],
-     "microLabels": 0,
-     "microLabelShare": 0,
-     "microSamples": [],
+     "microLabels": 1,
+     "microLabelShare": 0.005,
+     "microSamples": [
+      "GAVEL"
+     ],
      "upperShare": 0.06,
      "centerShare": 0.08,
      "smallText": 19
@@ -141,61 +149,61 @@
     "eyebrows": [],
     "numbered": [],
     "color": {
-     "bodyBg": "#f4f3f1",
+     "bodyBg": "#f5f0e8",
      "bodyBgHsl": {
-      "h": 40,
-      "s": 0.12,
-      "l": 0.95
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
      },
      "dark": false,
      "sectionBgs": [
       {
-       "color": "#f4f3f1",
+       "color": "#f5f0e8",
        "top": 0,
        "hsl": {
-        "h": 40,
-        "s": 0.12,
-        "l": 0.95
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
        }
       }
      ],
      "textColors": [
       {
-       "color": "#5d5a55",
-       "share": 0.59
+       "color": "#5b564e",
+       "share": 0.5
       },
       {
        "color": "#171716",
-       "share": 0.35
+       "share": 0.33
+      },
+      {
+       "color": "#b9b2a6",
+       "share": 0.09
       },
       {
        "color": "#04250e",
        "share": 0.02
       },
       {
-       "color": "#6b6862",
-       "share": 0.01
-      },
-      {
-       "color": "#3d3b37",
-       "share": 0.01
+       "color": "#fcfaf6",
+       "share": 0.02
       }
      ],
      "button": {
-      "bg": "#ffffff",
+      "bg": "#fcfaf6",
       "hsl": {
-       "h": 0,
-       "s": 0,
-       "l": 1
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
       },
-      "fg": "#5d5a55"
+      "fg": "#171716"
      },
      "lowContrast": []
     },
     "buttons": {
      "count": 5,
      "inHero": 5,
-     "radius": 6,
+     "radius": 7,
      "height": 28,
      "withShadow": 0,
      "withGradient": 0,
@@ -211,16 +219,16 @@
     },
     "surfaces": {
      "shadowStatic": 0,
-     "shadowOverlay": 0,
+     "shadowOverlay": 1,
      "shadowSamples": [],
      "gradients": 0,
      "scrims": 0,
      "gradientSamples": [],
      "gradientText": 0,
-     "hairlines": 6,
+     "hairlines": 5,
      "hairlineSamples": [
-      "aside.hidden.w-60 210px",
       "div.flex.gap-6 1174px",
+      "div.flex.h-9 270px",
       "div.flex.h-9 270px",
       "div.flex.h-9 270px",
       "div.flex.h-9 270px"
@@ -229,7 +237,7 @@
      "dashed": 0,
      "blurred": 0,
      "roundedBoxes": 2,
-     "boxRadius": 8,
+     "boxRadius": 12,
      "squareMedia": 0,
      "roundedMedia": 0,
      "mediaRadius": 0,
@@ -239,13 +247,12 @@
     "heroMedia": [],
     "nav": {
      "links": 0,
-     "fixed": false,
-     "height": 147,
+     "fixed": true,
+     "height": 900,
      "floatingPill": false,
      "blur": false
     },
     "fontsLoaded": [
-     "geist",
      "geist mono"
     ]
    },
@@ -285,11 +292,11 @@
     "stage": false,
     "explains": false,
     "slivers": [],
-    "voidShare": 0.27,
+    "voidShare": 0.23,
     "voidBox": {
-     "x": 0,
+     "x": 180,
      "y": 660,
-     "w": 1440,
+     "w": 1260,
      "h": 240
     }
    },
@@ -299,7 +306,7 @@
      "h": 900
     },
     "dark": false,
-    "ground": "#f4f3f1",
+    "ground": "#f5f0e8",
     "sidebar": {
      "w": 210,
      "tag": "aside",
@@ -318,9 +325,9 @@
      "lines": 1,
      "size": 21,
      "vw": 1.5,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
-     "tracking": -0.01,
+     "tracking": -0.02,
      "leading": 1.33,
      "top": 25,
      "tag": "h1",
@@ -330,39 +337,45 @@
     },
     "charts": 0,
     "layout": {
-     "panels": 2,
-     "firstScreen": 2,
+     "panels": 3,
+     "firstScreen": 3,
      "ragged": [],
      "voids": []
     },
     "tiles": 0,
     "panels": {
-     "count": 3,
+     "count": 4,
      "radii": [
       [
        0,
+       2
+      ],
+      [
+       12,
        1
       ],
       [
-       8,
-       1
-      ],
-      [
-       6,
+       7,
        1
       ]
      ],
      "heavyBorders": 0,
      "borderSamples": [],
      "heavyShadows": 0,
-     "softShadows": 0,
+     "softShadows": 2,
      "shadowSamples": [],
      "glass": 0
     },
     "chips": {
-     "count": 0,
-     "hues": 0,
-     "samples": []
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 32,
+       "radius": "7px"
+      }
+     ]
     },
     "numbers": {
      "cells": 21,
@@ -393,7 +406,7 @@
      "size": 21,
      "top": 25
     },
-    "colourShare": 0
+    "colourShare": 0.003
    },
    "consoleErrors": []
   },
@@ -403,7 +416,7 @@
    "load": "load",
    "screens": 1,
    "filled": [
-    0.48
+    0.54
    ],
    "motion": {
     "elements": 1,
@@ -448,9 +461,9 @@
      "lines": 1,
      "size": 21,
      "vw": 2.7,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
-     "tracking": -0.01,
+     "tracking": -0.02,
      "leading": 1.33,
      "top": 63,
      "tag": "h1",
@@ -463,7 +476,7 @@
      "words": 1,
      "lines": 1,
      "size": 21,
-     "font": "Geist"
+     "font": "Avenir Next"
     },
     "headings": [],
     "headingSummary": {
@@ -478,7 +491,7 @@
     "type": {
      "families": [
       {
-       "family": "Geist",
+       "family": "Avenir Next",
        "share": 0.93,
        "mono": false
       },
@@ -496,20 +509,22 @@
       21
      ],
      "sizeCount": 4,
-     "notLoaded": [],
+     "notLoaded": [
+      "Avenir Next"
+     ],
      "body": {
-      "font": "Geist",
+      "font": "Avenir Next",
       "size": 12.3,
       "leading": 1.43,
       "weight": 400,
       "tracking": 0,
-      "contrast": 6.2
+      "contrast": 6.4
      },
-     "measureChars": 64,
+     "measureChars": 65,
      "max": {
       "size": 21,
       "vw": 2.7,
-      "font": "Geist",
+      "font": "Avenir Next",
       "text": "Lots"
      },
      "monoShare": 0.07,
@@ -535,32 +550,32 @@
     "eyebrows": [],
     "numbered": [],
     "color": {
-     "bodyBg": "#f4f3f1",
+     "bodyBg": "#f5f0e8",
      "bodyBgHsl": {
-      "h": 40,
-      "s": 0.12,
-      "l": 0.95
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
      },
      "dark": false,
      "sectionBgs": [
       {
-       "color": "#f4f3f1",
+       "color": "#f5f0e8",
        "top": 0,
        "hsl": {
-        "h": 40,
-        "s": 0.12,
-        "l": 0.95
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
        }
       }
      ],
      "textColors": [
       {
-       "color": "#5d5a55",
+       "color": "#5b564e",
        "share": 0.5
       },
       {
        "color": "#171716",
-       "share": 0.43
+       "share": 0.42
       },
       {
        "color": "#04250e",
@@ -576,11 +591,11 @@
       }
      ],
      "button": {
-      "bg": "#ffffff",
+      "bg": "#fcfaf6",
       "hsl": {
-       "h": 0,
-       "s": 0,
-       "l": 1
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
       },
       "fg": "#ffffff"
      },
@@ -589,7 +604,7 @@
     "buttons": {
      "count": 3,
      "inHero": 3,
-     "radius": 6,
+     "radius": 7,
      "height": 28,
      "withShadow": 0,
      "withGradient": 0,
@@ -602,17 +617,19 @@
      ]
     },
     "surfaces": {
-     "shadowStatic": 0,
+     "shadowStatic": 1,
      "shadowOverlay": 0,
-     "shadowSamples": [],
+     "shadowSamples": [
+      "aside.grid.gap-4 → rgba(23, 23, 22, 0.04) 0px 1px 0px 0px, rgba(54, 43, 28, 0.06) 0px 4px 14px 0px"
+     ],
      "gradients": 0,
      "scrims": 0,
      "gradientSamples": [],
      "gradientText": 0,
-     "hairlines": 6,
+     "hairlines": 5,
      "hairlineSamples": [
-      "header.flex.h-12 768px",
       "div.flex.gap-6 726px",
+      "div.flex.h-9 482px",
       "div.flex.h-9 482px",
       "div.flex.h-9 482px",
       "div.flex.h-9 482px"
@@ -621,7 +638,7 @@
      "dashed": 0,
      "blurred": 0,
      "roundedBoxes": 2,
-     "boxRadius": 8,
+     "boxRadius": 12,
      "squareMedia": 0,
      "roundedMedia": 0,
      "mediaRadius": 0,
@@ -631,13 +648,12 @@
     "heroMedia": [],
     "nav": {
      "links": 0,
-     "fixed": false,
+     "fixed": true,
      "height": 0,
      "floatingPill": false,
      "blur": false
     },
     "fontsLoaded": [
-     "geist",
      "geist mono"
     ]
    },
@@ -659,7 +675,7 @@
       "height": 413,
       "words": 77,
       "media": 0,
-      "middle": 150,
+      "middle": 151,
       "heading": null,
       "left": 21,
       "right": 21,
@@ -678,7 +694,7 @@
       "height": 311,
       "words": 29,
       "media": 0,
-      "middle": 96,
+      "middle": 93,
       "heading": {
        "text": "Omega Speedmaster, 1969",
        "size": 14,
@@ -729,14 +745,14 @@
      "h": 1024
     },
     "dark": false,
-    "ground": "#f4f3f1",
+    "ground": "#f5f0e8",
     "sidebar": null,
     "topbar": {
      "h": 42
     },
     "canvas": {
      "left": 21,
-     "right": 21
+     "right": 19
     },
     "hero": {
      "text": "Lots",
@@ -745,9 +761,9 @@
      "lines": 1,
      "size": 21,
      "vw": 2.7,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
-     "tracking": -0.01,
+     "tracking": -0.02,
      "leading": 1.33,
      "top": 63,
      "tag": "h1",
@@ -771,25 +787,31 @@
        1
       ],
       [
-       8,
+       12,
        1
       ],
       [
-       6,
+       7,
        1
       ]
      ],
      "heavyBorders": 0,
      "borderSamples": [],
      "heavyShadows": 0,
-     "softShadows": 0,
+     "softShadows": 2,
      "shadowSamples": [],
      "glass": 0
     },
     "chips": {
-     "count": 0,
-     "hues": 0,
-     "samples": []
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 25,
+       "radius": "5.25px"
+      }
+     ]
     },
     "numbers": {
      "cells": 21,
@@ -820,7 +842,7 @@
      "size": 21,
      "top": 63
     },
-    "colourShare": 0
+    "colourShare": 0.004
    },
    "consoleErrors": []
   },
@@ -830,8 +852,8 @@
    "load": "load",
    "screens": 2,
    "filled": [
-    0.55,
-    0.78
+    0.64,
+    0.8
    ],
    "motion": {
     "elements": 1,
@@ -847,7 +869,7 @@
      "h": 844
     },
     "page": {
-     "height": 1240,
+     "height": 1241,
      "screens": 1.5,
      "words": 177,
      "img": 0,
@@ -876,9 +898,9 @@
      "lines": 1,
      "size": 21,
      "vw": 5.4,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
-     "tracking": -0.01,
+     "tracking": -0.02,
      "leading": 1.33,
      "top": 60,
      "tag": "h1",
@@ -891,7 +913,7 @@
      "words": 1,
      "lines": 1,
      "size": 21,
-     "font": "Geist"
+     "font": "Avenir Next"
     },
     "headings": [],
     "headingSummary": {
@@ -906,7 +928,7 @@
     "type": {
      "families": [
       {
-       "family": "Geist",
+       "family": "Avenir Next",
        "share": 0.93,
        "mono": false
       },
@@ -924,20 +946,22 @@
       21
      ],
      "sizeCount": 4,
-     "notLoaded": [],
+     "notLoaded": [
+      "Avenir Next"
+     ],
      "body": {
-      "font": "Geist",
+      "font": "Avenir Next",
       "size": 12.3,
       "leading": 1.43,
       "weight": 400,
       "tracking": 0,
-      "contrast": 6.2
+      "contrast": 6.4
      },
      "measureChars": 58,
      "max": {
       "size": 21,
       "vw": 5.4,
-      "font": "Geist",
+      "font": "Avenir Next",
       "text": "Lots"
      },
      "monoShare": 0.07,
@@ -963,36 +987,36 @@
     "eyebrows": [],
     "numbered": [],
     "color": {
-     "bodyBg": "#f4f3f1",
+     "bodyBg": "#f5f0e8",
      "bodyBgHsl": {
-      "h": 40,
-      "s": 0.12,
-      "l": 0.95
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
      },
      "dark": false,
      "sectionBgs": [
       {
-       "color": "#f4f3f1",
+       "color": "#f5f0e8",
        "top": 0,
        "hsl": {
-        "h": 40,
-        "s": 0.12,
-        "l": 0.95
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
        }
       },
       {
-       "color": "#ffffff",
+       "color": "#fcfaf6",
        "top": 695,
        "hsl": {
-        "h": 0,
-        "s": 0,
-        "l": 1
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
        }
       }
      ],
      "textColors": [
       {
-       "color": "#5d5a55",
+       "color": "#5b564e",
        "share": 0.6
       },
       {
@@ -1004,20 +1028,20 @@
        "share": 0.01
       },
       {
-       "color": "#6b6862",
+       "color": "#6d675d",
        "share": 0.01
       },
       {
-       "color": "#04250e",
+       "color": "#fcfaf6",
        "share": 0
       }
      ],
      "button": {
-      "bg": "#ffffff",
+      "bg": "#fcfaf6",
       "hsl": {
-       "h": 0,
-       "s": 0,
-       "l": 1
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
       },
       "fg": "#ffffff"
      },
@@ -1026,7 +1050,7 @@
     "buttons": {
      "count": 3,
      "inHero": 1,
-     "radius": 6,
+     "radius": 7,
      "height": 28,
      "withShadow": 0,
      "withGradient": 0,
@@ -1037,17 +1061,19 @@
      ]
     },
     "surfaces": {
-     "shadowStatic": 0,
+     "shadowStatic": 1,
      "shadowOverlay": 0,
-     "shadowSamples": [],
+     "shadowSamples": [
+      "aside.grid.gap-4 → rgba(23, 23, 22, 0.04) 0px 1px 0px 0px, rgba(54, 43, 28, 0.06) 0px 4px 14px 0px"
+     ],
      "gradients": 0,
      "scrims": 0,
      "gradientSamples": [],
      "gradientText": 0,
-     "hairlines": 6,
+     "hairlines": 5,
      "hairlineSamples": [
-      "header.flex.h-12 390px",
       "div.flex.gap-6 355px",
+      "div.flex.h-9 325px",
       "div.flex.h-9 325px",
       "div.flex.h-9 325px",
       "div.flex.h-9 325px"
@@ -1056,7 +1082,7 @@
      "dashed": 0,
      "blurred": 0,
      "roundedBoxes": 2,
-     "boxRadius": 8,
+     "boxRadius": 12,
      "squareMedia": 0,
      "roundedMedia": 0,
      "mediaRadius": 0,
@@ -1066,13 +1092,12 @@
     "heroMedia": [],
     "nav": {
      "links": 0,
-     "fixed": false,
+     "fixed": true,
      "height": 0,
      "floatingPill": false,
      "blur": false
     },
     "fontsLoaded": [
-     "geist",
      "geist mono"
     ]
    },
@@ -1081,7 +1106,7 @@
      "w": 390,
      "h": 844
     },
-    "pageH": 1240,
+    "pageH": 1241,
     "margins": {
      "left": 18,
      "right": 25
@@ -1164,7 +1189,7 @@
      "h": 844
     },
     "dark": false,
-    "ground": "#f4f3f1",
+    "ground": "#f5f0e8",
     "sidebar": null,
     "topbar": {
      "h": 42
@@ -1180,9 +1205,9 @@
      "lines": 1,
      "size": 21,
      "vw": 5.4,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
-     "tracking": -0.01,
+     "tracking": -0.02,
      "leading": 1.33,
      "top": 60,
      "tag": "h1",
@@ -1206,25 +1231,31 @@
        1
       ],
       [
-       8,
+       12,
        1
       ],
       [
-       6,
+       7,
        1
       ]
      ],
      "heavyBorders": 0,
      "borderSamples": [],
      "heavyShadows": 0,
-     "softShadows": 0,
+     "softShadows": 2,
      "shadowSamples": [],
      "glass": 0
     },
     "chips": {
-     "count": 0,
-     "hues": 0,
-     "samples": []
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 25,
+       "radius": "5.25px"
+      }
+     ]
     },
     "numbers": {
      "cells": 21,
@@ -1255,12 +1286,24 @@
      "size": 21,
      "top": 60
     },
-    "colourShare": 0
+    "colourShare": 0.007
    },
    "consoleErrors": []
   }
  ],
- "findings": [],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "font-fallback",
+   "width": 1440,
+   "message": "Typeface(s) declared but not loaded, so a fallback is rendering: Avenir Next",
+   "fix": "Fix the font URL / family name, or the screenshots you are judging are not the design.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  }
+ ],
  "images": [
   {
    "viewport": "desktop",

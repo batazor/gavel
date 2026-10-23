@@ -35,7 +35,7 @@ export function CustomerDetailPage({ onNavigate, onBack }: { onNavigate?: (secti
         {decision === 'review' && <Button onClick={() => setDecision('approved')}>Approve</Button>}
       </>}
     >
-      <div className="flex flex-wrap items-center gap-4 rounded-[8px] border border-line bg-surface px-5 py-4">
+      <div className="flex flex-wrap items-center gap-4 panel px-5 py-4">
         <Avatar name={customer.name} hue={customer.hue} size="lg" />
         <div className="min-w-0 flex-1">
           <p className="text-sm text-ink"><span className="font-mono">{customer.id}</span> · member since {customer.since} · {customer.region} · {customer.email}</p>

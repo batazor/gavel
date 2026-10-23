@@ -81,7 +81,7 @@ export function App() {
     page = <AdminOverviewPage onNavigate={navigateSection} onOpenMonitor={() => navigate('/admin/monitor')} onOpenInbox={() => navigate('/admin/inbox')} onOpenObservability={() => navigate('/admin/observability')} onOpenSettlement={() => navigate('/admin/settlements')} onOpenCustomer={() => navigate('/admin/customers/USR-0834')} onOpenLot={() => navigate('/admin/lots/GV-2841')} />;
   }
 
-  return <div className="h-dvh overflow-hidden bg-ground">{page}</div>;
+  return <div className="min-h-dvh bg-ground">{page}</div>;
 }
 
 function LotWorkspace({ lotId, onNavigate, onBack }: { lotId: string; onNavigate: (section: OpsSection) => void; onBack: () => void }) {
@@ -123,7 +123,7 @@ function SettlementsPage({ onNavigate }: { onNavigate: (section: OpsSection) => 
   return (
     <OpsPageShell section="settlements" onNavigate={onNavigate} title="Settlements" subtitle={`${queue.filter((q) => q.target === 'settlements').length} cases need an operator · ${critical.id} expires at ${formatClock(critical.dueAt!)}, ${timeLeft} from now`}>
       <SettlementRecoveryCard state={state} caseId={critical.id} amount="€42,800" closingPrice="€42,800" candidateAlias="Silver Fox" round={state === 'expired' ? 2 : 1} deadline={`${formatClock(critical.dueAt!)} UTC`} timeLeft={timeLeft} recoveryUrl="https://pay.gavel.test/recover/STL-4912?token=••••••••" onCopyLink={() => setNotice('Secure recovery link copied.')} onOpenRecovery={() => transition('processing', 'The customer opened recovery; waiting for the provider outcome.')} />
-      <div role="status" className="mt-4 flex flex-col gap-3 rounded-[8px] border border-line bg-surface px-5 py-3 sm:flex-row sm:items-center">
+      <div role="status" className="mt-4 flex flex-col gap-3 panel px-5 py-3 sm:flex-row sm:items-center">
         <p className="flex-1 text-sm text-ink">{notice}</p>
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => transition('recovery_required', 'Recovery window reopened for the current candidate.')}>Reset</Button>

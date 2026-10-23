@@ -10,12 +10,13 @@ npm run storybook:build
 
 ## Направление
 
-Стиль — **achromatic ledger** (выдан `design-taste-frontend`, seed 1728568553): чернила на тёплой каменной бумаге,
-цвет только на данных. Токены в `src/styles.css` (`@theme`), заметки по направлению в `.taste-skill/notes.md` в корне репозитория.
+Композиция и правила экранов — из app-screens run `design-taste-frontend` (стиль achromatic ledger, seed 1728568553);
+характер — свой: пергамент, тёмный сайдбар с медным молотком, медная кнопка. Токены в `src/styles.css` (`@theme`),
+заметки по направлению в `.taste-skill/notes.md` в корне репозитория.
 
-- Шрифт Geist (Google Fonts), Geist Mono для ID. Табличные цифры везде.
-- Медь — единственный оттенок, и только на главном элементе данных (цена, серия торгов, дедлайн).
-- Одно основное действие на экран, почти чёрное. Границы 1px, радиус 8/6, теней в покое нет.
+- Шрифт Avenir Next с Figtree (Google Fonts) как запасным, Geist Mono для ID. Табличные цифры везде.
+- Медь — одно основное действие на экран и главный элемент данных (цена, серия торгов, дедлайн).
+- Панели `.panel`: радиус 12, тёплая линия 1px, едва заметная тень. Контролы радиус 8.
 
 ## Структура
 
@@ -27,7 +28,8 @@ npm run storybook:build
 ## Проверка
 
 ```bash
-node ~/.claude/skills/design-taste-frontend/scripts/inspect.mjs --app "http://localhost:6006/iframe.html?id=pages-product-map--overview&viewMode=story"
+node ~/.claude/skills/design-taste-frontend/scripts/inspect.mjs --app --allow font-not-dealt,micro-label,palette-cream,palette-claude "http://localhost:6006/iframe.html?id=pages-product-map--overview&viewMode=story"
 ```
 
-Инспектор измеряет экран на 1440, 768 и 390 px и кладёт скриншоты в `.taste-skill/inspect/`.
+Инспектор измеряет экран на 1440, 768 и 390 px и кладёт скриншоты в `.taste-skill/inspect/`. Четыре правила отключены
+сознательно: шрифт бренда вместо выданного Geist, трекинг в словесном знаке GAVEL, пергаментный фон и медь на нём.

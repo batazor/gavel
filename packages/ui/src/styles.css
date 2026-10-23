@@ -1,35 +1,43 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 @import "@xyflow/react/dist/style.css";
 @source "./**/*.{ts,tsx,mdx}";
 
 /*
-  Gavel UI tokens — achromatic ledger on warm stone paper.
-  Colour is for data (copper on the hammer price and today's series) and for status.
-  The chrome is ink on paper: near-black primary, grey secondary, 1px borders, no shadows at rest.
+  Gavel UI tokens — the auction book on warm parchment.
+  Ink structure, copper for the one main action and for the figures that matter (the hammer price,
+  today's bid series, the recovery deadline), a dark ink sidebar with the copper mark.
+  Panels are soft (12px radius, a faint warm shadow); colour never decorates, it points.
 */
 @theme {
   /* grounds and lines */
-  --color-ground: #f4f3f1;
-  --color-surface: #ffffff;
-  --color-raised: #f5f4f2;
-  --color-active: #ebe9e5;
-  --color-line: #e6e3de;
-  --color-rule: #eeede9;
-  --color-control: #cfcbc4;
+  --color-ground: #f5f0e8;
+  --color-surface: #fcfaf6;
+  --color-raised: #f3eee5;
+  --color-active: #ebe4d8;
+  --color-line: #e7dfd2;
+  --color-rule: #efe9df;
+  --color-control: #cfc4b4;
 
   /* ink in three tiers, each at 4.5:1 or better on its ground */
   --color-ink: #171716;
-  --color-muted: #5d5a55;
-  --color-faint: #6b6862;
+  --color-muted: #5b564e;
+  --color-faint: #6d675d;
 
   /* the one hue: the auction's money and clock */
-  --color-copper: #9f4428;
-  --color-copper-deep: #8a3a22;
-  --color-copper-pale: #f7e7df;
+  --color-copper: #bd5634;
+  --color-copper-deep: #984329;
+  --color-copper-pale: #f6e4da;
+
+  /* the dark sidebar */
+  --color-sidebar: #171716;
+  --color-sidebar-ink: #fcfaf6;
+  --color-sidebar-muted: #b9b2a6;
+  --color-sidebar-line: #2c2b28;
+  --color-sidebar-hover: #242321;
 
   /* the primary control */
-  --color-primary: #1d1c1a;
+  --color-primary: #bd5634;
   --color-primary-ink: #ffffff;
 
   /* status */
@@ -42,20 +50,20 @@
   --color-pill-negative-ink: #831c1e;
   --color-pill-warning: #fdf3dc;
   --color-pill-warning-ink: #7a3a0a;
-  --color-pill-neutral: #ebe9e5;
+  --color-pill-neutral: #ebe4d8;
   --color-pill-neutral-ink: #3d3b37;
 
-  --font-sans: "Geist", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Avenir Next", Avenir, Figtree, "Segoe UI", system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* 13px is the smallest size that carries words; 12px stays for axis ticks and chart notes */
   --text-xs: 13px;
   --text-xs--line-height: 18px;
 
-  --radius-card: 8px;
-  --radius-control: 6px;
+  --radius-card: 12px;
+  --radius-control: 8px;
 
-  --shadow-panel: none;
+  --shadow-panel: 0 1px 0 rgba(23, 23, 22, 0.04), 0 4px 14px rgba(54, 43, 28, 0.06);
   --shadow-float: 0 12px 32px rgba(23, 23, 22, 0.14), 0 1px 2px rgba(23, 23, 22, 0.08);
 }
 
@@ -74,8 +82,8 @@
   h1, h2, h3, h4, p, figure, ul, ol, dl, dd { margin: 0; }
   button { cursor: pointer; }
   table, .num, [data-num] { font-variant-numeric: tabular-nums; }
-  :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; border-radius: 4px; }
-  ::selection { color: var(--color-surface); background: var(--color-ink); }
+  :focus-visible { outline: 2px solid var(--color-copper); outline-offset: 2px; border-radius: 4px; }
+  ::selection { color: var(--color-surface); background: var(--color-copper); }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -85,6 +93,25 @@
       animation-iteration-count: 1 !important;
     }
   }
+}
+
+@layer components {
+  /* a soft panel: 12px radius, 1px warm line, a faint shadow that lifts it off the parchment */
+  .panel { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: var(--radius-card); box-shadow: var(--shadow-panel); }
+  /* a quiet lift on things that can be pressed */
+  .lift { transition: transform 160ms cubic-bezier(.2,.8,.2,1), background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease; }
+  @media (hover: hover) { .lift:hover { transform: translateY(-1px); } }
+  .lift:active { transform: translateY(0); }
+
+  /* a live dot: the dot itself stays, a ring of its own colour breathes out of it every two seconds */
+  .live-dot { position: relative; }
+  .live-dot::before { content: ""; position: absolute; inset: 0; border-radius: 9999px; background: inherit; animation: live-ring 2s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes live-ring {
+    0% { transform: scale(1); opacity: .7; }
+    70% { transform: scale(3); opacity: 0; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .live-dot::before { animation: none; } }
 }
 
 /* React Flow: the builder keeps its own chrome, quiet */

@@ -8,7 +8,6 @@ const meta = {
   title: 'Patterns/Admin shell',
   component: AdminShell,
   parameters: { layout: 'fullscreen' },
-  decorators: [(Story) => <div className="h-dvh"><Story /></div>],
 } satisfies Meta<typeof AdminShell>;
 
 export default meta;

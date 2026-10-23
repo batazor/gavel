@@ -54,7 +54,7 @@ export function LotsManagementPage({ onNavigate, onCreateLot, onOpenLot }: { onN
       <div className="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <label className="flex h-8 w-full items-center gap-2 rounded-[6px] border border-control bg-surface px-2.5 text-muted sm:w-[300px]">
+            <label className="flex h-8 w-full items-center gap-2 rounded-lg border border-control bg-surface px-2.5 text-muted sm:w-[300px]">
               <Search size={14} strokeWidth={1.5} />
               <input aria-label="Search lots" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Lot, seller or ID" className="min-w-0 flex-1 border-0 bg-transparent text-sm text-ink outline-none placeholder:text-faint" />
               {query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')} className="text-muted hover:text-ink"><X size={14} /></button>}
@@ -96,13 +96,13 @@ export function LotsManagementPage({ onNavigate, onCreateLot, onOpenLot }: { onN
                   <td className="hidden px-3 whitespace-nowrap text-muted tabular-nums md:table-cell">{closesLabel(lot)}</td>
                   <td className="hidden px-3 sm:table-cell"><StatusBadge tone={tones[lot.state]} dot={lot.state === 'Live'}>{lot.state}</StatusBadge></td>
                   <td className="w-10 text-right">
-                    <button type="button" aria-label={`Actions for ${lot.id}`} aria-haspopup="dialog" onClick={(event) => { event.stopPropagation(); setSelected(lot); setActionLot(lot); }} className="grid size-8 place-items-center rounded-[6px] text-muted hover:bg-raised hover:text-ink"><MoreHorizontal size={16} /></button>
+                    <button type="button" aria-label={`Actions for ${lot.id}`} aria-haspopup="dialog" onClick={(event) => { event.stopPropagation(); setSelected(lot); setActionLot(lot); }} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-raised hover:text-ink"><MoreHorizontal size={16} /></button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && <p className="mt-3 grid min-h-20 place-items-center rounded-[6px] border border-dashed border-control text-sm text-muted">No lots match "{query}" under {tab}.</p>}
+          {filtered.length === 0 && <p className="mt-3 grid min-h-20 place-items-center rounded-lg border border-dashed border-control text-sm text-muted">No lots match "{query}" under {tab}.</p>}
         </div>
 
         <LotInspector lot={selected} onOpen={onOpenLot ? () => onOpenLot(selected.id) : undefined} onPreview={() => setDialog({ lot: selected, mode: 'preview' })} onHistory={() => setDialog({ lot: selected, mode: 'history' })} />
@@ -116,7 +116,7 @@ export function LotsManagementPage({ onNavigate, onCreateLot, onOpenLot }: { onN
 
 function LotInspector({ lot, onOpen, onPreview, onHistory }: { lot: Lot; onOpen?: () => void; onPreview: () => void; onHistory: () => void }) {
   return (
-    <aside className="grid gap-4 rounded-[8px] border border-line bg-surface p-4 sm:grid-cols-[200px_minmax(0,1fr)] xl:sticky xl:top-0 xl:grid-cols-1">
+    <aside className="grid gap-4 panel p-4 sm:grid-cols-[200px_minmax(0,1fr)] xl:sticky xl:top-6 xl:grid-cols-1">
       <LotCover kind={lot.cover} className="aspect-[16/10] sm:aspect-square xl:aspect-[16/10]" label="No photograph yet" />
       <div className="min-w-0">
       <div className="flex items-start justify-between gap-3">
@@ -150,7 +150,7 @@ function Fact({ label, value, money }: { label: string; value: string; money?: b
 function Scrim({ onClose, children, label }: { onClose: () => void; children: React.ReactNode; label: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4" onClick={onClose}>
-      <section role="dialog" aria-modal="true" aria-label={label} onClick={(event) => event.stopPropagation()} className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-[8px] border border-line bg-surface shadow-float">
+      <section role="dialog" aria-modal="true" aria-label={label} onClick={(event) => event.stopPropagation()} className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-xl border border-line bg-surface shadow-float">
         {children}
       </section>
     </div>
@@ -168,7 +168,7 @@ function LotActionsDialog({ lot, onClose, onOpen, onPreview, onHistory }: { lot:
       <div className="max-w-sm">
         <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div><h2 className="text-base font-medium text-ink">{lot.title}</h2><p className="font-mono text-xs text-muted">{lot.id}</p></div>
-          <button type="button" aria-label="Close" onClick={onClose} className="grid size-8 place-items-center rounded-[6px] text-muted hover:bg-raised hover:text-ink"><X size={16} /></button>
+          <button type="button" aria-label="Close" onClick={onClose} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-raised hover:text-ink"><X size={16} /></button>
         </header>
         <ul className="py-1">
           {actions.map((action) => (
@@ -199,7 +199,7 @@ function LotDetailDialog({ lot, mode, onClose, onOpen }: { lot: Lot; mode: LotDi
           <h2 className="text-lg font-semibold text-ink">{lot.title}</h2>
           <p className="text-xs text-muted"><span className="font-mono">{lot.id}</span> · {lot.state}</p>
         </div>
-        <button type="button" aria-label="Close" onClick={onClose} className="grid size-8 place-items-center rounded-[6px] text-muted hover:bg-raised hover:text-ink"><X size={16} /></button>
+        <button type="button" aria-label="Close" onClick={onClose} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-raised hover:text-ink"><X size={16} /></button>
       </header>
       {mode === 'preview' ? (
         <div className="p-5">
@@ -210,7 +210,7 @@ function LotDetailDialog({ lot, mode, onClose, onOpen }: { lot: Lot; mode: LotDi
               <h3 className="mt-1 text-xl font-semibold text-ink">{lot.title}</h3>
               <p className="mt-2 max-w-lg text-sm text-muted">Images, description, price and auction state appear here exactly as bidders will see them.</p>
             </div>
-            <div className="shrink-0 rounded-[6px] bg-raised px-4 py-3 text-right">
+            <div className="shrink-0 rounded-lg bg-raised px-4 py-3 text-right">
               <p className="text-xs text-muted">{lot.bids ? 'Current price' : 'Starting price'}</p>
               <p className="text-2xl font-bold text-copper tabular-nums">{formatMoney(lot.currentPrice)}</p>
               <p className="text-xs text-muted tabular-nums">{formatInt(lot.bids)} bids · {closesLabel(lot)}</p>

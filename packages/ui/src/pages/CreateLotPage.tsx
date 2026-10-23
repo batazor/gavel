@@ -24,8 +24,8 @@ export function CreateLotPage({ onBackToLots, onPublished }: { onBackToLots?: ()
   const publish = () => { setPublished(true); onPublished?.(); };
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-ground">
-      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-line px-5 sm:px-6">
+    <div className="flex min-h-dvh flex-col bg-ground">
+      <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-line bg-ground/95 px-5 sm:px-6">
         <button type="button" onClick={onBackToLots} className="flex items-center gap-2 text-sm font-semibold text-ink"><GavelMark size={20} className="text-copper" />Gavel</button>
         <span className="text-sm text-muted">Seller studio</span>
         <span className="ml-auto hidden font-mono text-xs text-muted sm:inline">Draft LOT-D92F</span>
@@ -33,7 +33,7 @@ export function CreateLotPage({ onBackToLots, onPublished }: { onBackToLots?: ()
         {step === 'Review' ? <Button size="sm" onClick={publish} disabled={published}>{published ? 'Published' : 'Publish lot'}</Button> : <Button size="sm" variant="secondary" onClick={() => setStep('Review')}>Go to review</Button>}
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <main className="flex-1">
         <div className="mx-auto w-full max-w-[1100px] px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -46,13 +46,13 @@ export function CreateLotPage({ onBackToLots, onPublished }: { onBackToLots?: ()
           <div role="tablist" aria-label="Steps" className="mt-5 flex gap-6 overflow-x-auto border-b border-line">
             {steps.map((item, i) => (
               <button key={item} role="tab" aria-selected={step === item} onClick={() => setStep(item)} className={cn('relative shrink-0 py-2.5 text-sm transition-colors', step === item ? 'text-ink after:absolute after:right-0 after:bottom-[-1px] after:left-0 after:h-0.5 after:bg-ink' : 'text-muted hover:text-ink')}>
-                {item}{i < index && <span className="ml-1.5 text-xs text-positive">done</span>}
+                {item}<span aria-label={i < index ? 'done' : undefined} className={cn('ml-1.5 inline-block size-1.5 rounded-full align-middle', i < index ? 'bg-positive' : 'bg-transparent')} />
               </button>
             ))}
           </div>
 
           <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <section className="rounded-[8px] border border-line bg-surface">
+            <section className="panel">
               {step === 'Media' && <MediaStep />}
               {step === 'Details' && <DetailsStep title={title} setTitle={setTitle} />}
               {step === 'Pricing' && <PricingStep startingPrice={startingPrice} setStartingPrice={setStartingPrice} bidStep={bidStep} setBidStep={setBidStep} />}
@@ -89,7 +89,7 @@ function MediaStep() {
     <div>
       <StepHeader title="Photographs" description="Up to 20 images. The first one is the cover bidders see in the catalogue." />
       <div className="p-5">
-        <button type="button" className="grid w-full place-items-center rounded-[6px] border border-dashed border-control bg-surface px-5 py-8 text-center hover:bg-raised">
+        <button type="button" className="grid w-full place-items-center rounded-lg border border-dashed border-control bg-surface px-5 py-8 text-center hover:bg-raised">
           <span className="text-sm font-medium text-ink">Drop photographs here, or browse</span>
           <span className="mt-1 text-xs text-muted">JPEG, PNG or WebP · up to 20 MB each</span>
         </button>
@@ -100,7 +100,7 @@ function MediaStep() {
               {i === 0 && <StatusBadge className="absolute top-2 left-2">Cover</StatusBadge>}
             </li>
           ))}
-          <li><button type="button" className="grid aspect-square w-full place-items-center rounded-[6px] border border-dashed border-control text-sm text-muted hover:bg-raised">Add image</button></li>
+          <li><button type="button" className="grid aspect-square w-full place-items-center rounded-lg border border-dashed border-control text-sm text-muted hover:bg-raised">Add image</button></li>
         </ul>
         <p className="mt-3 text-xs text-muted">{images.length} of 20 images · all uploads processed and owned by this seller</p>
         <h3 className="mt-6 text-sm font-medium text-ink">What a watch listing needs</h3>
@@ -153,7 +153,7 @@ function ReviewStep({ title, startingPrice, bidStep }: { title: string; starting
     <div>
       <StepHeader title="Ready to publish" description="These inputs cannot change once the auction has a bid." />
       <div className="p-5">
-        <div className="rounded-[6px] bg-raised px-4 py-3"><p className="text-sm font-medium text-ink">{title}</p><p className="text-xs text-muted">Watches · Berlin, Germany · no reserve</p></div>
+        <div className="rounded-lg bg-raised px-4 py-3"><p className="text-sm font-medium text-ink">{title}</p><p className="text-xs text-muted">Watches · Berlin, Germany · no reserve</p></div>
         <ul className="mt-4 divide-y divide-rule">
           {checks.map((check) => <li key={check} className="flex h-10 items-center gap-3 text-sm text-ink"><span aria-hidden="true" className="size-2 rounded-full bg-positive" />{check}</li>)}
         </ul>
@@ -165,7 +165,7 @@ function ReviewStep({ title, startingPrice, bidStep }: { title: string; starting
 
 function LotPreview({ title, startingPrice }: { title: string; startingPrice: number }) {
   return (
-    <aside className="rounded-[8px] border border-line bg-surface p-4 lg:sticky lg:top-0">
+    <aside className="panel p-4 lg:sticky lg:top-16">
       <div className="flex items-center justify-between"><h2 className="text-base font-medium text-ink">What bidders see</h2><StatusBadge>Draft</StatusBadge></div>
       <div className="mt-4 grid gap-4 sm:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-1">
         <LotCover kind="watch" className="aspect-[4/3] sm:aspect-square lg:aspect-[4/3]" iconSize={40} />
@@ -187,7 +187,7 @@ function Field({ label, children, className }: { label: string; children: ReactE
   return (
     <label className={cn('block text-sm font-medium text-ink', className)}>
       {label}
-      <span className="mt-2 block [&>*]:w-full [&>*]:rounded-[6px] [&>*]:border [&>*]:border-control [&>*]:bg-surface [&>*]:px-3 [&>*]:py-2 [&>*]:text-sm [&>*]:font-normal [&>*]:text-ink [&>*]:outline-none [&>*]:focus:border-ink [&>input]:h-10 [&>select]:h-10">{children}</span>
+      <span className="mt-2 block [&>*]:w-full [&>*]:rounded-lg [&>*]:border [&>*]:border-control [&>*]:bg-surface [&>*]:px-3 [&>*]:py-2 [&>*]:text-sm [&>*]:font-normal [&>*]:text-ink [&>*]:outline-none [&>*]:focus:border-ink [&>input]:h-10 [&>select]:h-10">{children}</span>
     </label>
   );
 }

@@ -39,20 +39,20 @@ export function ClosingPolicyBuilder({ initialValue, hasBids = false, onChange, 
   }, [value, valid]);
 
   return (
-    <section className={cn('rounded-[8px] border border-line bg-surface', className)}>
+    <section className={cn('panel', className)}>
       <header className="flex min-h-12 items-center justify-between gap-3 px-5 pt-4 pb-3">
         <h2 className="text-base font-medium text-ink">Closing policy</h2>
         {hasBids && <StatusBadge>Locked after the first bid</StatusBadge>}
       </header>
       <div className="divide-y divide-rule border-t border-rule">
         <PolicyRow title="Scheduled end" description="The auction cannot close before this time." checked={value.scheduledEnd !== null} disabled={hasBids} onToggle={(checked) => update({ scheduledEnd: checked ? '2026-10-24T18:00' : null })}>
-          {value.scheduledEnd && <input aria-label="Scheduled end" type="datetime-local" value={value.scheduledEnd} onChange={(event) => update({ scheduledEnd: event.target.value })} className="mt-3 h-10 w-full max-w-xs rounded-[6px] border border-control bg-surface px-3 text-sm outline-none focus:border-ink" />}
+          {value.scheduledEnd && <input aria-label="Scheduled end" type="datetime-local" value={value.scheduledEnd} onChange={(event) => update({ scheduledEnd: event.target.value })} className="mt-3 h-10 w-full max-w-xs rounded-lg border border-control bg-surface px-3 text-sm outline-none focus:border-ink" />}
         </PolicyRow>
         <PolicyRow title="Inactivity window" description="Each accepted bid may extend the auction." checked={value.inactivityMinutes !== null} disabled={hasBids} onToggle={(checked) => update({ inactivityMinutes: checked ? 5 : null })}>
-          {value.inactivityMinutes !== null && <div className="mt-3 flex items-center gap-2"><input aria-label="Inactivity minutes" type="number" min={1} max={180} value={value.inactivityMinutes} onChange={(event) => update({ inactivityMinutes: Number(event.target.value) })} className="h-10 w-24 rounded-[6px] border border-control bg-surface px-3 text-sm outline-none tabular-nums focus:border-ink" /><span className="text-sm text-muted">minutes after the latest bid</span></div>}
+          {value.inactivityMinutes !== null && <div className="mt-3 flex items-center gap-2"><input aria-label="Inactivity minutes" type="number" min={1} max={180} value={value.inactivityMinutes} onChange={(event) => update({ inactivityMinutes: Number(event.target.value) })} className="h-10 w-24 rounded-lg border border-control bg-surface px-3 text-sm outline-none tabular-nums focus:border-ink" /><span className="text-sm text-muted">minutes after the latest bid</span></div>}
         </PolicyRow>
         <PolicyRow title="Hard deadline" description="A ceiling that no extension can exceed." checked={value.hardDeadline !== null} disabled={hasBids} onToggle={(checked) => update({ hardDeadline: checked ? '2026-10-24T20:00' : null })}>
-          {value.hardDeadline && <input aria-label="Hard deadline" type="datetime-local" value={value.hardDeadline} onChange={(event) => update({ hardDeadline: event.target.value })} className="mt-3 h-10 w-full max-w-xs rounded-[6px] border border-control bg-surface px-3 text-sm outline-none focus:border-ink" />}
+          {value.hardDeadline && <input aria-label="Hard deadline" type="datetime-local" value={value.hardDeadline} onChange={(event) => update({ hardDeadline: event.target.value })} className="mt-3 h-10 w-full max-w-xs rounded-lg border border-control bg-surface px-3 text-sm outline-none focus:border-ink" />}
         </PolicyRow>
       </div>
       <footer className="border-t border-rule px-5 py-4">

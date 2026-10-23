@@ -11,6 +11,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Playground: Story = {};
+export const LiveStill: Story = { args: { pulse: false }, parameters: { docs: { description: { story: 'The same badge without the pulse, as it renders under prefers-reduced-motion.' } } } };
 export const StatusSet: Story = {
   render: () => <div className="flex flex-wrap gap-3"><StatusBadge>Draft</StatusBadge><StatusBadge tone="warning">Review</StatusBadge><StatusBadge tone="success" dot>Live</StatusBadge><StatusBadge tone="neutral">Closed</StatusBadge><StatusBadge tone="danger">Expired</StatusBadge></div>,
 };

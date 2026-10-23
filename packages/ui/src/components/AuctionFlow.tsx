@@ -16,10 +16,10 @@ const icons = { auction: Gavel, timer: Clock3, payment: CreditCard, notify: Mail
 function AuctionNode({ data }: NodeProps<Node<AuctionNodeData>>) {
   const Icon = icons[data.kind];
   return (
-    <div className={cn('min-w-48 rounded-[8px] border bg-surface p-3', data.state === 'active' ? 'border-copper' : 'border-line')}>
+    <div className={cn('min-w-48 rounded-xl border bg-surface p-3', data.state === 'active' ? 'border-copper' : 'border-line')}>
       <Handle type="target" position={Position.Left} className="!size-2 !border-0 !bg-control" />
       <div className="flex items-start gap-3">
-        <span className={cn('grid size-8 shrink-0 place-items-center rounded-[6px]', data.state === 'done' ? 'bg-ink text-surface' : 'bg-raised text-muted')}>
+        <span className={cn('grid size-8 shrink-0 place-items-center rounded-lg', data.state === 'done' ? 'bg-ink text-surface' : 'bg-raised text-muted')}>
           {data.state === 'done' ? <Check size={16} /> : <Icon size={16} strokeWidth={1.5} />}
         </span>
         <div>
@@ -57,7 +57,7 @@ export function AuctionFlow({ className }: AuctionFlowProps) {
   const onConnect = useCallback((connection: Connection) => setEdges((current) => addEdge(connection, current)), []);
 
   return (
-    <div data-ui className={cn('h-[360px] min-w-0 overflow-hidden rounded-[8px] border border-line bg-ground', className)}>
+    <div data-ui className={cn('h-[360px] min-w-0 overflow-hidden rounded-xl border border-line bg-ground', className)}>
       <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} fitView minZoom={0.65} maxZoom={1.5}>
         <Background color="#cdc7bc" gap={24} size={1} />
         <Controls position="bottom-right" showInteractive={false} />

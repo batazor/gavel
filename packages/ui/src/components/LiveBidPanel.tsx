@@ -60,7 +60,7 @@ export function LiveBidPanel({ currency = 'EUR', closingRules = ['A bid in the l
   };
 
   return (
-    <section className={cn('@container rounded-[8px] border border-line bg-surface', className)} aria-label="Live bidding">
+    <section className={cn('@container panel', className)} aria-label="Live bidding">
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 px-5 pt-4 pb-4">
         <div>
           <div className="flex items-center gap-2 text-sm text-muted"><StatusBadge tone="success" dot>Live</StatusBadge><span>Current price</span></div>
@@ -83,12 +83,12 @@ export function LiveBidPanel({ currency = 'EUR', closingRules = ['A bid in the l
           <form onSubmit={submit} className="mt-4">
             <label htmlFor="bid-maximum" className="text-sm font-medium text-ink">Your maximum, €</label>
             <div className="mt-2 flex gap-2">
-              <input id="bid-maximum" type="number" min={minimumBid} step={100} value={maximum} onChange={(event) => setMaximum(Number(event.target.value))} className="h-10 min-w-0 flex-1 rounded-[6px] border border-control bg-surface px-3 text-base text-ink outline-none tabular-nums focus:border-ink" />
+              <input id="bid-maximum" type="number" min={minimumBid} step={100} value={maximum} onChange={(event) => setMaximum(Number(event.target.value))} className="h-10 min-w-0 flex-1 rounded-lg border border-control bg-surface px-3 text-base text-ink outline-none tabular-nums focus:border-ink" />
               <Button type="submit" size="lg" disabled={maximum < minimumBid || submitting} className="h-10">{submitting ? 'Placing…' : 'Place bid'}</Button>
             </div>
             <p className="mt-2 text-xs text-muted">Minimum {money(minimumBid)}. Only the resulting public price is shown to others.</p>
             <div className="mt-3 flex gap-2">
-              {quickBids.map((value) => <button type="button" key={value} onClick={() => setMaximum(value)} aria-pressed={maximum === value} className={cn('h-8 flex-1 rounded-[6px] border text-sm tabular-nums', maximum === value ? 'border-ink bg-active text-ink' : 'border-control bg-surface text-ink hover:bg-raised')}>{money(value)}</button>)}
+              {quickBids.map((value) => <button type="button" key={value} onClick={() => setMaximum(value)} aria-pressed={maximum === value} className={cn('h-8 flex-1 rounded-lg border text-sm tabular-nums', maximum === value ? 'border-ink bg-active text-ink' : 'border-control bg-surface text-ink hover:bg-raised')}>{money(value)}</button>)}
             </div>
           </form>
 

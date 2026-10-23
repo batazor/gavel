@@ -185,7 +185,7 @@ function KpiTab({ id, selected, onSelect, label, value, change, good, money, lea
       onClick={() => onSelect(id)}
       className={cn('relative text-left [&>*]:px-5 sm:[&+&]:border-l sm:[&+&]:border-line max-sm:[&:nth-child(2)]:border-l max-sm:[&:nth-child(2)]:border-line max-sm:[&:nth-child(n+3)]:border-t max-sm:[&:nth-child(n+3)]:border-line', active ? 'after:absolute after:right-0 after:bottom-[-1px] after:left-0 after:h-0.5 after:bg-ink' : 'hover:bg-raised', className)}
     >
-      <Kpi label={label} value={value} change={change} changeGood={good} money={money} lead={lead} className={cn(!active && '[&>p:nth-child(2)]:font-normal')} />
+      <Kpi label={label} value={value} change={change} changeGood={good} money={money} lead={lead} />
     </button>
   );
 }

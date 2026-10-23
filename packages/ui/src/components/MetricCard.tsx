@@ -43,7 +43,7 @@ export function Kpi({ label, value, unit, change, changeGood, hint, money, lead,
 export function KpiStrip({ children, className, columns }: { children: ReactNode; className?: string; columns?: number }) {
   return (
     <div
-      className={cn('grid grid-cols-2 overflow-hidden rounded-[8px] border border-line bg-surface sm:auto-cols-fr sm:grid-flow-col sm:grid-cols-none', '[&>*:nth-child(2n)]:border-l [&>*:nth-child(2n)]:border-line [&>*:nth-child(n+3)]:border-t [&>*:nth-child(n+3)]:border-line sm:[&>*+*]:border-l sm:[&>*+*]:border-t-0 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1', className)}
+      className={cn('grid grid-cols-2 overflow-hidden panel sm:auto-cols-fr sm:grid-flow-col sm:grid-cols-none', '[&>*:nth-child(2n)]:border-l [&>*:nth-child(2n)]:border-line [&>*:nth-child(n+3)]:border-t [&>*:nth-child(n+3)]:border-line sm:[&>*+*]:border-l sm:[&>*+*]:border-t-0 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1', className)}
       style={columns ? { gridTemplateColumns: undefined } : undefined}
     >
       {children}
@@ -58,7 +58,7 @@ export interface MetricCardProps extends Omit<KpiProps, 'className' | 'lead'> {
 /** A single KPI in its own bordered card. Prefer `KpiStrip` for a row of peers. */
 export function MetricCard({ className, ...kpi }: MetricCardProps) {
   return (
-    <article className={cn('rounded-[8px] border border-line bg-surface', className)}>
+    <article className={cn('panel', className)}>
       <Kpi {...kpi} />
     </article>
   );

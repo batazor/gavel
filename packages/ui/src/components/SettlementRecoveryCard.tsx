@@ -44,7 +44,7 @@ export function SettlementRecoveryCard({ state, caseId, amount, closingPrice, ca
   ];
 
   return (
-    <section className={cn('rounded-[8px] border border-line bg-surface', className)} aria-label={`Settlement case ${caseId}`}>
+    <section className={cn('panel', className)} aria-label={`Settlement case ${caseId}`}>
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 px-5 pt-4 pb-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2"><StatusBadge tone={view.tone}>{view.label}</StatusBadge><span className="font-mono text-xs text-muted">{caseId}</span></div>
@@ -82,14 +82,14 @@ export function SettlementRecoveryCard({ state, caseId, amount, closingPrice, ca
             <div className="mt-4">
               <p className="text-sm font-medium text-ink">Recovery link for the candidate</p>
               <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                <input readOnly aria-label="Recovery link" value={recoveryUrl} className="h-9 min-w-0 flex-1 rounded-[6px] border border-control bg-raised px-3 font-mono text-xs text-ink outline-none" />
+                <input readOnly aria-label="Recovery link" value={recoveryUrl} className="h-9 min-w-0 flex-1 rounded-lg border border-control bg-raised px-3 font-mono text-xs text-ink outline-none" />
                 <Button variant="secondary" size="lg" onClick={onCopyLink}>Copy link</Button>
                 <Button size="lg" onClick={onOpenRecovery}>Open recovery</Button>
               </div>
             </div>
           )}
         </div>
-        <aside className="rounded-[6px] bg-raised p-4">
+        <aside className="rounded-lg bg-raised p-4">
           <h3 className="text-sm font-medium text-ink">Operator guardrails</h3>
           <ul className="mt-2 space-y-1.5 text-sm">
             <Guard ok label="The closing price cannot change" />

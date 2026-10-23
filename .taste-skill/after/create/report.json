@@ -1,7 +1,11 @@
 {
  "url": "http://localhost:6006/iframe.html?id=pages-product-map--create-lot&viewMode=story",
- "at": "2026-10-23T03:56:36.054Z",
- "allow": [],
+ "at": "2026-10-23T04:09:59.001Z",
+ "allow": [
+  "font-not-dealt",
+  "micro-label",
+  "palette-cream"
+ ],
  "viewports": [
   {
    "width": 1440,
@@ -9,8 +13,8 @@
    "load": "load",
    "screens": 2,
    "filled": [
-    0.56,
-    0.54
+    0.6,
+    0.61
    ],
    "motion": {
     "elements": 1,
@@ -55,7 +59,7 @@
      "lines": 1,
      "size": 21,
      "vw": 1.5,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
      "tracking": -0.01,
      "leading": 1.33,
@@ -70,7 +74,7 @@
      "words": 2,
      "lines": 1,
      "size": 21,
-     "font": "Geist"
+     "font": "Avenir Next"
     },
     "headings": [],
     "headingSummary": {
@@ -85,7 +89,7 @@
     "type": {
      "families": [
       {
-       "family": "Geist",
+       "family": "Avenir Next",
        "share": 0.98,
        "mono": false
       },
@@ -104,20 +108,22 @@
       21
      ],
      "sizeCount": 5,
-     "notLoaded": [],
+     "notLoaded": [
+      "Avenir Next"
+     ],
      "body": {
-      "font": "Geist",
+      "font": "Avenir Next",
       "size": 12.3,
       "leading": 1.43,
       "weight": 400,
       "tracking": 0,
-      "contrast": 6.2
+      "contrast": 6.4
      },
-     "measureChars": 77,
+     "measureChars": 76,
      "max": {
       "size": 21,
       "vw": 1.5,
-      "font": "Geist",
+      "font": "Avenir Next",
       "text": "New lot"
      },
      "monoShare": 0.02,
@@ -138,36 +144,36 @@
     "eyebrows": [],
     "numbered": [],
     "color": {
-     "bodyBg": "#f4f3f1",
+     "bodyBg": "#f5f0e8",
      "bodyBgHsl": {
-      "h": 40,
-      "s": 0.12,
-      "l": 0.95
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
      },
      "dark": false,
      "sectionBgs": [
       {
-       "color": "#f4f3f1",
+       "color": "#f5f0e8",
        "top": 0,
        "hsl": {
-        "h": 40,
-        "s": 0.12,
-        "l": 0.95
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
        }
       },
       {
-       "color": "#ffffff",
+       "color": "#fcfaf6",
        "top": 183,
        "hsl": {
-        "h": 0,
-        "s": 0,
-        "l": 1
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
        }
       }
      ],
      "textColors": [
       {
-       "color": "#5d5a55",
+       "color": "#5b564e",
        "share": 0.67
       },
       {
@@ -175,7 +181,7 @@
        "share": 0.27
       },
       {
-       "color": "#6b6862",
+       "color": "#6d675d",
        "share": 0.02
       },
       {
@@ -188,11 +194,11 @@
       }
      ],
      "button": {
-      "bg": "#1d1c1a",
+      "bg": "#bd5634",
       "hsl": {
-       "h": 40,
-       "s": 0.05,
-       "l": 0.11
+       "h": 15,
+       "s": 0.57,
+       "l": 0.47
       },
       "fg": "#ffffff"
      },
@@ -201,7 +207,7 @@
     "buttons": {
      "count": 1,
      "inHero": 1,
-     "radius": 6,
+     "radius": 7,
      "height": 28,
      "withShadow": 0,
      "withGradient": 0,
@@ -212,16 +218,18 @@
      ]
     },
     "surfaces": {
-     "shadowStatic": 0,
-     "shadowOverlay": 0,
-     "shadowSamples": [],
+     "shadowStatic": 1,
+     "shadowOverlay": 1,
+     "shadowSamples": [
+      "section.panel → rgba(23, 23, 22, 0.04) 0px 1px 0px 0px, rgba(54, 43, 28, 0.06) 0px 4px 14px 0px"
+     ],
      "gradients": 0,
      "scrims": 0,
      "gradientSamples": [],
      "gradientText": 0,
      "hairlines": 9,
      "hairlineSamples": [
-      "header.flex.h-12 1440px",
+      "header.sticky.top-0 1440px",
       "div.mt-5.flex 1058px",
       "li.flex.h-10 684px",
       "li.flex.h-10 684px",
@@ -231,7 +239,7 @@
      "dashed": 2,
      "blurred": 0,
      "roundedBoxes": 8,
-     "boxRadius": 6,
+     "boxRadius": 7,
      "squareMedia": 0,
      "roundedMedia": 0,
      "mediaRadius": 0,
@@ -241,13 +249,12 @@
     "heroMedia": [],
     "nav": {
      "links": 0,
-     "fixed": false,
+     "fixed": true,
      "height": 42,
      "floatingPill": false,
      "blur": false
     },
     "fontsLoaded": [
-     "geist",
      "geist mono"
     ]
    },
@@ -258,7 +265,7 @@
     },
     "pageH": 909,
     "margins": {
-     "left": 92,
+     "left": 91,
      "right": 31
     },
     "sections": [],
@@ -305,7 +312,7 @@
      "h": 900
     },
     "dark": false,
-    "ground": "#f4f3f1",
+    "ground": "#f5f0e8",
     "sidebar": null,
     "topbar": {
      "h": 42
@@ -321,7 +328,7 @@
      "lines": 1,
      "size": 21,
      "vw": 1.5,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
      "tracking": -0.01,
      "leading": 1.33,
@@ -348,21 +355,21 @@
      "count": 7,
      "radii": [
       [
-       6,
+       7,
        5
       ],
       [
-       8,
+       12,
        2
       ]
      ],
      "heavyBorders": 2,
      "borderSamples": [
-      "#cfcbc4 on #ffffff (1.62:1)",
-      "#cfcbc4 on #ffffff (1.62:1)"
+      "#cfc4b4 on #fcfaf6 (1.65:1)",
+      "#cfc4b4 on #fcfaf6 (1.65:1)"
      ],
      "heavyShadows": 0,
-     "softShadows": 0,
+     "softShadows": 4,
      "shadowSamples": [],
      "glass": 0
     },
@@ -398,7 +405,7 @@
      "size": 21,
      "top": 63
     },
-    "colourShare": 0
+    "colourShare": 0.004
    },
    "consoleErrors": []
   },
@@ -408,7 +415,7 @@
    "load": "load",
    "screens": 2,
    "filled": [
-    0.78,
+    0.84,
     0.92
    ],
    "motion": {
@@ -454,7 +461,7 @@
      "lines": 1,
      "size": 21,
      "vw": 2.7,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
      "tracking": -0.01,
      "leading": 1.33,
@@ -469,7 +476,7 @@
      "words": 2,
      "lines": 1,
      "size": 21,
-     "font": "Geist"
+     "font": "Avenir Next"
     },
     "headings": [],
     "headingSummary": {
@@ -484,7 +491,7 @@
     "type": {
      "families": [
       {
-       "family": "Geist",
+       "family": "Avenir Next",
        "share": 0.98,
        "mono": false
       },
@@ -503,20 +510,22 @@
       21
      ],
      "sizeCount": 5,
-     "notLoaded": [],
+     "notLoaded": [
+      "Avenir Next"
+     ],
      "body": {
-      "font": "Geist",
+      "font": "Avenir Next",
       "size": 12.3,
       "leading": 1.43,
       "weight": 400,
       "tracking": 0,
-      "contrast": 6.2
+      "contrast": 6.4
      },
-     "measureChars": 77,
+     "measureChars": 76,
      "max": {
       "size": 21,
       "vw": 2.7,
-      "font": "Geist",
+      "font": "Avenir Next",
       "text": "New lot"
      },
      "monoShare": 0.02,
@@ -537,36 +546,36 @@
     "eyebrows": [],
     "numbered": [],
     "color": {
-     "bodyBg": "#f4f3f1",
+     "bodyBg": "#f5f0e8",
      "bodyBgHsl": {
-      "h": 40,
-      "s": 0.12,
-      "l": 0.95
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
      },
      "dark": false,
      "sectionBgs": [
       {
-       "color": "#f4f3f1",
+       "color": "#f5f0e8",
        "top": 0,
        "hsl": {
-        "h": 40,
-        "s": 0.12,
-        "l": 0.95
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
        }
       },
       {
-       "color": "#ffffff",
+       "color": "#fcfaf6",
        "top": 183,
        "hsl": {
-        "h": 0,
-        "s": 0,
-        "l": 1
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
        }
       }
      ],
      "textColors": [
       {
-       "color": "#5d5a55",
+       "color": "#5b564e",
        "share": 0.67
       },
       {
@@ -574,7 +583,7 @@
        "share": 0.27
       },
       {
-       "color": "#6b6862",
+       "color": "#6d675d",
        "share": 0.02
       },
       {
@@ -587,11 +596,11 @@
       }
      ],
      "button": {
-      "bg": "#1d1c1a",
+      "bg": "#bd5634",
       "hsl": {
-       "h": 40,
-       "s": 0.05,
-       "l": 0.11
+       "h": 15,
+       "s": 0.57,
+       "l": 0.47
       },
       "fg": "#ffffff"
      },
@@ -600,7 +609,7 @@
     "buttons": {
      "count": 1,
      "inHero": 1,
-     "radius": 6,
+     "radius": 7,
      "height": 28,
      "withShadow": 0,
      "withGradient": 0,
@@ -611,16 +620,19 @@
      ]
     },
     "surfaces": {
-     "shadowStatic": 0,
+     "shadowStatic": 2,
      "shadowOverlay": 0,
-     "shadowSamples": [],
+     "shadowSamples": [
+      "section.panel → rgba(23, 23, 22, 0.04) 0px 1px 0px 0px, rgba(54, 43, 28, 0.06) 0px 4px 14px 0px",
+      "aside.panel.p-4 → rgba(23, 23, 22, 0.04) 0px 1px 0px 0px, rgba(54, 43, 28, 0.06) 0px 4px 14px 0px"
+     ],
      "gradients": 0,
      "scrims": 0,
      "gradientSamples": [],
      "gradientText": 0,
      "hairlines": 9,
      "hairlineSamples": [
-      "header.flex.h-12 768px",
+      "header.sticky.top-0 768px",
       "div.mt-5.flex 726px",
       "li.flex.h-10 689px",
       "li.flex.h-10 689px",
@@ -630,7 +642,7 @@
      "dashed": 2,
      "blurred": 0,
      "roundedBoxes": 8,
-     "boxRadius": 6,
+     "boxRadius": 7,
      "squareMedia": 0,
      "roundedMedia": 0,
      "mediaRadius": 0,
@@ -640,13 +652,12 @@
     "heroMedia": [],
     "nav": {
      "links": 0,
-     "fixed": false,
+     "fixed": true,
      "height": 42,
      "floatingPill": false,
      "blur": false
     },
     "fontsLoaded": [
-     "geist",
      "geist mono"
     ]
    },
@@ -662,7 +673,7 @@
     },
     "sections": [
      {
-      "sel": "section.rounded-[8px].border",
+      "sel": "section.panel",
       "tag": "section",
       "top": 183,
       "height": 706,
@@ -685,13 +696,13 @@
       "pinned": false
      },
      {
-      "sel": "aside.rounded-[8px].border",
+      "sel": "aside.panel.p-4",
       "tag": "aside",
       "top": 906,
       "height": 266,
       "words": 21,
       "media": 0,
-      "middle": 161,
+      "middle": 158,
       "heading": {
        "text": "What bidders see",
        "size": 14,
@@ -742,7 +753,7 @@
      "h": 1024
     },
     "dark": false,
-    "ground": "#f4f3f1",
+    "ground": "#f5f0e8",
     "sidebar": null,
     "topbar": {
      "h": 42
@@ -758,7 +769,7 @@
      "lines": 1,
      "size": 21,
      "vw": 2.7,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
      "tracking": -0.01,
      "leading": 1.33,
@@ -780,21 +791,21 @@
      "count": 7,
      "radii": [
       [
-       6,
+       7,
        5
       ],
       [
-       8,
+       12,
        2
       ]
      ],
      "heavyBorders": 2,
      "borderSamples": [
-      "#cfcbc4 on #ffffff (1.62:1)",
-      "#cfcbc4 on #ffffff (1.62:1)"
+      "#cfc4b4 on #fcfaf6 (1.65:1)",
+      "#cfc4b4 on #fcfaf6 (1.65:1)"
      ],
      "heavyShadows": 0,
-     "softShadows": 0,
+     "softShadows": 4,
      "shadowSamples": [],
      "glass": 0
     },
@@ -830,7 +841,7 @@
      "size": 21,
      "top": 63
     },
-    "colourShare": 0
+    "colourShare": 0.005
    },
    "consoleErrors": []
   },
@@ -840,7 +851,7 @@
    "load": "load",
    "screens": 2,
    "filled": [
-    0.8,
+    0.81,
     0.86
    ],
    "motion": {
@@ -886,7 +897,7 @@
      "lines": 1,
      "size": 21,
      "vw": 5.4,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
      "tracking": -0.01,
      "leading": 1.33,
@@ -901,7 +912,7 @@
      "words": 2,
      "lines": 1,
      "size": 21,
-     "font": "Geist"
+     "font": "Avenir Next"
     },
     "headings": [],
     "headingSummary": {
@@ -916,7 +927,7 @@
     "type": {
      "families": [
       {
-       "family": "Geist",
+       "family": "Avenir Next",
        "share": 1,
        "mono": false
       }
@@ -930,20 +941,22 @@
       21
      ],
      "sizeCount": 5,
-     "notLoaded": [],
+     "notLoaded": [
+      "Avenir Next"
+     ],
      "body": {
-      "font": "Geist",
+      "font": "Avenir Next",
       "size": 12.3,
       "leading": 1.43,
       "weight": 400,
       "tracking": 0,
-      "contrast": 6.2
+      "contrast": 6.4
      },
      "measureChars": 58,
      "max": {
       "size": 21,
       "vw": 5.4,
-      "font": "Geist",
+      "font": "Avenir Next",
       "text": "New lot"
      },
      "monoShare": 0,
@@ -960,36 +973,36 @@
     "eyebrows": [],
     "numbered": [],
     "color": {
-     "bodyBg": "#f4f3f1",
+     "bodyBg": "#f5f0e8",
      "bodyBgHsl": {
-      "h": 40,
-      "s": 0.12,
-      "l": 0.95
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
      },
      "dark": false,
      "sectionBgs": [
       {
-       "color": "#f4f3f1",
+       "color": "#f5f0e8",
        "top": 0,
        "hsl": {
-        "h": 40,
-        "s": 0.12,
-        "l": 0.95
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
        }
       },
       {
-       "color": "#ffffff",
+       "color": "#fcfaf6",
        "top": 197,
        "hsl": {
-        "h": 0,
-        "s": 0,
-        "l": 1
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
        }
       }
      ],
      "textColors": [
       {
-       "color": "#5d5a55",
+       "color": "#5b564e",
        "share": 0.66
       },
       {
@@ -997,7 +1010,7 @@
        "share": 0.27
       },
       {
-       "color": "#6b6862",
+       "color": "#6d675d",
        "share": 0.03
       },
       {
@@ -1010,11 +1023,11 @@
       }
      ],
      "button": {
-      "bg": "#1d1c1a",
+      "bg": "#bd5634",
       "hsl": {
-       "h": 40,
-       "s": 0.05,
-       "l": 0.11
+       "h": 15,
+       "s": 0.57,
+       "l": 0.47
       },
       "fg": "#ffffff"
      },
@@ -1023,7 +1036,7 @@
     "buttons": {
      "count": 1,
      "inHero": 0,
-     "radius": 6,
+     "radius": 7,
      "height": 28,
      "withShadow": 0,
      "withGradient": 0,
@@ -1032,16 +1045,19 @@
      "heroLabels": []
     },
     "surfaces": {
-     "shadowStatic": 0,
+     "shadowStatic": 2,
      "shadowOverlay": 0,
-     "shadowSamples": [],
+     "shadowSamples": [
+      "section.panel → rgba(23, 23, 22, 0.04) 0px 1px 0px 0px, rgba(54, 43, 28, 0.06) 0px 4px 14px 0px",
+      "aside.panel.p-4 → rgba(23, 23, 22, 0.04) 0px 1px 0px 0px, rgba(54, 43, 28, 0.06) 0px 4px 14px 0px"
+     ],
      "gradients": 0,
      "scrims": 0,
      "gradientSamples": [],
      "gradientText": 0,
      "hairlines": 9,
      "hairlineSamples": [
-      "header.flex.h-12 390px",
+      "header.sticky.top-0 390px",
       "div.mt-5.flex 355px",
       "li.flex.h-10 318px",
       "li.flex.h-10 318px",
@@ -1051,7 +1067,7 @@
      "dashed": 2,
      "blurred": 0,
      "roundedBoxes": 8,
-     "boxRadius": 6,
+     "boxRadius": 7,
      "squareMedia": 0,
      "roundedMedia": 0,
      "mediaRadius": 0,
@@ -1061,14 +1077,12 @@
     "heroMedia": [],
     "nav": {
      "links": 0,
-     "fixed": false,
+     "fixed": true,
      "height": 42,
      "floatingPill": false,
      "blur": false
     },
-    "fontsLoaded": [
-     "geist"
-    ]
+    "fontsLoaded": []
    },
    "layout": {
     "viewport": {
@@ -1078,11 +1092,11 @@
     "pageH": 1584,
     "margins": {
      "left": 18,
-     "right": 32
+     "right": 36
     },
     "sections": [
      {
-      "sel": "section.rounded-[8px].border",
+      "sel": "section.panel",
       "tag": "section",
       "top": 197,
       "height": 895,
@@ -1105,13 +1119,13 @@
       "pinned": false
      },
      {
-      "sel": "aside.rounded-[8px].border",
+      "sel": "aside.panel.p-4",
       "tag": "aside",
       "top": 1110,
       "height": 457,
       "words": 21,
       "media": 0,
-      "middle": 4,
+      "middle": 1,
       "heading": {
        "text": "What bidders see",
        "size": 14,
@@ -1128,12 +1142,7 @@
       "pinned": false
      }
     ],
-    "gaps": [
-     {
-      "top": 1144,
-      "height": 272
-     }
-    ],
+    "gaps": [],
     "h1s": [
      {
       "text": "New lot",
@@ -1167,14 +1176,14 @@
      "h": 844
     },
     "dark": false,
-    "ground": "#f4f3f1",
+    "ground": "#f5f0e8",
     "sidebar": null,
     "topbar": {
      "h": 42
     },
     "canvas": {
      "left": 18,
-     "right": 32
+     "right": 36
     },
     "hero": {
      "text": "New lot",
@@ -1183,7 +1192,7 @@
      "lines": 1,
      "size": 21,
      "vw": 5.4,
-     "font": "Geist",
+     "font": "Avenir Next",
      "weight": 600,
      "tracking": -0.01,
      "leading": 1.33,
@@ -1205,21 +1214,21 @@
      "count": 7,
      "radii": [
       [
-       6,
+       7,
        5
       ],
       [
-       8,
+       12,
        2
       ]
      ],
      "heavyBorders": 2,
      "borderSamples": [
-      "#cfcbc4 on #ffffff (1.62:1)",
-      "#cfcbc4 on #ffffff (1.62:1)"
+      "#cfc4b4 on #fcfaf6 (1.65:1)",
+      "#cfc4b4 on #fcfaf6 (1.65:1)"
      ],
      "heavyShadows": 0,
-     "softShadows": 0,
+     "softShadows": 4,
      "shadowSamples": [],
      "glass": 0
     },
@@ -1261,6 +1270,28 @@
   }
  ],
  "findings": [
+  {
+   "level": "FAIL",
+   "id": "palette-claude",
+   "width": 1440,
+   "message": "Cream + terracotta palette (page background #f5f0e8, section #f5f0e8, section #fcfaf6, button #bd5634).",
+   "fix": "Re-draw the palette from the library. This pairing reads as an assistant brand, not yours.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "font-fallback",
+   "width": 1440,
+   "message": "Typeface(s) declared but not loaded, so a fallback is rendering: Avenir Next",
+   "fix": "Fix the font URL / family name, or the screenshots you are judging are not the design.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
   {
    "level": "WARN",
    "id": "ragged-row",

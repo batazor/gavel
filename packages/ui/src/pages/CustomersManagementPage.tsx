@@ -53,7 +53,7 @@ export function CustomersManagementPage({ onNavigate, onOpenCustomer }: { onNavi
       <div className="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <label className="flex h-8 w-full items-center gap-2 rounded-[6px] border border-control bg-surface px-2.5 text-muted sm:w-[300px]">
+            <label className="flex h-8 w-full items-center gap-2 rounded-lg border border-control bg-surface px-2.5 text-muted sm:w-[300px]">
               <Search size={14} strokeWidth={1.5} />
               <input aria-label="Search members" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name, email or member ID" className="min-w-0 flex-1 border-0 bg-transparent text-sm text-ink outline-none placeholder:text-faint" />
               {query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')} className="text-muted hover:text-ink"><X size={14} /></button>}
@@ -91,12 +91,12 @@ export function CustomersManagementPage({ onNavigate, onOpenCustomer }: { onNavi
                   <td className="px-3 text-right font-bold tabular-nums">{customer.volume === 0 ? <span className="font-normal text-faint">€0</span> : formatMoney(customer.volume)}</td>
                   <td className="hidden px-3 whitespace-nowrap text-muted xl:table-cell">{customer.lastSeen}</td>
                   <td className="hidden px-3 sm:table-cell"><StatusBadge tone={stateTone[customer.state]}>{customer.state}</StatusBadge></td>
-                  <td className="w-10 text-right"><button type="button" aria-label={`Open ${customer.name}`} onClick={(event) => { event.stopPropagation(); setSelected(customer); onOpenCustomer?.(customer.id); }} className="grid size-8 place-items-center rounded-[6px] text-muted hover:bg-raised hover:text-ink"><MoreHorizontal size={16} /></button></td>
+                  <td className="w-10 text-right"><button type="button" aria-label={`Open ${customer.name}`} onClick={(event) => { event.stopPropagation(); setSelected(customer); onOpenCustomer?.(customer.id); }} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-raised hover:text-ink"><MoreHorizontal size={16} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && <p className="mt-3 grid min-h-20 place-items-center rounded-[6px] border border-dashed border-control text-sm text-muted">No members match "{query}" under {tab}.</p>}
+          {filtered.length === 0 && <p className="mt-3 grid min-h-20 place-items-center rounded-lg border border-dashed border-control text-sm text-muted">No members match "{query}" under {tab}.</p>}
         </div>
         <CustomerPeek customer={selected} onOpen={onOpenCustomer ? () => onOpenCustomer(selected.id) : undefined} />
       </div>
@@ -137,7 +137,7 @@ export function CustomersManagementPage({ onNavigate, onOpenCustomer }: { onNavi
 
 function CustomerPeek({ customer, onOpen }: { customer: Customer; onOpen?: () => void }) {
   return (
-    <aside className="rounded-[8px] border border-line bg-surface p-4 xl:sticky xl:top-0">
+    <aside className="panel p-4 xl:sticky xl:top-6">
       <div className="flex items-start gap-3">
         <Avatar name={customer.name} hue={customer.hue} size="lg" />
         <div className="min-w-0">
@@ -153,8 +153,8 @@ function CustomerPeek({ customer, onOpen }: { customer: Customer; onOpen?: () =>
         <Fact label="Member since" value={customer.since} />
         <Fact label="Last active" value={customer.lastSeen} />
       </dl>
-      {customer.state === 'Review' && <p className="mt-4 rounded-[6px] bg-pill-warning px-3 py-2 text-xs text-pill-warning-ink">Review opened today: bid velocity tripled, no failed settlement.</p>}
-      {customer.payment === 'Missing' && <p className="mt-4 rounded-[6px] bg-raised px-3 py-2 text-xs text-muted">No payment instrument on file; the member can watch but not bid.</p>}
+      {customer.state === 'Review' && <p className="mt-4 rounded-lg bg-pill-warning px-3 py-2 text-xs text-pill-warning-ink">Review opened today: bid velocity tripled, no failed settlement.</p>}
+      {customer.payment === 'Missing' && <p className="mt-4 rounded-lg bg-raised px-3 py-2 text-xs text-muted">No payment instrument on file; the member can watch but not bid.</p>}
       <Button className="mt-4 w-full" onClick={onOpen} disabled={!onOpen}>Open member</Button>
     </aside>
   );

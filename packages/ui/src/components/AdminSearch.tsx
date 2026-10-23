@@ -25,7 +25,7 @@ export function AdminSearch({ items, onClose }: { items: AdminSearchItem[]; onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-ink/30 p-4 pt-[12vh]" onClick={onClose}>
-      <section role="dialog" aria-modal="true" aria-label="Search" onClick={(event) => event.stopPropagation()} className="w-full max-w-xl overflow-hidden rounded-[8px] border border-line bg-surface shadow-float">
+      <section role="dialog" aria-modal="true" aria-label="Search" onClick={(event) => event.stopPropagation()} className="w-full max-w-xl overflow-hidden rounded-xl border border-line bg-surface shadow-float">
         <div className="flex h-12 items-center gap-3 border-b border-line px-4">
           <Search size={16} className="shrink-0 text-muted" strokeWidth={1.5} />
           <input
