@@ -12,6 +12,7 @@
     "web:check": "npm run check --workspace=@gavel/web",
     "web:build": "npm run build --workspace=@gavel/web",
     "graphql:check": "wgc router compose -i contexts/bff/cosmo/supergraph.yaml -o /tmp/gavel-execution-config.json",
+    "graphql:operations:check": "npm run graphql:check && node contexts/bff/scripts/check-operations.mjs /tmp/gavel-execution-config.json",
     "graphql:compose": "wgc router compose -i contexts/bff/cosmo/supergraph.yaml -o contexts/bff/cosmo/execution-config.json",
     "arch": "likec4 start .",
     "arch:validate": "likec4 validate .",

@@ -1,54 +1,94 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 @import "@xyflow/react/dist/style.css";
+@source "./**/*.{ts,tsx,mdx}";
 
+/*
+  Gavel UI tokens — achromatic ledger on warm stone paper.
+  Colour is for data (copper on the hammer price and today's series) and for status.
+  The chrome is ink on paper: near-black primary, grey secondary, 1px borders, no shadows at rest.
+*/
 @theme {
-  --color-ink-950: #171716;
-  --color-ink-900: #242321;
-  --color-ink-700: #55514b;
-  --color-ink-500: #716b63;
-  --color-paper-50: #fcfaf6;
-  --color-paper-100: #f5f0e8;
-  --color-paper-200: #e7ded1;
-  --color-copper-400: #d87550;
-  --color-copper-500: #bd5634;
-  --color-copper-600: #984329;
-  --color-moss-400: #55a78e;
-  --color-moss-500: #2e7662;
-  --color-moss-600: #235d4d;
-  --color-gold-400: #e3ae45;
-  --font-sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --shadow-panel: 0 1px 0 rgba(23, 23, 22, 0.06), 0 16px 48px rgba(54, 43, 28, 0.08);
+  /* grounds and lines */
+  --color-ground: #f4f3f1;
+  --color-surface: #ffffff;
+  --color-raised: #f5f4f2;
+  --color-active: #ebe9e5;
+  --color-line: #e6e3de;
+  --color-rule: #eeede9;
+  --color-control: #cfcbc4;
+
+  /* ink in three tiers, each at 4.5:1 or better on its ground */
+  --color-ink: #171716;
+  --color-muted: #5d5a55;
+  --color-faint: #6b6862;
+
+  /* the one hue: the auction's money and clock */
+  --color-copper: #9f4428;
+  --color-copper-deep: #8a3a22;
+  --color-copper-pale: #f7e7df;
+
+  /* the primary control */
+  --color-primary: #1d1c1a;
+  --color-primary-ink: #ffffff;
+
+  /* status */
+  --color-positive: #247b50;
+  --color-negative: #c4242a;
+  --color-warning: #92400e;
+  --color-pill-positive: #dcfae5;
+  --color-pill-positive-ink: #04250e;
+  --color-pill-negative: #ffedea;
+  --color-pill-negative-ink: #831c1e;
+  --color-pill-warning: #fdf3dc;
+  --color-pill-warning-ink: #7a3a0a;
+  --color-pill-neutral: #ebe9e5;
+  --color-pill-neutral-ink: #3d3b37;
+
+  --font-sans: "Geist", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* 13px is the smallest size that carries words; 12px stays for axis ticks and chart notes */
+  --text-xs: 13px;
+  --text-xs--line-height: 18px;
+
+  --radius-card: 8px;
+  --radius-control: 6px;
+
+  --shadow-panel: none;
+  --shadow-float: 0 12px 32px rgba(23, 23, 22, 0.14), 0 1px 2px rgba(23, 23, 22, 0.08);
 }
 
-:root {
-  font-family: var(--font-sans);
-  color: var(--color-ink-950);
-  background: var(--color-paper-100);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+@layer base {
+  :root {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--color-ink);
+    background: var(--color-ground);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { margin: 0; min-width: 320px; }
+  h1, h2, h3, h4, p, figure, ul, ol, dl, dd { margin: 0; }
+  button { cursor: pointer; }
+  table, .num, [data-num] { font-variant-numeric: tabular-nums; }
+  :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; border-radius: 4px; }
+  ::selection { color: var(--color-surface); background: var(--color-ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
-button, input, select, textarea { font: inherit; }
-button { cursor: pointer; }
-
-::selection {
-  color: var(--color-paper-50);
-  background: var(--color-copper-500);
-}
-
-.gavel-grid {
-  background-image:
-    linear-gradient(rgba(23, 23, 22, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(23, 23, 22, 0.035) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
+/* React Flow: the builder keeps its own chrome, quiet */
 .react-flow__attribution { display: none; }
-.react-flow__controls { box-shadow: none; }
-.react-flow__controls-button {
-  border-color: var(--color-paper-200);
-  background: var(--color-paper-50);
-}
+.react-flow__controls { box-shadow: none; border: 1px solid var(--color-line); border-radius: var(--radius-control); overflow: hidden; }
+.react-flow__controls-button { border-color: var(--color-rule); background: var(--color-surface); color: var(--color-muted); }
+.react-flow__controls-button:hover { background: var(--color-raised); }

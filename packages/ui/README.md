@@ -1,19 +1,33 @@
 # @gavel/ui
 
-Прототип UI-kit для Web UI и операционной админки Gavel.
+UI-kit операционной админки и публичной панели торгов Gavel.
 
 ```bash
-npm run storybook
-npm run ui:check
+npm run storybook        # http://localhost:6006
+npm run ui:check         # tsc
 npm run storybook:build
 ```
 
-Storybook открывается на `http://localhost:6006`. В `Prototype/Admin directions` доступны три компоновки; стрелки на экране и клавиши `←` / `→` меняют `?variant=A|B|C`.
+## Направление
 
-В `Prototype/Complex components` тем же способом переключаются три доменных контекста: live bidding, closing policy и settlement recovery. Изолированные состояния компонентов находятся в разделе `Domain`.
+Стиль — **achromatic ledger** (выдан `design-taste-frontend`, seed 1728568553): чернила на тёплой каменной бумаге,
+цвет только на данных. Токены в `src/styles.css` (`@theme`), заметки по направлению в `.taste-skill/notes.md` в корне репозитория.
 
-`Prototype/Product pages` объединяет пять экранов: создание лота, управление лотами, управление клиентами, профиль клиента и overview админки. Используйте `?variant=A|B|C|D|E` или экранные стрелки.
+- Шрифт Geist (Google Fonts), Geist Mono для ID. Табличные цифры везде.
+- Медь — единственный оттенок, и только на главном элементе данных (цена, серия торгов, дедлайн).
+- Одно основное действие на экран, почти чёрное. Границы 1px, радиус 8/6, теней в покое нет.
 
-Для responsive-проверки в Storybook добавлены viewport-пресеты `Tablet compact` (768 × 1024), `Tablet comfortable` (834 × 1194) и `Tablet landscape` (1024 × 768). На планшетах `AdminShell` переходит в компактную rail-навигацию, а составные доменные компоненты используют container queries.
+## Структура
 
-Пакет намеренно остаётся прототипом: после выбора направления компоненты-победители нужно адаптировать к будущему Astro Web UI, а лабораторию вариантов вынести из основной ветки.
+- `src/components` — примитивы (Button, Panel + состояния, KPI, StatusBadge, Avatar), графики (LineChart, ClosingBoard),
+  доменные блоки (LiveBidPanel, ClosingPolicyBuilder, SettlementRecoveryCard, AuctionFlow) и AdminShell.
+- `src/pages` — пять экранов продукта на общих данных.
+- `src/data` — демо-данные с инвариантами; заменяются проекцией BFF.
+
+## Проверка
+
+```bash
+node ~/.claude/skills/design-taste-frontend/scripts/inspect.mjs --app "http://localhost:6006/iframe.html?id=pages-product-map--overview&viewMode=story"
+```
+
+Инспектор измеряет экран на 1440, 768 и 390 px и кладёт скриншоты в `.taste-skill/inspect/`.

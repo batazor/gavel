@@ -1,0 +1,1471 @@
+{
+ "url": "http://localhost:6006/iframe.html?id=domain-live-bid-panel--leading&viewMode=story",
+ "at": "2026-10-23T03:29:30.842Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.33
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 900,
+     "screens": 1,
+     "words": 75,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 5,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "€42,800",
+     "words": 1,
+     "chars": 7,
+     "lines": 1,
+     "size": 36,
+     "vw": 2.5,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.05,
+     "leading": 1.11,
+     "top": 259,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "€42,800",
+      "words": 1,
+      "chars": 7,
+      "lines": 1,
+      "size": 36,
+      "vw": 2.5,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.05,
+      "leading": 1.11,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.09,
+      "top": 259,
+      "tag": "p",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      36
+     ],
+     "sizeCount": 7,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 10,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 5.1
+     },
+     "measureChars": 78,
+     "max": {
+      "size": 36,
+      "vw": 2.5,
+      "font": "Avenir Next",
+      "text": "€42,800"
+     },
+     "monoShare": 0.12,
+     "monoProseShare": 0.12,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "08:42 left",
+      "14:31:52",
+      "14:31:49",
+      "14:30:08",
+      "14:29:44",
+      "14:28:16"
+     ],
+     "microLabels": 3,
+     "microLabelShare": 0.084,
+     "microSamples": [
+      "Live",
+      "Current price",
+      "Public bid history"
+     ],
+     "upperShare": 0.08,
+     "centerShare": 0.07,
+     "smallText": 6
+    },
+    "eyebrows": [
+     {
+      "text": "Current price",
+      "above": "€42,800",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 240
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fcfaf6",
+       "top": 177,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.52
+      },
+      {
+       "color": "#171716",
+       "share": 0.25
+      },
+      {
+       "color": "#55514b",
+       "share": 0.09
+      },
+      {
+       "color": "#e6dfd1",
+       "share": 0.07
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#f5f0e8",
+      "hsl": {
+       "h": 37,
+       "s": 0.39,
+       "l": 0.94
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 4,
+     "radius": 8,
+     "height": 42,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Place bid",
+      "€43,000",
+      "€43,500",
+      "€44,000"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 2,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "section.@container.overflow-hidden → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 3,
+     "hairlineSamples": [
+      "header.border-b.border-paper-200 918px",
+      "div.border-b.border-paper-200 488px",
+      "p.mt-4.mb-0 390px"
+     ],
+     "outlinedBoxes": 1,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 1,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 139,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 900,
+    "margins": {
+     "left": 281,
+     "right": 281
+    },
+    "sections": [
+     {
+      "sel": "header.border-b.border-paper-200",
+      "tag": "header",
+      "top": 178,
+      "height": 139,
+      "words": 9,
+      "media": 0,
+      "middle": 677,
+      "heading": {
+       "text": "€42,800",
+       "size": 36,
+       "tag": "p"
+      },
+      "left": 281,
+      "right": 281,
+      "textLeft": 281,
+      "textRight": 281,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.grid.@3xl:grid-cols-[1fr_0.88fr]",
+      "tag": "div",
+      "top": 316,
+      "height": 407,
+      "words": 67,
+      "media": 0,
+      "middle": 41,
+      "heading": {
+       "text": "Public bid history",
+       "size": 12,
+       "tag": "h2"
+      },
+      "left": 281,
+      "right": 289,
+      "textLeft": 281,
+      "textRight": 289,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 10,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0.2,
+    "voidBox": {
+     "x": 0,
+     "y": 720,
+     "w": 1440,
+     "h": 180
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 281,
+     "right": 281
+    },
+    "hero": {
+     "text": "€42,800",
+     "words": 1,
+     "chars": 7,
+     "lines": 1,
+     "size": 36,
+     "vw": 2.5,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.05,
+     "leading": 1.11,
+     "top": 259,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 2,
+     "radii": [
+      [
+       16,
+       1
+      ],
+      [
+       0,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 1,
+     "softShadows": 1,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 163,
+       "size": 32,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 9,
+     "tabularShare": 0.56,
+     "kpiMax": 36
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.2,
+     "tiny": 7,
+     "tinySamples": [
+      "Current price 10px",
+      "14:31:52 9px",
+      "14:31:49 9px",
+      "14:30:08 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      36
+     ]
+    },
+    "title": null,
+    "colourShare": 0.005
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.38
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1024,
+     "screens": 1,
+     "words": 75,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 5,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "€42,800",
+     "words": 1,
+     "chars": 7,
+     "lines": 1,
+     "size": 36,
+     "vw": 4.7,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.05,
+     "leading": 1.11,
+     "top": 193,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "€42,800",
+      "words": 1,
+      "chars": 7,
+      "lines": 1,
+      "size": 36,
+      "vw": 4.7,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.05,
+      "leading": 1.11,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.17,
+      "top": 193,
+      "tag": "p",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      36
+     ],
+     "sizeCount": 7,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 10,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 5.1
+     },
+     "measureChars": 139,
+     "max": {
+      "size": 36,
+      "vw": 4.7,
+      "font": "Avenir Next",
+      "text": "€42,800"
+     },
+     "monoShare": 0.12,
+     "monoProseShare": 0.12,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "08:42 left",
+      "14:31:52",
+      "14:31:49",
+      "14:30:08",
+      "14:29:44",
+      "14:28:16"
+     ],
+     "microLabels": 3,
+     "microLabelShare": 0.084,
+     "microSamples": [
+      "Live",
+      "Current price",
+      "Public bid history"
+     ],
+     "upperShare": 0.08,
+     "centerShare": 0.07,
+     "smallText": 6
+    },
+    "eyebrows": [
+     {
+      "text": "Current price",
+      "above": "€42,800",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 174
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fcfaf6",
+       "top": 111,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.52
+      },
+      {
+       "color": "#171716",
+       "share": 0.25
+      },
+      {
+       "color": "#55514b",
+       "share": 0.09
+      },
+      {
+       "color": "#e6dfd1",
+       "share": 0.07
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#f5f0e8",
+      "hsl": {
+       "h": 37,
+       "s": 0.39,
+       "l": 0.94
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 4,
+     "radius": 8,
+     "height": 42,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Place bid",
+      "€43,000",
+      "€43,500",
+      "€44,000"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 2,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "section.@container.overflow-hidden → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 3,
+     "hairlineSamples": [
+      "header.border-b.border-paper-200 728px",
+      "div.border-b.border-paper-200 728px",
+      "p.mt-4.mb-0 696px"
+     ],
+     "outlinedBoxes": 1,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 1,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 139,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1024,
+    "margins": {
+     "left": 36,
+     "right": 40
+    },
+    "sections": [
+     {
+      "sel": "header.border-b.border-paper-200",
+      "tag": "header",
+      "top": 112,
+      "height": 139,
+      "words": 9,
+      "media": 0,
+      "middle": 487,
+      "heading": {
+       "text": "€42,800",
+       "size": 36,
+       "tag": "p"
+      },
+      "left": 40,
+      "right": 40,
+      "textLeft": 40,
+      "textRight": 40,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.grid.@3xl:grid-cols-[1fr_0.88fr]",
+      "tag": "div",
+      "top": 250,
+      "height": 662,
+      "words": 67,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Public bid history",
+       "size": 12,
+       "tag": "h2"
+      },
+      "left": 36,
+      "right": 36,
+      "textLeft": 36,
+      "textRight": 44,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 10,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 36,
+     "right": 36
+    },
+    "hero": {
+     "text": "€42,800",
+     "words": 1,
+     "chars": 7,
+     "lines": 1,
+     "size": 36,
+     "vw": 4.7,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.05,
+     "leading": 1.11,
+     "top": 193,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 2,
+     "radii": [
+      [
+       16,
+       1
+      ],
+      [
+       0,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 1,
+     "softShadows": 1,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 163,
+       "size": 32,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 9,
+     "tabularShare": 0.56,
+     "kpiMax": 36
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.2,
+     "tiny": 7,
+     "tinySamples": [
+      "Current price 10px",
+      "14:31:52 9px",
+      "14:31:49 9px",
+      "14:30:08 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      36
+     ]
+    },
+    "title": null,
+    "colourShare": 0.007
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.63,
+    0.63
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 404,
+     "h": 873
+    },
+    "page": {
+     "height": 873,
+     "screens": 1,
+     "words": 75,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 5,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "€42,800",
+     "words": 1,
+     "chars": 7,
+     "lines": 1,
+     "size": 36,
+     "vw": 8.9,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.05,
+     "leading": 1.11,
+     "top": 99,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "€42,800",
+      "words": 1,
+      "chars": 7,
+      "lines": 1,
+      "size": 36,
+      "vw": 8.9,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.05,
+      "leading": 1.11,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.32,
+      "top": 99,
+      "tag": "p",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      36
+     ],
+     "sizeCount": 7,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 10,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 5.1
+     },
+     "measureChars": 67,
+     "max": {
+      "size": 36,
+      "vw": 8.9,
+      "font": "Avenir Next",
+      "text": "€42,800"
+     },
+     "monoShare": 0.12,
+     "monoProseShare": 0.12,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "08:42 left",
+      "14:31:52",
+      "14:31:49",
+      "14:30:08",
+      "14:29:44",
+      "14:28:16"
+     ],
+     "microLabels": 3,
+     "microLabelShare": 0.084,
+     "microSamples": [
+      "Live",
+      "Current price",
+      "Public bid history"
+     ],
+     "upperShare": 0.08,
+     "centerShare": 0.07,
+     "smallText": 6
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fcfaf6",
+       "top": 16,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.52
+      },
+      {
+       "color": "#171716",
+       "share": 0.25
+      },
+      {
+       "color": "#55514b",
+       "share": 0.09
+      },
+      {
+       "color": "#e6dfd1",
+       "share": 0.07
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#f5f0e8",
+      "hsl": {
+       "h": 37,
+       "s": 0.39,
+       "l": 0.94
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 4,
+     "radius": 8,
+     "height": 42,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Place bid",
+      "€43,000",
+      "€43,500",
+      "€44,000"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 2,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "section.@container.overflow-hidden → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 3,
+     "hairlineSamples": [
+      "header.border-b.border-paper-200 369px",
+      "div.border-b.border-paper-200 369px",
+      "p.mt-4.mb-0 337px"
+     ],
+     "outlinedBoxes": 1,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 1,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 139,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 404,
+     "h": 873
+    },
+    "pageH": 873,
+    "margins": {
+     "left": 33,
+     "right": 39
+    },
+    "sections": [
+     {
+      "sel": "header.border-b.border-paper-200",
+      "tag": "header",
+      "top": 17,
+      "height": 139,
+      "words": 9,
+      "media": 0,
+      "middle": 128,
+      "heading": {
+       "text": "€42,800",
+       "size": 36,
+       "tag": "p"
+      },
+      "left": 37,
+      "right": 39,
+      "textLeft": 37,
+      "textRight": 39,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.grid.@3xl:grid-cols-[1fr_0.88fr]",
+      "tag": "div",
+      "top": 156,
+      "height": 678,
+      "words": 67,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Public bid history",
+       "size": 12,
+       "tag": "h2"
+      },
+      "left": 33,
+      "right": 35,
+      "textLeft": 33,
+      "textRight": 43,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [],
+    "leftBlocks": 0,
+    "bodySize": 10,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 404,
+     "h": 873
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 33,
+     "right": 35
+    },
+    "hero": {
+     "text": "€42,800",
+     "words": 1,
+     "chars": 7,
+     "lines": 1,
+     "size": 36,
+     "vw": 8.9,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.05,
+     "leading": 1.11,
+     "top": 99,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 2,
+     "radii": [
+      [
+       16,
+       1
+      ],
+      [
+       0,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 1,
+     "softShadows": 1,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 163,
+       "size": 32,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 9,
+     "tabularShare": 0.56,
+     "kpiMax": 36
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.2,
+     "tiny": 7,
+     "tinySamples": [
+      "Current price 10px",
+      "14:31:52 9px",
+      "14:31:49 9px",
+      "14:30:08 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      36
+     ]
+    },
+    "title": null,
+    "colourShare": 0.015
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "3 tiny uppercase letter-spaced labels (e.g. \"Live\", \"Current price\", \"Public bid history\").",
+   "fix": "Use sentence-case text at a readable size, or delete the label.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (page background #f5f0e8, section #fcfaf6, button #f5f0e8).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "font-fallback",
+   "width": 1440,
+   "message": "Typeface(s) declared but not loaded, so a fallback is rendering: Avenir Next, SFMono-Regular",
+   "fix": "Fix the font URL / family name, or the screenshots you are judging are not the design.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "font-not-dealt",
+   "width": 1440,
+   "message": "The sheet dealt Geist, but the page renders Avenir Next, SFMono-Regular.",
+   "fix": "Load the dealt face (the link on the sheet) and put it first in font-family. A build that falls back to a default face lands on the default look."
+  },
+  {
+   "level": "FAIL",
+   "id": "heavy-shadow",
+   "width": 1440,
+   "message": "1 panel shadow(s) heavy enough to read as floating: rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+   "fix": "Panels sit on the ground: separate them with a fill one step from the ground or a quiet 1px border. A shadow, if any, is under 8% black with a small blur. Real overlays (menus, dialogs, popovers) may float.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "tiny-text",
+   "width": 1440,
+   "message": "7 text blocks under 11px: Current price 10px, 14:31:52 9px, 14:31:49 9px, 14:30:08 9px.",
+   "fix": "Nothing below 11px; secondary text 12px, data 13–14px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "no-title",
+   "width": 1440,
+   "message": "The screen has no h1.",
+   "fix": "Name the screen in an h1 at the top of the canvas (18–28px): \"Overview\", \"Payouts\", the project's name.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/livebid/desktop-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/livebid/desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/livebid/tablet-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/livebid/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/livebid/mobile-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/livebid/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

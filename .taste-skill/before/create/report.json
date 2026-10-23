@@ -1,0 +1,1503 @@
+{
+ "url": "http://localhost:6006/iframe.html?id=pages-product-map--create-lot&viewMode=story",
+ "at": "2026-10-23T03:29:20.603Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.52
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 900,
+     "screens": 1,
+     "words": 87,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 18,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Add images",
+     "words": 2,
+     "chars": 10,
+     "lines": 1,
+     "size": 24,
+     "vw": 1.7,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 189,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.95,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.05,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      18,
+      20,
+      24
+     ],
+     "sizeCount": 9,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 24,
+      "vw": 1.7,
+      "font": "Avenir Next",
+      "text": "Add images"
+     },
+     "monoShare": 0.05,
+     "monoProseShare": 0.05,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "Draft LOT-D92F",
+      "Step 1/4"
+     ],
+     "microLabels": 5,
+     "microLabelShare": 0.087,
+     "microSamples": [
+      "Step 1",
+      "Buyer preview",
+      "Draft",
+      "Watches",
+      "Starts at"
+     ],
+     "upperShare": 0.11,
+     "centerShare": 0.31,
+     "smallText": 7
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#fcfaf6",
+       "top": 149,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.63
+      },
+      {
+       "color": "#171716",
+       "share": 0.2
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.1
+      },
+      {
+       "color": "#55514b",
+       "share": 0.04
+      },
+      {
+       "color": "#984329",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#bd5634",
+      "hsl": {
+       "h": 15,
+       "s": 0.57,
+       "l": 0.47
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 4,
+     "radius": 8,
+     "height": 32,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Save draft",
+      "Review & publish",
+      "Back",
+      "Continue"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 4,
+     "shadowOverlay": 1,
+     "shadowSamples": [
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "section.overflow-hidden.rounded-2xl → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "span.grid.size-12 → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 4,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.mt-4.aspect-[4/3] → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))"
+     ],
+     "gradientText": 0,
+     "hairlines": 5,
+     "hairlineSamples": [
+      "header.flex.min-h-16 1440px",
+      "div.shrink-0.border-b 1440px",
+      "div.border-b.border-paper-200 752px",
+      "footer.flex.items-center 752px",
+      "div.mt-4.flex 276px"
+     ],
+     "outlinedBoxes": 3,
+     "dashed": 2,
+     "blurred": 0,
+     "roundedBoxes": 4,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 900,
+    "margins": {
+     "left": 58,
+     "right": 45
+    },
+    "sections": [],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Add images",
+      "size": 24,
+      "top": 189,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 197,
+      "n": 1
+     },
+     {
+      "x": 971,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 2,
+    "bodySize": 12,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.13,
+    "voidBox": {
+     "x": 0,
+     "y": 780,
+     "w": 1440,
+     "h": 120
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": {
+     "h": 64
+    },
+    "canvas": {
+     "left": 32,
+     "right": 45
+    },
+    "hero": {
+     "text": "Add images",
+     "words": 2,
+     "chars": 10,
+     "lines": 1,
+     "size": 24,
+     "vw": 1.7,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 189,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 2,
+     "firstScreen": 2,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 5,
+     "radii": [
+      [
+       16,
+       2
+      ],
+      [
+       12,
+       2
+      ],
+      [
+       0,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 2,
+     "softShadows": 2,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 2,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 40,
+       "size": 48,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 20
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.18,
+     "tiny": 10,
+     "tinySamples": [
+      "Step 1 10px",
+      "Front 10px",
+      "Cover 9px",
+      "Dial 10px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0.008
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.68,
+    0.92
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1591,
+     "screens": 1.6,
+     "words": 87,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 18,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Add images",
+     "words": 2,
+     "chars": 10,
+     "lines": 1,
+     "size": 24,
+     "vw": 3.1,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 189,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.95,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.05,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      18,
+      20,
+      24
+     ],
+     "sizeCount": 9,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 24,
+      "vw": 3.1,
+      "font": "Avenir Next",
+      "text": "Add images"
+     },
+     "monoShare": 0.05,
+     "monoProseShare": 0.05,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "Draft LOT-D92F",
+      "Step 1/4"
+     ],
+     "microLabels": 5,
+     "microLabelShare": 0.087,
+     "microSamples": [
+      "Step 1",
+      "Buyer preview",
+      "Draft",
+      "Watches",
+      "Starts at"
+     ],
+     "upperShare": 0.11,
+     "centerShare": 0.31,
+     "smallText": 7
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#fcfaf6",
+       "top": 149,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.63
+      },
+      {
+       "color": "#171716",
+       "share": 0.2
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.1
+      },
+      {
+       "color": "#55514b",
+       "share": 0.04
+      },
+      {
+       "color": "#984329",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#bd5634",
+      "hsl": {
+       "h": 15,
+       "s": 0.57,
+       "l": 0.47
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 4,
+     "radius": 8,
+     "height": 32,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Save draft",
+      "Review & publish",
+      "Back",
+      "Continue"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 5,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "section.overflow-hidden.rounded-2xl → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "span.grid.size-12 → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 4,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.mt-4.aspect-[4/3] → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))"
+     ],
+     "gradientText": 0,
+     "hairlines": 5,
+     "hairlineSamples": [
+      "header.flex.min-h-16 768px",
+      "div.shrink-0.border-b 768px",
+      "div.border-b.border-paper-200 726px",
+      "footer.flex.items-center 726px",
+      "div.mt-4.flex 694px"
+     ],
+     "outlinedBoxes": 3,
+     "dashed": 2,
+     "blurred": 0,
+     "roundedBoxes": 4,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1591,
+    "margins": {
+     "left": 20,
+     "right": 20
+    },
+    "sections": [
+     {
+      "sel": "section.overflow-hidden.rounded-2xl",
+      "tag": "section",
+      "top": 149,
+      "height": 626,
+      "words": 51,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Add images",
+       "size": 24,
+       "tag": "h1"
+      },
+      "left": 41,
+      "right": 41,
+      "textLeft": 41,
+      "textRight": 80,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "aside.h-fit.rounded-2xl",
+      "tag": "aside",
+      "top": 799,
+      "height": 764,
+      "words": 21,
+      "media": 0,
+      "middle": 270,
+      "heading": null,
+      "left": 37,
+      "right": 37,
+      "textLeft": 37,
+      "textRight": 37,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Add images",
+      "size": 24,
+      "top": 189,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 37,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 2,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": {
+     "h": 64
+    },
+    "canvas": {
+     "left": 20,
+     "right": 20
+    },
+    "hero": {
+     "text": "Add images",
+     "words": 2,
+     "chars": 10,
+     "lines": 1,
+     "size": 24,
+     "vw": 3.1,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 189,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 2,
+     "firstScreen": 2,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 5,
+     "radii": [
+      [
+       16,
+       2
+      ],
+      [
+       12,
+       2
+      ],
+      [
+       0,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 2,
+     "softShadows": 2,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 2,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 40,
+       "size": 48,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 20
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.18,
+     "tiny": 10,
+     "tinySamples": [
+      "Step 1 10px",
+      "Front 10px",
+      "Cover 9px",
+      "Dial 10px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0.015
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.81,
+    0.85
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 1517,
+     "screens": 1.8,
+     "words": 87,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 18,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 1,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Add images",
+     "words": 2,
+     "chars": 10,
+     "lines": 1,
+     "size": 24,
+     "vw": 6.2,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 213,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "Add images",
+      "words": 2,
+      "chars": 10,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.03,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.79,
+      "top": 213,
+      "tag": "h1",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 1,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.95,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.05,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      18,
+      20,
+      24
+     ],
+     "sizeCount": 9,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 24,
+      "vw": 6.2,
+      "font": "Avenir Next",
+      "text": "Add images"
+     },
+     "monoShare": 0.05,
+     "monoProseShare": 0.05,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "Draft LOT-D92F",
+      "Step 1/4"
+     ],
+     "microLabels": 5,
+     "microLabelShare": 0.087,
+     "microSamples": [
+      "Step 1",
+      "Buyer preview",
+      "Draft",
+      "Watches",
+      "Starts at"
+     ],
+     "upperShare": 0.11,
+     "centerShare": 0.31,
+     "smallText": 7
+    },
+    "eyebrows": [
+     {
+      "text": "Step 1",
+      "above": "Add images",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 194
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#fcfaf6",
+       "top": 173,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.63
+      },
+      {
+       "color": "#171716",
+       "share": 0.2
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.1
+      },
+      {
+       "color": "#55514b",
+       "share": 0.04
+      },
+      {
+       "color": "#984329",
+       "share": 0.03
+      }
+     ],
+     "button": {
+      "bg": "#bd5634",
+      "hsl": {
+       "h": 15,
+       "s": 0.57,
+       "l": 0.47
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 2,
+     "radius": 8,
+     "height": 50,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Save draft",
+      "Review & publish"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 5,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "section.overflow-hidden.rounded-2xl → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "span.grid.size-12 → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 4,
+     "scrims": 0,
+     "gradientSamples": [
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+      "div.mt-4.aspect-[4/3] → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))"
+     ],
+     "gradientText": 0,
+     "hairlines": 5,
+     "hairlineSamples": [
+      "header.flex.min-h-16 390px",
+      "div.shrink-0.border-b 390px",
+      "div.border-b.border-paper-200 348px",
+      "footer.flex.items-center 348px",
+      "div.mt-4.flex 316px"
+     ],
+     "outlinedBoxes": 2,
+     "dashed": 2,
+     "blurred": 0,
+     "roundedBoxes": 3,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 1517,
+    "margins": {
+     "left": 20,
+     "right": 20
+    },
+    "sections": [
+     {
+      "sel": "section.overflow-hidden.rounded-2xl",
+      "tag": "section",
+      "top": 173,
+      "height": 788,
+      "words": 51,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Add images",
+       "size": 24,
+       "tag": "h1"
+      },
+      "left": 41,
+      "right": 41,
+      "textLeft": 41,
+      "textRight": 49,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "aside.h-fit.rounded-2xl",
+      "tag": "aside",
+      "top": 985,
+      "height": 505,
+      "words": 21,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Omega Speedmaster Professional, 1969",
+       "size": 18,
+       "tag": "h2"
+      },
+      "left": 37,
+      "right": 37,
+      "textLeft": 37,
+      "textRight": 37,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Add images",
+      "size": 24,
+      "top": 213,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [
+     {
+      "text": "Pricing",
+      "side": "right",
+      "px": 9
+     }
+    ],
+    "edges": [
+     {
+      "x": 37,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 2,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": {
+     "h": 64
+    },
+    "canvas": {
+     "left": 20,
+     "right": -119
+    },
+    "hero": {
+     "text": "Add images",
+     "words": 2,
+     "chars": 10,
+     "lines": 1,
+     "size": 24,
+     "vw": 6.2,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 213,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 2,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 5,
+     "radii": [
+      [
+       16,
+       2
+      ],
+      [
+       12,
+       2
+      ],
+      [
+       0,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 2,
+     "softShadows": 2,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 2,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 40,
+       "size": 48,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 1,
+     "tabularShare": 0,
+     "kpiMax": 20
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.18,
+     "tiny": 10,
+     "tinySamples": [
+      "Step 1 10px",
+      "Front 10px",
+      "Cover 9px",
+      "Dial 10px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0.016
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "5 tiny uppercase letter-spaced labels (e.g. \"Step 1\", \"Buyer preview\", \"Draft\", \"Watches\").",
+   "fix": "Use sentence-case text at a readable size, or delete the label.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "gradient",
+   "width": 1440,
+   "message": "4 gradient fill(s): div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22)) | div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22)) | div.group.gavel-hover-lift → radial-gradient(circle at 55% 35%, rgb(128, 123, 114), rgb(43, 42, 40) 65%, rgb(23, 23, 22))",
+   "fix": "Use a flat colour or a real image. The only gradient allowed by default is a neutral scrim over a photo for legibility.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "palette-claude",
+   "width": 1440,
+   "message": "Cream + terracotta palette (page background #f5f0e8, section #f5f0e8, section #fcfaf6, button #bd5634).",
+   "fix": "Re-draw the palette from the library. This pairing reads as an assistant brand, not yours.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "font-fallback",
+   "width": 1440,
+   "message": "Typeface(s) declared but not loaded, so a fallback is rendering: Avenir Next, SFMono-Regular",
+   "fix": "Fix the font URL / family name, or the screenshots you are judging are not the design.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "font-not-dealt",
+   "width": 1440,
+   "message": "The sheet dealt Geist, but the page renders Avenir Next, SFMono-Regular.",
+   "fix": "Load the dealt face (the link on the sheet) and put it first in font-family. A build that falls back to a default face lands on the default look."
+  },
+  {
+   "level": "FAIL",
+   "id": "heavy-shadow",
+   "width": 1440,
+   "message": "2 panel shadow(s) heavy enough to read as floating: rgba(54, 43, 28, 0.08) 0px 16px 48px 0px | rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+   "fix": "Panels sit on the ground: separate them with a fill one step from the ground or a quiet 1px border. A shadow, if any, is under 8% black with a small blur. Real overlays (menus, dialogs, popovers) may float.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "tiny-text",
+   "width": 1440,
+   "message": "10 text blocks under 11px: Step 1 10px, Front 10px, Cover 9px, Dial 10px.",
+   "fix": "Nothing below 11px; secondary text 12px, data 13–14px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "no-title",
+   "width": 1440,
+   "message": "The screen has no h1.",
+   "fix": "Name the screen in an h1 at the top of the canvas (18–28px): \"Overview\", \"Payouts\", the project's name.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "edge-text",
+   "width": 390,
+   "message": "1 text block(s) sit within 12px of the screen edge: \"Pricing\" (9px from the right)",
+   "fix": "Keep text inside the page margin (16–20px). Only display type deliberately bled past the edge may touch it."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/create/desktop-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/create/desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/create/tablet-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/create/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/create/mobile-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/create/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

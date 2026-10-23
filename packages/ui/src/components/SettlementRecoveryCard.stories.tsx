@@ -6,7 +6,7 @@ const meta = {
   component: SettlementRecoveryCard,
   parameters: { layout: 'centered' },
   decorators: [(Story) => <div className="w-[min(980px,95vw)]"><Story /></div>],
-  args: { state: 'recovery_required', caseId: 'STL-4912', amount: '€42,800', closingPrice: '€42,800', candidateAlias: 'Silver Fox', round: 1, deadline: '16:27 UTC', recoveryUrl: 'https://pay.gavel.test/recover/STL-4912?token=••••••••' },
+  args: { state: 'recovery_required', caseId: 'STL-4912', amount: '€42,800', closingPrice: '€42,800', candidateAlias: 'Silver Fox', round: 1, deadline: '16:27 UTC', timeLeft: '1 h 55 m', recoveryUrl: 'https://pay.gavel.test/recover/STL-4912?token=••••••••' },
 } satisfies Meta<typeof SettlementRecoveryCard>;
 
 export default meta;

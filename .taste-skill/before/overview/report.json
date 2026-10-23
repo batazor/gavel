@@ -1,0 +1,2018 @@
+{
+ "url": "http://localhost:6006/iframe.html?id=pages-product-map--overview&viewMode=story",
+ "at": "2026-10-23T03:27:17.898Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.83,
+    0.86
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 1025,
+     "screens": 1.1,
+     "words": 306,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 31,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 30,
+     "vw": 2.1,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.04,
+     "leading": 1.2,
+     "top": 158,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "128",
+      "words": 1,
+      "chars": 3,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.08,
+      "top": 158,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "2,418",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.07,
+      "top": 158,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "€1.84m",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.09,
+      "top": 158,
+      "tag": "p",
+      "kind": "heading"
+     },
+     {
+      "text": "6,204",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.09,
+      "top": 158,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "2,418",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "Avenir Next",
+      "weight": 700,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.11,
+      "top": 381,
+      "tag": "p",
+      "kind": "statement"
+     }
+    ],
+    "headingSummary": {
+     "count": 5,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 4,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.67,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.33,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      20,
+      30
+     ],
+     "sizeCount": 8,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 30,
+      "vw": 2.1,
+      "font": "Avenir Next",
+      "text": "128"
+     },
+     "monoShare": 0.33,
+     "monoProseShare": 0.33,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "60m ago · accepted",
+      "57m ago · accepted",
+      "55m ago · accepted",
+      "52m ago · accepted",
+      "50m ago · accepted",
+      "47m ago · accepted"
+     ],
+     "microLabels": 12,
+     "microLabelShare": 0.084,
+     "microSamples": [
+      "GAVEL",
+      "operations",
+      "Senior operator",
+      "Live auctions",
+      "Bids / minute",
+      "Hammer volume"
+     ],
+     "upperShare": 0.08,
+     "centerShare": 0.03,
+     "smallText": 54
+    },
+    "eyebrows": [
+     {
+      "text": "Live auctions",
+      "above": "128",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 130
+     },
+     {
+      "text": "Bids / minute",
+      "above": "2,418",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 130
+     },
+     {
+      "text": "Hammer volume",
+      "above": "€1.84m",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 130
+     },
+     {
+      "text": "Active members",
+      "above": "6,204",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 130
+     },
+     {
+      "text": "Last 60 minutes",
+      "above": "2,418",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 301
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#e7ded1",
+       "share": 0.29
+      },
+      {
+       "color": "#716b63",
+       "share": 0.24
+      },
+      {
+       "color": "#171716",
+       "share": 0.22
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.15
+      },
+      {
+       "color": "#984329",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 3,
+     "radius": 8,
+     "height": 32,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Overview",
+      "Open live monitor",
+      "Open operations inbox"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 36,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "div.flex.h-full → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.flex → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "article.group.gavel-hover-surface → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 13,
+     "hairlineSamples": [
+      "header.flex.min-h-20 1198px",
+      "header.flex.items-center 721px",
+      "div.mt-6.flex 681px",
+      "header.flex.items-center 721px",
+      "button.group.gavel-hover-row 721px"
+     ],
+     "outlinedBoxes": 9,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 9,
+     "boxRadius": 12,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": true,
+       "rounded": true,
+       "top": 109
+      }
+     ]
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 236,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 1025,
+    "margins": {
+     "left": 17,
+     "right": 30
+    },
+    "sections": [
+     {
+      "sel": "div.grid.gap-4",
+      "tag": "div",
+      "top": 109,
+      "height": 155,
+      "words": 26,
+      "media": 0,
+      "middle": 169,
+      "heading": {
+       "text": "128",
+       "size": 30,
+       "tag": "p"
+      },
+      "left": 290,
+      "right": 155,
+      "textLeft": 290,
+      "textRight": 155,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.mt-5.grid",
+      "tag": "div",
+      "top": 284,
+      "height": 712,
+      "words": 114,
+      "media": 0,
+      "middle": 22,
+      "heading": {
+       "text": "2,418",
+       "size": 30,
+       "tag": "p"
+      },
+      "left": 270,
+      "right": 30,
+      "textLeft": 290,
+      "textRight": 46,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Operations overview",
+      "size": 20,
+      "top": 17,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 290,
+      "n": 2
+     },
+     {
+      "x": 1033,
+      "n": 2
+     },
+     {
+      "x": 269,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 5,
+    "bodySize": 16,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0.1,
+    "voidBox": {
+     "x": 0,
+     "y": 360,
+     "w": 240,
+     "h": 540
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": {
+     "w": 240,
+     "tag": "aside",
+     "links": 5,
+     "share": 0.17
+    },
+    "topbar": {
+     "h": 80
+    },
+    "canvas": {
+     "left": 30,
+     "right": 30
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 30,
+     "vw": 2.1,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.04,
+     "leading": 1.2,
+     "top": 158,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 10,
+     "firstScreen": 10,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 4,
+    "panels": {
+     "count": 10,
+     "radii": [
+      [
+       12,
+       8
+      ],
+      [
+       0,
+       2
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 8,
+     "softShadows": 8,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 36,
+       "radius": "8px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 11,
+     "tabularShare": 0,
+     "kpiMax": 30
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.44,
+     "tiny": 78,
+     "tinySamples": [
+      "operations 10px",
+      "Senior operator 10px",
+      "Last 60 minutes 10px",
+      "60m ago 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      20,
+      30
+     ]
+    },
+    "title": null,
+    "colourShare": 0.003
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.87,
+    0.86
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1892,
+     "screens": 1.8,
+     "words": 292,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 31,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 30,
+     "vw": 3.9,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.04,
+     "leading": 1.2,
+     "top": 146,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "128",
+      "words": 1,
+      "chars": 3,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.14,
+      "top": 146,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "2,418",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.14,
+      "top": 146,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "€1.84m",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.17,
+      "top": 317,
+      "tag": "p",
+      "kind": "heading"
+     },
+     {
+      "text": "6,204",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.17,
+      "top": 317,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "2,418",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Avenir Next",
+      "weight": 700,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.21,
+      "top": 540,
+      "tag": "p",
+      "kind": "statement"
+     }
+    ],
+    "headingSummary": {
+     "count": 5,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 4,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.65,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.35,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      20,
+      30
+     ],
+     "sizeCount": 8,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 30,
+      "vw": 3.9,
+      "font": "Avenir Next",
+      "text": "128"
+     },
+     "monoShare": 0.35,
+     "monoProseShare": 0.35,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "60m ago · accepted",
+      "57m ago · accepted",
+      "55m ago · accepted",
+      "52m ago · accepted",
+      "50m ago · accepted",
+      "47m ago · accepted"
+     ],
+     "microLabels": 9,
+     "microLabelShare": 0.07,
+     "microSamples": [
+      "Live auctions",
+      "Bids / minute",
+      "Hammer volume",
+      "Active members",
+      "Last 60 minutes",
+      "Live"
+     ],
+     "upperShare": 0.07,
+     "centerShare": 0.04,
+     "smallText": 52
+    },
+    "eyebrows": [
+     {
+      "text": "Live auctions",
+      "above": "128",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 118
+     },
+     {
+      "text": "Bids / minute",
+      "above": "2,418",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 118
+     },
+     {
+      "text": "Hammer volume",
+      "above": "€1.84m",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 289
+     },
+     {
+      "text": "Active members",
+      "above": "6,204",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 289
+     },
+     {
+      "text": "Last 60 minutes",
+      "above": "2,418",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 460
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#fcfaf6",
+       "top": 443,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#e7ded1",
+       "share": 0.28
+      },
+      {
+       "color": "#716b63",
+       "share": 0.25
+      },
+      {
+       "color": "#171716",
+       "share": 0.23
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.16
+      },
+      {
+       "color": "#984329",
+       "share": 0.05
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 1,
+     "radius": 8,
+     "height": 32,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Open live monitor"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 36,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "div.flex.h-full → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.flex → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "article.group.gavel-hover-surface → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 17,
+     "hairlineSamples": [
+      "header.flex.min-h-20 694px",
+      "div.mt-5.flex 281px",
+      "div.mt-5.flex 281px",
+      "div.mt-5.flex 281px",
+      "div.mt-5.flex 281px"
+     ],
+     "outlinedBoxes": 9,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 9,
+     "boxRadius": 12,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 4,
+       "iconTopped": true,
+       "rounded": true,
+       "top": 97
+      }
+     ]
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 196,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1892,
+    "margins": {
+     "left": 9,
+     "right": 18
+    },
+    "sections": [
+     {
+      "sel": "div.grid.gap-4",
+      "tag": "div",
+      "top": 97,
+      "height": 326,
+      "words": 26,
+      "media": 0,
+      "middle": 210,
+      "heading": {
+       "text": "128",
+       "size": 30,
+       "tag": "p"
+      },
+      "left": 110,
+      "right": 179,
+      "textLeft": 110,
+      "textRight": 179,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.mt-5.grid",
+      "tag": "div",
+      "top": 443,
+      "height": 1432,
+      "words": 114,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "2,418",
+       "size": 30,
+       "tag": "p"
+      },
+      "left": 90,
+      "right": 18,
+      "textLeft": 110,
+      "textRight": 34,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Operations overview",
+      "size": 20,
+      "top": 17,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 110,
+      "n": 4
+     },
+     {
+      "x": 89,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 5,
+    "bodySize": 16,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": {
+     "w": 72,
+     "tag": "aside",
+     "links": 5,
+     "share": 0.09
+    },
+    "topbar": {
+     "h": 80
+    },
+    "canvas": {
+     "left": 18,
+     "right": 18
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 30,
+     "vw": 3.9,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.04,
+     "leading": 1.2,
+     "top": 146,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 9,
+     "firstScreen": 7,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 4,
+    "panels": {
+     "count": 9,
+     "radii": [
+      [
+       12,
+       8
+      ],
+      [
+       0,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 8,
+     "softShadows": 8,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 1,
+     "hues": 1,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 36,
+       "radius": "8px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 10,
+     "tabularShare": 0,
+     "kpiMax": 30
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.45,
+     "tiny": 78,
+     "tinySamples": [
+      "operations 10px",
+      "Senior operator 10px",
+      "Last 60 minutes 10px",
+      "60m ago 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      20,
+      30
+     ]
+    },
+    "title": null,
+    "colourShare": 0.002
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.93,
+    0.8,
+    0.86
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 2328,
+     "screens": 2.8,
+     "words": 298,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 31,
+     "sections": 4,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 1,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 30,
+     "vw": 7.7,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.04,
+     "leading": 1.2,
+     "top": 240,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "128",
+      "words": 1,
+      "chars": 3,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.28,
+      "top": 240,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "2,418",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.27,
+      "top": 411,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "€1.84m",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.33,
+      "top": 582,
+      "tag": "p",
+      "kind": "heading"
+     },
+     {
+      "text": "6,204",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Avenir Next",
+      "weight": 600,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.33,
+      "top": 753,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "2,418",
+      "words": 1,
+      "chars": 5,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Avenir Next",
+      "weight": 700,
+      "tracking": -0.04,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.42,
+      "top": 976,
+      "tag": "p",
+      "kind": "statement"
+     }
+    ],
+    "headingSummary": {
+     "count": 5,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 4,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.66,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.34,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      20,
+      30
+     ],
+     "sizeCount": 8,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": null,
+     "measureChars": null,
+     "max": {
+      "size": 30,
+      "vw": 7.7,
+      "font": "Avenir Next",
+      "text": "128"
+     },
+     "monoShare": 0.34,
+     "monoProseShare": 0.34,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "60m ago · accepted",
+      "57m ago · accepted",
+      "55m ago · accepted",
+      "52m ago · accepted",
+      "50m ago · accepted",
+      "47m ago · accepted"
+     ],
+     "microLabels": 9,
+     "microLabelShare": 0.068,
+     "microSamples": [
+      "Live auctions",
+      "Bids / minute",
+      "Hammer volume",
+      "Active members",
+      "Last 60 minutes",
+      "Live"
+     ],
+     "upperShare": 0.07,
+     "centerShare": 0.07,
+     "smallText": 52
+    },
+    "eyebrows": [
+     {
+      "text": "Live auctions",
+      "above": "128",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 212
+     },
+     {
+      "text": "Bids / minute",
+      "above": "2,418",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 383
+     },
+     {
+      "text": "Hammer volume",
+      "above": "€1.84m",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 554
+     },
+     {
+      "text": "Active members",
+      "above": "6,204",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 12,
+      "top": 725
+     },
+     {
+      "text": "Last 60 minutes",
+      "above": "2,418",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 896
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#fcfaf6",
+       "top": 879,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.27
+      },
+      {
+       "color": "#e7ded1",
+       "share": 0.27
+      },
+      {
+       "color": "#171716",
+       "share": 0.23
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.15
+      },
+      {
+       "color": "#984329",
+       "share": 0.05
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 1,
+     "radius": 8,
+     "height": 32,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Open live monitor"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 35,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "div.flex.h-full → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "article.group.gavel-hover-surface → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "article.group.gavel-hover-surface → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 18,
+     "hairlineSamples": [
+      "header.flex.min-h-20 388px",
+      "nav.flex.shrink-0 388px",
+      "div.mt-5.flex 314px",
+      "div.mt-5.flex 314px",
+      "div.mt-5.flex 314px"
+     ],
+     "outlinedBoxes": 9,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 9,
+     "boxRadius": 12,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 0,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 2328,
+    "margins": {
+     "left": 17,
+     "right": 18
+    },
+    "sections": [
+     {
+      "sel": "header.flex.min-h-20",
+      "tag": "header",
+      "top": 1,
+      "height": 125,
+      "words": 11,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Operations overview",
+       "size": 20,
+       "tag": "h1"
+      },
+      "left": 17,
+      "right": 139,
+      "textLeft": 17,
+      "textRight": 152,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.grid.gap-4",
+      "tag": "div",
+      "top": 191,
+      "height": 668,
+      "words": 26,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "128",
+       "size": 30,
+       "tag": "p"
+      },
+      "left": 38,
+      "right": 212,
+      "textLeft": 38,
+      "textRight": 212,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div.space-y-5",
+      "tag": "div",
+      "top": 879,
+      "height": 712,
+      "words": 53,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "2,418",
+       "size": 30,
+       "tag": "p"
+      },
+      "left": 18,
+      "right": 18,
+      "textLeft": 38,
+      "textRight": 38,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "div.space-y-5",
+      "tag": "div",
+      "top": 1611,
+      "height": 700,
+      "words": 61,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Needs attention",
+       "size": 16,
+       "tag": "h2"
+      },
+      "left": 18,
+      "right": 18,
+      "textLeft": 38,
+      "textRight": 34,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Operations overview",
+      "size": 20,
+      "top": 13,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 38,
+      "n": 4
+     },
+     {
+      "x": 17,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 5,
+    "bodySize": 16,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 17,
+     "right": -143
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 30,
+     "vw": 7.7,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.04,
+     "leading": 1.2,
+     "top": 240,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 8,
+     "firstScreen": 4,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 4,
+    "panels": {
+     "count": 8,
+     "radii": [
+      [
+       12,
+       8
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 8,
+     "softShadows": 8,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 0,
+     "hues": 0,
+     "samples": []
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 10,
+     "tabularShare": 0,
+     "kpiMax": 30
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.45,
+     "tiny": 78,
+     "tinySamples": [
+      "operations 10px",
+      "Senior operator 10px",
+      "Last 60 minutes 10px",
+      "60m ago 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      20,
+      30
+     ]
+    },
+    "title": null,
+    "colourShare": 0.001
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "12 tiny uppercase letter-spaced labels (e.g. \"GAVEL\", \"operations\", \"Senior operator\", \"Live auctions\").",
+   "fix": "Use sentence-case text at a readable size, or delete the label.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (page background #f5f0e8, section #f5f0e8, button #fcfaf6).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "font-fallback",
+   "width": 1440,
+   "message": "Typeface(s) declared but not loaded, so a fallback is rendering: Avenir Next, SFMono-Regular",
+   "fix": "Fix the font URL / family name, or the screenshots you are judging are not the design.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "font-not-dealt",
+   "width": 1440,
+   "message": "The sheet dealt Geist, but the page renders Avenir Next, SFMono-Regular.",
+   "fix": "Load the dealt face (the link on the sheet) and put it first in font-family. A build that falls back to a default face lands on the default look."
+  },
+  {
+   "level": "FAIL",
+   "id": "heavy-shadow",
+   "width": 1440,
+   "message": "8 panel shadow(s) heavy enough to read as floating: rgba(54, 43, 28, 0.08) 0px 16px 48px 0px | rgba(54, 43, 28, 0.08) 0px 16px 48px 0px | rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+   "fix": "Panels sit on the ground: separate them with a fill one step from the ground or a quiet 1px border. A shadow, if any, is under 8% black with a small blur. Real overlays (menus, dialogs, popovers) may float.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "tabular",
+   "width": 1440,
+   "message": "Only 0% of the figures use tabular numerals.",
+   "fix": "Set font-variant-numeric: tabular-nums on tables, KPIs and anything that updates, so digits keep their width.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "tiny-text",
+   "width": 1440,
+   "message": "78 text blocks under 11px: operations 10px, Senior operator 10px, Last 60 minutes 10px, 60m ago 9px.",
+   "fix": "Nothing below 11px; secondary text 12px, data 13–14px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "icon-tiles",
+   "width": 1440,
+   "message": "4 icons sit in neutral boxes repeated down the screen.",
+   "fix": "A boxed icon on every row or card is still the template habit, tinted or not. Keep one plain 16px icon where it helps the eye, or none.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "no-title",
+   "width": 1440,
+   "message": "The screen has no h1.",
+   "fix": "Name the screen in an h1 at the top of the canvas (18–28px): \"Overview\", \"Payouts\", the project's name.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/overview/desktop-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/overview/desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/overview/tablet-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/overview/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/overview/mobile-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/overview/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

@@ -10,40 +10,36 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leadingIcon?: ReactNode;
 }
 
+/*
+  Controls in the ledger style: one filled near-black primary per screen, a grey secondary,
+  a text ghost, and a danger that stays outlined until pressed. Radius 6, heights 28/32/36.
+*/
 const variants: Record<ButtonVariant, string> = {
-  primary: 'border-copper-500 bg-copper-500 text-white shadow-sm hover:border-copper-600 hover:bg-copper-600',
-  secondary: 'border-paper-200 bg-paper-50 text-ink-950 shadow-sm hover:border-ink-500 hover:bg-white',
-  ghost: 'border-transparent bg-transparent text-ink-700 hover:bg-ink-950/5 hover:text-ink-950',
-  danger: 'border-red-700 bg-red-700 text-white shadow-sm hover:border-red-800 hover:bg-red-800',
+  primary: 'border-transparent bg-primary text-primary-ink hover:bg-ink disabled:bg-active disabled:text-muted',
+  secondary: 'border-control bg-surface text-ink hover:bg-raised disabled:border-line disabled:text-muted',
+  ghost: 'border-transparent bg-transparent text-muted hover:bg-raised hover:text-ink disabled:text-faint',
+  danger: 'border-negative/40 bg-surface text-negative hover:bg-pill-negative disabled:border-line disabled:text-muted',
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'min-h-8 px-3 text-xs',
-  md: 'min-h-10 px-4 text-sm',
-  lg: 'min-h-12 px-5 text-sm',
+  sm: 'h-7 px-2.5 text-[13px]',
+  md: 'h-8 px-3 text-sm',
+  lg: 'h-9 px-4 text-sm',
 };
 
-export function Button({
-  className,
-  variant = 'primary',
-  size = 'md',
-  leadingIcon,
-  children,
-  type = 'button',
-  ...props
-}: ButtonProps) {
+export function Button({ className, variant = 'primary', size = 'md', leadingIcon, children, type = 'button', ...props }: ButtonProps) {
   return (
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-lg border font-semibold tracking-[0.01em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper-500 disabled:pointer-events-none disabled:opacity-45',
+        'inline-flex shrink-0 items-center justify-center gap-2 rounded-[6px] border font-medium whitespace-nowrap transition-[background-color,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed',
         variants[variant],
         sizes[size],
         className,
       )}
       {...props}
     >
-      {leadingIcon && <span aria-hidden="true" className="size-4">{leadingIcon}</span>}
+      {leadingIcon && <span aria-hidden="true" className="-ml-0.5 grid size-4 place-items-center [&>svg]:size-4">{leadingIcon}</span>}
       {children}
     </button>
   );

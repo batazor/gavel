@@ -1,0 +1,1617 @@
+{
+ "url": "http://localhost:6006/iframe.html?id=pages-product-map--customer-profile&viewMode=story",
+ "at": "2026-10-23T03:29:09.630Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.62
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 900,
+     "screens": 1,
+     "words": 132,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 26,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 1.7,
+     "font": "Avenir Next",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 262,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      18,
+      20,
+      24
+     ],
+     "sizeCount": 9,
+     "notLoaded": [
+      "Avenir Next"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 12,
+      "leading": 1.67,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 7.6
+     },
+     "measureChars": 40,
+     "max": {
+      "size": 24,
+      "vw": 1.7,
+      "font": "Avenir Next",
+      "text": "128"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 14,
+     "microLabelShare": 0.158,
+     "microSamples": [
+      "GAVEL",
+      "operations",
+      "Senior operator",
+      "Review",
+      "Payment ready",
+      "Internal note"
+     ],
+     "upperShare": 0.16,
+     "centerShare": 0.17,
+     "smallText": 21
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.38
+      },
+      {
+       "color": "#171716",
+       "share": 0.33
+      },
+      {
+       "color": "#55514b",
+       "share": 0.11
+      },
+      {
+       "color": "#e7ded1",
+       "share": 0.05
+      },
+      {
+       "color": "#fcfaf6",
+       "share": 0.02
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 6,
+     "inHero": 6,
+     "radius": 8,
+     "height": 32,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Customers",
+      "Send message",
+      "Restrict",
+      "Approve",
+      "Overview"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 13,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "div.flex.h-full → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.flex → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "aside.h-fit.rounded-xl → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 5,
+     "hairlineSamples": [
+      "header.flex.min-h-20 1198px",
+      "header.flex.items-center 409px",
+      "header.flex.items-center 409px",
+      "div.flex.items-center 409px",
+      "div.flex.items-center 409px"
+     ],
+     "outlinedBoxes": 7,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 7,
+     "boxRadius": 12,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 3,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 223
+      }
+     ]
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 236,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 900,
+    "margins": {
+     "left": 17,
+     "right": 73
+    },
+    "sections": [],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Customer profile",
+      "size": 20,
+      "top": 17,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 269,
+      "n": 1
+     },
+     {
+      "x": 590,
+      "n": 1
+     },
+     {
+      "x": 1021,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 3,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0.17,
+    "voidBox": {
+     "x": 540,
+     "y": 660,
+     "w": 900,
+     "h": 240
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": {
+     "w": 240,
+     "tag": "aside",
+     "links": 5,
+     "share": 0.17
+    },
+    "topbar": {
+     "h": 80
+    },
+    "canvas": {
+     "left": 29,
+     "right": 34
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 1.7,
+     "font": "Avenir Next",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 262,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 8,
+     "firstScreen": 8,
+     "ragged": [],
+     "voids": [
+      {
+       "gap": 64,
+       "at": 617,
+       "panel": "AUCTION"
+      }
+     ]
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 11,
+     "radii": [
+      [
+       12,
+       7
+      ],
+      [
+       0,
+       4
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#2d7864 on #fcfaf6 (5.06:1)"
+     ],
+     "heavyShadows": 6,
+     "softShadows": 6,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 5,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 36,
+       "radius": "8px"
+      },
+      {
+       "hue": 163,
+       "size": 40,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 37,
+       "size": 36,
+       "radius": "8px"
+      },
+      {
+       "hue": 37,
+       "size": 36,
+       "radius": "8px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 3,
+     "tabularShare": 0,
+     "kpiMax": 24
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [
+     "example.com"
+    ],
+    "type": {
+     "under13": 0.28,
+     "tiny": 14,
+     "tinySamples": [
+      "operations 10px",
+      "Senior operator 10px",
+      "Internal note 9px",
+      "Total bids 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0.006
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.87,
+    0.8
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1604,
+     "screens": 1.6,
+     "words": 118,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 26,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 3.1,
+     "font": "Avenir Next",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 863,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      18,
+      20,
+      24
+     ],
+     "sizeCount": 9,
+     "notLoaded": [
+      "Avenir Next"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 12,
+      "leading": 1.67,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 7.6
+     },
+     "measureChars": 103,
+     "max": {
+      "size": 24,
+      "vw": 3.1,
+      "font": "Avenir Next",
+      "text": "128"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 11,
+     "microLabelShare": 0.138,
+     "microSamples": [
+      "Review",
+      "Payment ready",
+      "Internal note",
+      "Total bids",
+      "Lots won",
+      "Settlement rate"
+     ],
+     "upperShare": 0.14,
+     "centerShare": 0.19,
+     "smallText": 19
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#fcfaf6",
+       "top": 137,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.43
+      },
+      {
+       "color": "#171716",
+       "share": 0.36
+      },
+      {
+       "color": "#55514b",
+       "share": 0.13
+      },
+      {
+       "color": "#235d4d",
+       "share": 0.03
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.02
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 4,
+     "radius": 8,
+     "height": 32,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Send message",
+      "Restrict",
+      "Approve",
+      "Overview"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 13,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "div.flex.h-full → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.flex → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "aside.h-fit.rounded-xl → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 8,
+     "hairlineSamples": [
+      "header.flex.min-h-20 694px",
+      "dl.mt-6.space-y-4 620px",
+      "div.mt-6.border-t 620px",
+      "div.mt-5.grid 620px",
+      "header.flex.items-center 660px"
+     ],
+     "outlinedBoxes": 7,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 7,
+     "boxRadius": 12,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 3,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 824
+      }
+     ]
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 196,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1604,
+    "margins": {
+     "left": 9,
+     "right": 22
+    },
+    "sections": [
+     {
+      "sel": "aside.h-fit.rounded-xl",
+      "tag": "aside",
+      "top": 137,
+      "height": 593,
+      "words": 40,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Marta Weiss",
+       "size": 20,
+       "tag": "h2"
+      },
+      "left": 110,
+      "right": 38,
+      "textLeft": 110,
+      "textRight": 159,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.min-w-0",
+      "tag": "div",
+      "top": 750,
+      "height": 837,
+      "words": 66,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "128",
+       "size": 24,
+       "tag": "p"
+      },
+      "left": 94,
+      "right": 22,
+      "textLeft": 106,
+      "textRight": 38,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Customer profile",
+      "size": 20,
+      "top": 17,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 110,
+      "n": 2
+     },
+     {
+      "x": 89,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 3,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": {
+     "w": 72,
+     "tag": "aside",
+     "links": 5,
+     "share": 0.09
+    },
+    "topbar": {
+     "h": 80
+    },
+    "canvas": {
+     "left": 17,
+     "right": 22
+    },
+    "hero": {
+     "text": "128",
+     "words": 1,
+     "chars": 3,
+     "lines": 1,
+     "size": 24,
+     "vw": 3.1,
+     "font": "Avenir Next",
+     "weight": 700,
+     "tracking": -0.03,
+     "leading": 1.33,
+     "top": 863,
+     "tag": "p",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 7,
+     "firstScreen": 6,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 9,
+     "radii": [
+      [
+       12,
+       7
+      ],
+      [
+       0,
+       2
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#2d7864 on #fcfaf6 (5.06:1)"
+     ],
+     "heavyShadows": 6,
+     "softShadows": 6,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 5,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 15,
+       "size": 36,
+       "radius": "8px"
+      },
+      {
+       "hue": 163,
+       "size": 40,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 37,
+       "size": 36,
+       "radius": "8px"
+      },
+      {
+       "hue": 37,
+       "size": 36,
+       "radius": "8px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 2,
+     "tabularShare": 0,
+     "kpiMax": 24
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [
+     "example.com"
+    ],
+    "type": {
+     "under13": 0.29,
+     "tiny": 14,
+     "tinySamples": [
+      "operations 10px",
+      "Senior operator 10px",
+      "Internal note 9px",
+      "Total bids 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0.016
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.9,
+    0.86,
+    0.85
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 1955,
+     "screens": 2.3,
+     "words": 124,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 26,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 1,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Customer profile",
+     "words": 2,
+     "chars": 16,
+     "lines": 1,
+     "size": 20,
+     "vw": 5.1,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.4,
+     "top": 13,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [
+     {
+      "text": "128",
+      "words": 1,
+      "chars": 3,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Avenir Next",
+      "weight": 700,
+      "tracking": -0.03,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.83,
+      "top": 977,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "7",
+      "words": 1,
+      "chars": 1,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Avenir Next",
+      "weight": 700,
+      "tracking": -0.03,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.83,
+      "top": 1095,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "100%",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Avenir Next",
+      "weight": 700,
+      "tracking": -0.03,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.83,
+      "top": 1214,
+      "tag": "p",
+      "kind": "statement"
+     }
+    ],
+    "headingSummary": {
+     "count": 3,
+     "maxLines": 1,
+     "over2Lines": 0,
+     "statements": 3,
+     "centered": 0,
+     "medianWords": 1,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      18,
+      20,
+      24
+     ],
+     "sizeCount": 9,
+     "notLoaded": [
+      "Avenir Next"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 12,
+      "leading": 1.67,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 7.6
+     },
+     "measureChars": 52,
+     "max": {
+      "size": 24,
+      "vw": 6.2,
+      "font": "Avenir Next",
+      "text": "128"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 11,
+     "microLabelShare": 0.129,
+     "microSamples": [
+      "Review",
+      "Payment ready",
+      "Internal note",
+      "Total bids",
+      "Lots won",
+      "Settlement rate"
+     ],
+     "upperShare": 0.13,
+     "centerShare": 0.24,
+     "smallText": 19
+    },
+    "eyebrows": [
+     {
+      "text": "Total bids",
+      "above": "128",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 955
+     },
+     {
+      "text": "Lots won",
+      "above": "7",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 1074
+     },
+     {
+      "text": "Settlement rate",
+      "above": "100%",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 1192
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#f5f0e8",
+       "top": 0,
+       "hsl": {
+        "h": 37,
+        "s": 0.39,
+        "l": 0.94
+       }
+      },
+      {
+       "color": "#fcfaf6",
+       "top": 231,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.45
+      },
+      {
+       "color": "#171716",
+       "share": 0.34
+      },
+      {
+       "color": "#55514b",
+       "share": 0.12
+      },
+      {
+       "color": "#235d4d",
+       "share": 0.03
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.02
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 3,
+     "radius": 8,
+     "height": 32,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Send message",
+      "Restrict",
+      "Approve"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 12,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "div.flex.h-full → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "aside.h-fit.rounded-xl → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 9,
+     "hairlineSamples": [
+      "header.flex.min-h-20 388px",
+      "nav.flex.shrink-0 388px",
+      "dl.mt-6.space-y-4 314px",
+      "div.mt-6.border-t 314px",
+      "div.mt-5.grid 314px"
+     ],
+     "outlinedBoxes": 7,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 7,
+     "boxRadius": 12,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 0,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 1955,
+    "margins": {
+     "left": 17,
+     "right": 38
+    },
+    "sections": [
+     {
+      "sel": "header.flex.min-h-20",
+      "tag": "header",
+      "top": 1,
+      "height": 125,
+      "words": 9,
+      "media": 0,
+      "middle": 8,
+      "heading": {
+       "text": "Customer profile",
+       "size": 20,
+       "tag": "h1"
+      },
+      "left": 17,
+      "right": 146,
+      "textLeft": 17,
+      "textRight": 198,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.min-h-0.flex-1",
+      "tag": "div",
+      "top": 175,
+      "height": 1779,
+      "words": 109,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Marta Weiss",
+       "size": 20,
+       "tag": "h2"
+      },
+      "left": 17,
+      "right": 22,
+      "textLeft": 34,
+      "textRight": 38,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Customer profile",
+      "size": 20,
+      "top": 13,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 38,
+      "n": 2
+     },
+     {
+      "x": 17,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 3,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 17,
+     "right": -268
+    },
+    "hero": {
+     "text": "Customer profile",
+     "words": 2,
+     "chars": 16,
+     "lines": 1,
+     "size": 20,
+     "vw": 5.1,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.4,
+     "top": 13,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 6,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 9,
+     "radii": [
+      [
+       12,
+       7
+      ],
+      [
+       0,
+       2
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#2d7864 on #fcfaf6 (5.06:1)"
+     ],
+     "heavyShadows": 6,
+     "softShadows": 6,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 4,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 163,
+       "size": 40,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 37,
+       "size": 36,
+       "radius": "8px"
+      },
+      {
+       "hue": 37,
+       "size": 36,
+       "radius": "8px"
+      },
+      {
+       "hue": 37,
+       "size": 36,
+       "radius": "8px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 2,
+     "tabularShare": 0,
+     "kpiMax": 24
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [
+     "example.com"
+    ],
+    "type": {
+     "under13": 0.29,
+     "tiny": 14,
+     "tinySamples": [
+      "operations 10px",
+      "Senior operator 10px",
+      "Internal note 9px",
+      "Total bids 9px"
+     ],
+     "sizes": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      20,
+      24
+     ]
+    },
+    "title": null,
+    "colourShare": 0.015
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "14 tiny uppercase letter-spaced labels (e.g. \"GAVEL\", \"operations\", \"Senior operator\", \"Review\").",
+   "fix": "Use sentence-case text at a readable size, or delete the label.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (page background #f5f0e8, section #f5f0e8, button #fcfaf6).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "font-fallback",
+   "width": 1440,
+   "message": "Typeface(s) declared but not loaded, so a fallback is rendering: Avenir Next",
+   "fix": "Fix the font URL / family name, or the screenshots you are judging are not the design.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "font-not-dealt",
+   "width": 1440,
+   "message": "The sheet dealt Geist, but the page renders Avenir Next.",
+   "fix": "Load the dealt face (the link on the sheet) and put it first in font-family. A build that falls back to a default face lands on the default look."
+  },
+  {
+   "level": "FAIL",
+   "id": "heavy-shadow",
+   "width": 1440,
+   "message": "6 panel shadow(s) heavy enough to read as floating: rgba(54, 43, 28, 0.08) 0px 16px 48px 0px | rgba(54, 43, 28, 0.08) 0px 16px 48px 0px | rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+   "fix": "Panels sit on the ground: separate them with a fill one step from the ground or a quiet 1px border. A shadow, if any, is under 8% black with a small blur. Real overlays (menus, dialogs, popovers) may float.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "icon-chips",
+   "width": 1440,
+   "message": "5 icons sit in tinted squares or circles in 2 different colours.",
+   "fix": "This is the commonest tell of a generated dashboard. Drop the tinted square: a KPI is a label and a number; an icon, if it helps, is plain and in the text colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "placeholder-data",
+   "width": 1440,
+   "message": "Placeholder data on screen: example.com.",
+   "fix": "Use believable data for this product: real-looking names, amounts that add up, dates in order, units on every figure.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "tiny-text",
+   "width": 1440,
+   "message": "14 text blocks under 11px: operations 10px, Senior operator 10px, Internal note 9px, Total bids 9px.",
+   "fix": "Nothing below 11px; secondary text 12px, data 13–14px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "panel-void",
+   "width": 1440,
+   "message": "1 card(s) hold a blank band inside: 64px in \"AUCTION\".",
+   "fix": "A card stretches to its neighbour only when it has content to fill. Keep a legend or a note directly under its chart (only an action or a total may sit at a stretched card's foot), let a short card keep its own height (align-items: start), and let a filtered block shrink to its rows."
+  },
+  {
+   "level": "FAIL",
+   "id": "no-title",
+   "width": 1440,
+   "message": "The screen has no h1.",
+   "fix": "Name the screen in an h1 at the top of the canvas (18–28px): \"Overview\", \"Payouts\", the project's name.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/customer/desktop-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/customer/desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/customer/tablet-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/customer/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/customer/mobile-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/customer/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

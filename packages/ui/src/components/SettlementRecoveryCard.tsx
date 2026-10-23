@@ -1,7 +1,5 @@
-import type { ReactNode } from 'react';
-import { AlertTriangle, Check, ChevronRight, Clock3, Copy, CreditCard, ShieldCheck, UserRound } from 'lucide-react';
 import { Button } from './Button';
-import { StatusBadge } from './StatusBadge';
+import { StatusBadge, type StatusTone } from './StatusBadge';
 import { cn } from '../lib/cn';
 
 export type RecoveryState = 'recovery_required' | 'processing' | 'succeeded' | 'expired';
@@ -13,70 +11,103 @@ export interface SettlementRecoveryCardProps {
   closingPrice: string;
   candidateAlias: string;
   round: number;
+  /** The window's end in words: "16:27 UTC". */
   deadline: string;
+  /** Time left in words: "1 h 42 m". Shown only while the window is open. */
+  timeLeft?: string;
   recoveryUrl?: string;
   onOpenRecovery?: () => void;
   onCopyLink?: () => void;
+  onOpenLog?: () => void;
   className?: string;
 }
 
-const stateView: Record<RecoveryState, { tone: 'warning' | 'info' | 'success' | 'danger'; label: string; title: string; description: string }> = {
-  recovery_required: { tone: 'warning', label: 'Action required', title: 'Payment recovery in progress', description: 'The candidate has two hours to update or confirm their payment method.' },
-  processing: { tone: 'info', label: 'Processing', title: 'Waiting for provider outcome', description: 'The payment attempt is non-terminal. The workflow will not advance candidates.' },
+const stateView: Record<RecoveryState, { tone: StatusTone; label: string; title: string; description: string }> = {
+  recovery_required: { tone: 'warning', label: 'Action required', title: 'Payment recovery is open', description: 'The candidate has until the deadline to update or confirm their payment method.' },
+  processing: { tone: 'neutral', label: 'Processing', title: 'Waiting for the provider', description: 'The attempt is not final yet; the workflow does not move to the next candidate.' },
   succeeded: { tone: 'success', label: 'Paid', title: 'Winner confirmed', description: 'Payment succeeded and the auction has confirmed its winner.' },
-  expired: { tone: 'danger', label: 'Expired', title: 'Candidate forfeited', description: 'The recovery window ended and settlement moved to the next candidate.' },
+  expired: { tone: 'danger', label: 'Expired', title: 'Candidate forfeited', description: 'The window closed without payment; settlement moved to the next candidate.' },
 };
 
-export function SettlementRecoveryCard({ state, caseId, amount, closingPrice, candidateAlias, round, deadline, recoveryUrl, onOpenRecovery, onCopyLink, className }: SettlementRecoveryCardProps) {
+/*
+  The case's question: will this candidate pay before the window closes? The deadline is the one figure in the hue;
+  the facts are a divided strip; the timeline is a list of dots; the guardrails are plain text.
+*/
+export function SettlementRecoveryCard({ state, caseId, amount, closingPrice, candidateAlias, round, deadline, timeLeft, recoveryUrl, onOpenRecovery, onCopyLink, onOpenLog, className }: SettlementRecoveryCardProps) {
   const view = stateView[state];
   const active = state === 'recovery_required';
+  const steps = [
+    { title: 'Candidate selected', detail: `Round ${round} · ${amount}`, done: true, now: false },
+    { title: 'Payment attempted', detail: 'The provider asked the customer to act', done: true, now: false },
+    { title: 'Recovery window', detail: active ? `Open until ${deadline}` : state === 'expired' ? 'Closed without payment' : 'Outcome received', done: state !== 'recovery_required', now: active },
+    { title: state === 'expired' ? 'Next candidate' : 'Winner confirmed', detail: state === 'expired' ? 'Settlement amount recalculated' : 'Only after the payment succeeds', done: state === 'succeeded' || state === 'expired', now: state === 'processing' },
+  ];
+
   return (
-    <section className={cn('@container overflow-hidden rounded-2xl border border-paper-200 bg-paper-50 shadow-panel', className)}>
-      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-paper-200 px-5 py-5">
-        <div><StatusBadge tone={view.tone}>{view.label}</StatusBadge><h2 className="mt-3 mb-1 text-xl font-semibold tracking-[-0.03em]">{view.title}</h2><p className="m-0 max-w-xl text-xs leading-5 text-ink-500">{view.description}</p></div>
-        <span className="font-mono text-[10px] text-ink-500">{caseId}</span>
-      </header>
-      <div className="grid @2xl:grid-cols-[1fr_230px]">
-        <div className="p-5">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Fact icon={<CreditCard size={15} />} label="Settlement amount" value={amount} strong />
-            <Fact icon={<ShieldCheck size={15} />} label="Closing price" value={closingPrice} />
-            <Fact icon={<UserRound size={15} />} label="Candidate" value={`${candidateAlias} · round ${round}`} />
-          </div>
-          <div className="mt-5 rounded-xl border border-paper-200 bg-paper-100 p-4">
-            <div className="flex items-center justify-between gap-3"><p className="m-0 text-xs font-bold">Settlement timeline</p>{active && <span className="font-mono text-[10px] text-copper-600">deadline {deadline}</span>}</div>
-            <ol className="mt-4 mb-0 list-none p-0">
-              <TimelineStep done title="Candidate selected" detail={`Round ${round} · amount ${amount}`} />
-              <TimelineStep done title="Payment attempted" detail="Provider requested customer action" />
-              <TimelineStep done={state !== 'recovery_required'} active={active} title="Recovery window" detail={active ? `Open until ${deadline}` : state === 'expired' ? 'Expired before payment completed' : 'Payment outcome received'} />
-              <TimelineStep done={state === 'succeeded' || state === 'expired'} active={state === 'processing'} last title={state === 'expired' ? 'Next candidate' : 'Confirm winner'} detail={state === 'expired' ? 'Recalculate settlement amount' : 'Only after PaymentSucceeded'} />
-            </ol>
-          </div>
-          {active && recoveryUrl && <div className="mt-4 flex flex-col gap-2 sm:flex-row"><div className="min-w-0 flex-1 rounded-lg border border-paper-200 bg-white px-3 py-2 font-mono text-[10px] leading-5 text-ink-700 break-all">{recoveryUrl}</div><Button variant="secondary" leadingIcon={<Copy size={14} />} onClick={onCopyLink}>Copy link</Button><Button onClick={onOpenRecovery}>Open recovery</Button></div>}
+    <section className={cn('rounded-[8px] border border-line bg-surface', className)} aria-label={`Settlement case ${caseId}`}>
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 px-5 pt-4 pb-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2"><StatusBadge tone={view.tone}>{view.label}</StatusBadge><span className="font-mono text-xs text-muted">{caseId}</span></div>
+          <h2 className="mt-2 text-lg font-semibold text-ink">{view.title}</h2>
+          <p className="mt-1 max-w-xl text-sm text-muted">{view.description}</p>
         </div>
-        <aside className="border-t border-paper-200 bg-ink-950 p-5 text-white @2xl:border-t-0 @2xl:border-l">
-          <p className="m-0 text-[10px] font-bold uppercase tracking-[0.14em] text-white/65">Operator guardrails</p>
-          <div className="mt-4 space-y-3 text-xs">
-            <Guard ok label="Closing price is immutable" />
-            <Guard ok label="Attempt key is idempotent" />
-            <Guard ok={state !== 'expired'} label="Current candidate eligible" />
+        {active && (
+          <div className="text-right">
+            <p className="text-sm text-muted">Time left</p>
+            <p className="text-[26px] leading-8 font-medium text-copper tabular-nums">{timeLeft ?? '—'}</p>
+            <p className="text-xs text-muted tabular-nums">until {deadline}</p>
           </div>
-          <div className="mt-5 border-t border-white/10 pt-4"><div className="flex items-center gap-2 text-gold-400"><Clock3 size={15} /><span className="text-xs font-bold">{active ? '01:42:18 left' : 'Timer stopped'}</span></div><p className="mt-2 mb-0 text-[10px] leading-4 text-white/65">Expiry never overwrites a concurrent successful payment before the next candidate is selected.</p></div>
-          <button className="mt-5 flex w-full items-center justify-between rounded-lg border border-white/15 px-3 py-2.5 text-left text-xs text-white/75 hover:bg-white/8 hover:text-white">Open event log <ChevronRight size={14} /></button>
+        )}
+      </header>
+
+      <dl className="grid grid-cols-1 border-y border-rule sm:grid-cols-3 sm:divide-x sm:divide-rule max-sm:divide-y max-sm:divide-rule">
+        <Fact label="Settlement amount" value={amount} money />
+        <Fact label="Closing price" value={closingPrice} />
+        <Fact label="Candidate" value={`${candidateAlias} · round ${round}`} />
+      </dl>
+
+      <div className="grid @container gap-6 px-5 py-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div>
+          <h3 className="text-sm font-medium text-ink">Settlement timeline</h3>
+          <ol className="mt-2 divide-y divide-rule">
+            {steps.map((step) => (
+              <li key={step.title} className="flex min-h-11 items-center gap-3 py-2">
+                <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', step.done ? 'bg-ink' : step.now ? 'bg-copper' : 'border border-control bg-surface')} />
+                <span className="min-w-0 flex-1 text-sm text-ink">{step.title}</span>
+                <span className="shrink-0 text-xs text-muted">{step.detail}</span>
+              </li>
+            ))}
+          </ol>
+          {active && recoveryUrl && (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-ink">Recovery link for the candidate</p>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <input readOnly aria-label="Recovery link" value={recoveryUrl} className="h-9 min-w-0 flex-1 rounded-[6px] border border-control bg-raised px-3 font-mono text-xs text-ink outline-none" />
+                <Button variant="secondary" size="lg" onClick={onCopyLink}>Copy link</Button>
+                <Button size="lg" onClick={onOpenRecovery}>Open recovery</Button>
+              </div>
+            </div>
+          )}
+        </div>
+        <aside className="rounded-[6px] bg-raised p-4">
+          <h3 className="text-sm font-medium text-ink">Operator guardrails</h3>
+          <ul className="mt-2 space-y-1.5 text-sm">
+            <Guard ok label="The closing price cannot change" />
+            <Guard ok label="The attempt key is idempotent" />
+            <Guard ok={state !== 'expired'} label={state === 'expired' ? 'This candidate is no longer eligible' : 'The current candidate is eligible'} />
+          </ul>
+          <p className="mt-3 text-xs text-muted">An expiry never overwrites a concurrent successful payment before the next candidate is selected.</p>
+          <button type="button" onClick={onOpenLog} className="mt-3 text-sm font-medium text-ink underline-offset-[3px] hover:underline">Event log</button>
         </aside>
       </div>
     </section>
   );
 }
 
-function Fact({ icon, label, value, strong }: { icon: ReactNode; label: string; value: string; strong?: boolean }) {
-  return <div className="rounded-xl border border-paper-200 bg-white p-3"><div className="flex items-center gap-1.5 text-ink-500">{icon}<span className="text-[10px] font-bold uppercase tracking-[0.08em]">{label}</span></div><p className={cn('mt-2 mb-0 text-sm tabular-nums', strong ? 'font-bold text-copper-600' : 'font-semibold')}>{value}</p></div>;
-}
-
-function TimelineStep({ done, active, title, detail, last }: { done?: boolean; active?: boolean; title: string; detail: string; last?: boolean }) {
-  return <li className="relative grid grid-cols-[24px_1fr] gap-3 pb-4 last:pb-0">{!last && <span className="absolute top-5 bottom-0 left-[11px] w-px bg-paper-200" />}<span className={cn('relative z-10 grid size-6 place-items-center rounded-full border text-[10px]', done ? 'border-moss-500 bg-moss-500 text-white' : active ? 'border-copper-500 bg-copper-500 text-white ring-4 ring-copper-500/10' : 'border-paper-200 bg-paper-50 text-ink-500')}>{done ? <Check size={12} /> : active ? <Clock3 size={12} /> : <span className="size-1.5 rounded-full bg-current" />}</span><div><p className="m-0 text-xs font-semibold">{title}</p><p className="mt-0.5 mb-0 text-[10px] text-ink-500">{detail}</p></div></li>;
+function Fact({ label, value, money }: { label: string; value: string; money?: boolean }) {
+  return <div className="px-5 py-3"><dt className="text-sm text-muted">{label}</dt><dd className={cn('mt-0.5 text-base text-ink tabular-nums', money ? 'font-bold' : 'font-medium')}>{value}</dd></div>;
 }
 
 function Guard({ ok, label }: { ok: boolean; label: string }) {
-  return <div className="flex items-start gap-2">{ok ? <Check className="mt-0.5 shrink-0 text-moss-400" size={14} /> : <AlertTriangle className="mt-0.5 shrink-0 text-gold-400" size={14} />}<span className="text-white/75">{label}</span></div>;
+  return <li className="flex items-start gap-2"><span aria-hidden="true" className={cn('mt-1.5 size-2 shrink-0 rounded-full', ok ? 'bg-positive' : 'bg-negative')} /><span className="text-ink">{label}</span></li>;
 }

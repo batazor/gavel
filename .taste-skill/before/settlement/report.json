@@ -1,0 +1,1447 @@
+{
+ "url": "http://localhost:6006/iframe.html?id=domain-settlement-recovery--recovery-required&viewMode=story",
+ "at": "2026-10-23T03:29:40.305Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.29
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 900,
+     "screens": 1,
+     "words": 96,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 13,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Payment recovery in progress",
+     "words": 4,
+     "chars": 28,
+     "lines": 1,
+     "size": 20,
+     "vw": 1.4,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.4,
+     "top": 228,
+     "tag": "h2",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      10,
+      11,
+      12,
+      14,
+      16,
+      20
+     ],
+     "sizeCount": 6,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 10,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 17.9
+     },
+     "measureChars": 38,
+     "max": {
+      "size": 20,
+      "vw": 1.4,
+      "font": "Avenir Next",
+      "text": "Payment recovery in progress"
+     },
+     "monoShare": 0.12,
+     "monoProseShare": 0.12,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "STL-4912",
+      "deadline 16:27 UTC",
+      "https://pay.gavel.test/recover/STL-4912?"
+     ],
+     "microLabels": 5,
+     "microLabelShare": 0.105,
+     "microSamples": [
+      "Action required",
+      "Settlement amount",
+      "Closing price",
+      "Candidate",
+      "Operator guardrails"
+     ],
+     "upperShare": 0.12,
+     "centerShare": 0.03,
+     "smallText": 21
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fcfaf6",
+       "top": 167,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.32
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.31
+      },
+      {
+       "color": "#171716",
+       "share": 0.21
+      },
+      {
+       "color": "#55514b",
+       "share": 0.08
+      },
+      {
+       "color": "#984329",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 3,
+     "radius": 8,
+     "height": 40,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Copy link",
+      "Open recovery",
+      "Open event log"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 3,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "section.@container.overflow-hidden → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 2,
+     "hairlineSamples": [
+      "header.flex.flex-wrap 978px",
+      "aside.border-t.border-paper-200 230px"
+     ],
+     "outlinedBoxes": 2,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 2,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 132,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 900,
+    "margins": {
+     "left": 251,
+     "right": 251
+    },
+    "sections": [
+     {
+      "sel": "header.flex.flex-wrap",
+      "tag": "header",
+      "top": 168,
+      "height": 132,
+      "words": 20,
+      "media": 0,
+      "middle": 489,
+      "heading": {
+       "text": "Payment recovery in progress",
+       "size": 20,
+       "tag": "h2"
+      },
+      "left": 251,
+      "right": 251,
+      "textLeft": 251,
+      "textRight": 251,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.grid.@2xl:grid-cols-[1fr_230px]",
+      "tag": "div",
+      "top": 301,
+      "height": 431,
+      "words": 79,
+      "media": 0,
+      "middle": 66,
+      "heading": null,
+      "left": 264,
+      "right": 251,
+      "textLeft": 264,
+      "textRight": 272,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 251,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 1,
+    "bodySize": 10,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0.2,
+    "voidBox": {
+     "x": 0,
+     "y": 720,
+     "w": 1440,
+     "h": 180
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 251,
+     "right": 251
+    },
+    "hero": {
+     "text": "Payment recovery in progress",
+     "words": 4,
+     "chars": 28,
+     "lines": 1,
+     "size": 20,
+     "vw": 1.4,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.4,
+     "top": 228,
+     "tag": "h2",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 4,
+     "radii": [
+      [
+       0,
+       2
+      ],
+      [
+       16,
+       1
+      ],
+      [
+       12,
+       1
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#ffffff on #171716 (17.94:1)"
+     ],
+     "heavyShadows": 1,
+     "softShadows": 1,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 3,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 163,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 163,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 15,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 2,
+     "tabularShare": 1,
+     "kpiMax": 14
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.31,
+     "tiny": 13,
+     "tinySamples": [
+      "STL-4912 10px",
+      "Settlement amount 10px",
+      "Closing price 10px",
+      "Candidate 10px"
+     ],
+     "sizes": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      20
+     ]
+    },
+    "title": null,
+    "colourShare": 0.006
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 1,
+   "filled": [
+    0.45
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 1024,
+     "screens": 1,
+     "words": 96,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 13,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Payment recovery in progress",
+     "words": 4,
+     "chars": 28,
+     "lines": 1,
+     "size": 20,
+     "vw": 2.6,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.4,
+     "top": 261,
+     "tag": "h2",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      10,
+      11,
+      12,
+      14,
+      16,
+      20
+     ],
+     "sizeCount": 6,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 10,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 17.9
+     },
+     "measureChars": 38,
+     "max": {
+      "size": 20,
+      "vw": 2.6,
+      "font": "Avenir Next",
+      "text": "Payment recovery in progress"
+     },
+     "monoShare": 0.12,
+     "monoProseShare": 0.12,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "STL-4912",
+      "deadline 16:27 UTC",
+      "https://pay.gavel.test/recover/STL-4912?"
+     ],
+     "microLabels": 5,
+     "microLabelShare": 0.105,
+     "microSamples": [
+      "Action required",
+      "Settlement amount",
+      "Closing price",
+      "Candidate",
+      "Operator guardrails"
+     ],
+     "upperShare": 0.12,
+     "centerShare": 0.03,
+     "smallText": 21
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fcfaf6",
+       "top": 200,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.32
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.31
+      },
+      {
+       "color": "#171716",
+       "share": 0.21
+      },
+      {
+       "color": "#55514b",
+       "share": 0.08
+      },
+      {
+       "color": "#984329",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 3,
+     "radius": 8,
+     "height": 78,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Copy link",
+      "Open recovery",
+      "Open event log"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 3,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "section.@container.overflow-hidden → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 2,
+     "hairlineSamples": [
+      "header.flex.flex-wrap 728px",
+      "aside.border-t.border-paper-200 230px"
+     ],
+     "outlinedBoxes": 2,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 2,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 132,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 1024,
+    "margins": {
+     "left": 40,
+     "right": 40
+    },
+    "sections": [
+     {
+      "sel": "header.flex.flex-wrap",
+      "tag": "header",
+      "top": 201,
+      "height": 132,
+      "words": 20,
+      "media": 0,
+      "middle": 238,
+      "heading": {
+       "text": "Payment recovery in progress",
+       "size": 20,
+       "tag": "h2"
+      },
+      "left": 40,
+      "right": 40,
+      "textLeft": 40,
+      "textRight": 40,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.grid.@2xl:grid-cols-[1fr_230px]",
+      "tag": "div",
+      "top": 334,
+      "height": 489,
+      "words": 79,
+      "media": 0,
+      "middle": 41,
+      "heading": null,
+      "left": 53,
+      "right": 40,
+      "textLeft": 53,
+      "textRight": 61,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 40,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 1,
+    "bodySize": 10,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 40,
+     "right": 40
+    },
+    "hero": {
+     "text": "Payment recovery in progress",
+     "words": 4,
+     "chars": 28,
+     "lines": 1,
+     "size": 20,
+     "vw": 2.6,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.4,
+     "top": 261,
+     "tag": "h2",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 9,
+     "radii": [
+      [
+       12,
+       4
+      ],
+      [
+       8,
+       2
+      ],
+      [
+       0,
+       2
+      ],
+      [
+       16,
+       1
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#ffffff on #171716 (17.94:1)"
+     ],
+     "heavyShadows": 1,
+     "softShadows": 3,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 3,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 163,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 163,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 15,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 2,
+     "tabularShare": 1,
+     "kpiMax": 14
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.31,
+     "tiny": 13,
+     "tinySamples": [
+      "STL-4912 10px",
+      "Settlement amount 10px",
+      "Closing price 10px",
+      "Candidate 10px"
+     ],
+     "sizes": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      20
+     ]
+    },
+    "title": null,
+    "colourShare": 0.018
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 2,
+   "filled": [
+    0.78,
+    0.78
+   ],
+   "motion": {
+    "elements": 1,
+    "css": 1,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 404,
+     "h": 873
+    },
+    "page": {
+     "height": 1227,
+     "screens": 1.4,
+     "words": 96,
+     "img": 0,
+     "video": 0,
+     "canvas": 0,
+     "svg": 13,
+     "sections": 1,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 0,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Payment recovery in progress",
+     "words": 4,
+     "chars": 28,
+     "lines": 1,
+     "size": 20,
+     "vw": 5,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.4,
+     "top": 76,
+     "tag": "h2",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": null,
+    "headings": [],
+    "headingSummary": {
+     "count": 0,
+     "maxLines": 0,
+     "over2Lines": 0,
+     "statements": 0,
+     "centered": 0,
+     "medianWords": null,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Avenir Next",
+       "share": 0.88,
+       "mono": false
+      },
+      {
+       "family": "SFMono-Regular",
+       "share": 0.12,
+       "mono": false
+      }
+     ],
+     "familyCount": 2,
+     "sizes": [
+      10,
+      11,
+      12,
+      14,
+      16,
+      20
+     ],
+     "sizeCount": 6,
+     "notLoaded": [
+      "Avenir Next",
+      "SFMono-Regular"
+     ],
+     "body": {
+      "font": "Avenir Next",
+      "size": 10,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 17.9
+     },
+     "measureChars": 66,
+     "max": {
+      "size": 20,
+      "vw": 5,
+      "font": "Avenir Next",
+      "text": "Payment recovery in progress"
+     },
+     "monoShare": 0.12,
+     "monoProseShare": 0.12,
+     "monoFamilies": [
+      "SFMono-Regular"
+     ],
+     "monoSamples": [
+      "STL-4912",
+      "deadline 16:27 UTC",
+      "https://pay.gavel.test/recover/STL-4912?"
+     ],
+     "microLabels": 5,
+     "microLabelShare": 0.105,
+     "microSamples": [
+      "Action required",
+      "Settlement amount",
+      "Closing price",
+      "Candidate",
+      "Operator guardrails"
+     ],
+     "upperShare": 0.12,
+     "centerShare": 0.03,
+     "smallText": 21
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f5f0e8",
+     "bodyBgHsl": {
+      "h": 37,
+      "s": 0.39,
+      "l": 0.94
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fcfaf6",
+       "top": 16,
+       "hsl": {
+        "h": 40,
+        "s": 0.5,
+        "l": 0.98
+       }
+      },
+      {
+       "color": "#171716",
+       "top": 907,
+       "hsl": {
+        "h": 60,
+        "s": 0.02,
+        "l": 0.09
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#716b63",
+       "share": 0.32
+      },
+      {
+       "color": "#ffffff",
+       "share": 0.31
+      },
+      {
+       "color": "#171716",
+       "share": 0.21
+      },
+      {
+       "color": "#55514b",
+       "share": 0.08
+      },
+      {
+       "color": "#984329",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#fcfaf6",
+      "hsl": {
+       "h": 40,
+       "s": 0.5,
+       "l": 0.98
+      },
+      "fg": "#171716"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 3,
+     "inHero": 2,
+     "radius": 8,
+     "height": 40,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Copy link",
+      "Open recovery"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 3,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "section.@container.overflow-hidden → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0",
+      "button.group.gavel-hover-lift → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 3,
+     "hairlineSamples": [
+      "header.flex.flex-wrap 369px",
+      "aside.border-t.border-paper-200 369px",
+      "div.mt-5.border-t 329px"
+     ],
+     "outlinedBoxes": 2,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 2,
+     "boxRadius": 16,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 0,
+     "fixed": false,
+     "height": 183,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 404,
+     "h": 873
+    },
+    "pageH": 1227,
+    "margins": {
+     "left": 37,
+     "right": 39
+    },
+    "sections": [
+     {
+      "sel": "header.flex.flex-wrap",
+      "tag": "header",
+      "top": 17,
+      "height": 183,
+      "words": 20,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Payment recovery in progress",
+       "size": 20,
+       "tag": "h2"
+      },
+      "left": 37,
+      "right": 66,
+      "textLeft": 37,
+      "textRight": 66,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.grid.@2xl:grid-cols-[1fr_230px]",
+      "tag": "div",
+      "top": 200,
+      "height": 1010,
+      "words": 79,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 37,
+      "right": 39,
+      "textLeft": 37,
+      "textRight": 53,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 37,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 1,
+    "bodySize": 10,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 404,
+     "h": 873
+    },
+    "dark": false,
+    "ground": "#f5f0e8",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 37,
+     "right": 39
+    },
+    "hero": {
+     "text": "Payment recovery in progress",
+     "words": 4,
+     "chars": 28,
+     "lines": 1,
+     "size": 20,
+     "vw": 5,
+     "font": "Avenir Next",
+     "weight": 600,
+     "tracking": -0.03,
+     "leading": 1.4,
+     "top": 76,
+     "tag": "h2",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 1,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 4,
+     "radii": [
+      [
+       0,
+       2
+      ],
+      [
+       16,
+       1
+      ],
+      [
+       12,
+       1
+      ]
+     ],
+     "heavyBorders": 2,
+     "borderSamples": [
+      "#e7ded1 on #171716 (13.47:1)",
+      "#ffffff on #171716 (17.94:1)"
+     ],
+     "heavyShadows": 1,
+     "softShadows": 1,
+     "shadowSamples": [
+      "rgba(54, 43, 28, 0.08) 0px 16px 48px 0px"
+     ],
+     "glass": 0
+    },
+    "chips": {
+     "count": 3,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 163,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 163,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      },
+      {
+       "hue": 15,
+       "size": 24,
+       "radius": "3.35544e+07px"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 2,
+     "tabularShare": 1,
+     "kpiMax": 14
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.31,
+     "tiny": 13,
+     "tinySamples": [
+      "STL-4912 10px",
+      "Settlement amount 10px",
+      "Closing price 10px",
+      "Candidate 10px"
+     ],
+     "sizes": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      20
+     ]
+    },
+    "title": null,
+    "colourShare": 0.005
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "5 tiny uppercase letter-spaced labels (e.g. \"Action required\", \"Settlement amount\", \"Closing price\", \"Candidate\").",
+   "fix": "Use sentence-case text at a readable size, or delete the label.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (page background #f5f0e8, section #fcfaf6, button #fcfaf6).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "font-fallback",
+   "width": 1440,
+   "message": "Typeface(s) declared but not loaded, so a fallback is rendering: Avenir Next, SFMono-Regular",
+   "fix": "Fix the font URL / family name, or the screenshots you are judging are not the design.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "font-not-dealt",
+   "width": 1440,
+   "message": "The sheet dealt Geist, but the page renders Avenir Next, SFMono-Regular.",
+   "fix": "Load the dealt face (the link on the sheet) and put it first in font-family. A build that falls back to a default face lands on the default look."
+  },
+  {
+   "level": "FAIL",
+   "id": "heavy-shadow",
+   "width": 1440,
+   "message": "1 panel shadow(s) heavy enough to read as floating: rgba(54, 43, 28, 0.08) 0px 16px 48px 0px",
+   "fix": "Panels sit on the ground: separate them with a fill one step from the ground or a quiet 1px border. A shadow, if any, is under 8% black with a small blur. Real overlays (menus, dialogs, popovers) may float.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "icon-chips",
+   "width": 1440,
+   "message": "3 icons sit in tinted squares or circles in 2 different colours.",
+   "fix": "This is the commonest tell of a generated dashboard. Drop the tinted square: a KPI is a label and a number; an icon, if it helps, is plain and in the text colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "tiny-text",
+   "width": 1440,
+   "message": "13 text blocks under 11px: STL-4912 10px, Settlement amount 10px, Closing price 10px, Candidate 10px.",
+   "fix": "Nothing below 11px; secondary text 12px, data 13–14px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "no-title",
+   "width": 1440,
+   "message": "The screen has no h1.",
+   "fix": "Name the screen in an h1 at the top of the canvas (18–28px): \"Overview\", \"Payouts\", the project's name.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/settlement/desktop-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/settlement/desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/settlement/tablet-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/settlement/tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/batazor/myproject/gavel/.taste-skill/before/settlement/mobile-fold.jpg",
+   "pages": [
+    "/Users/batazor/myproject/gavel/.taste-skill/before/settlement/mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}

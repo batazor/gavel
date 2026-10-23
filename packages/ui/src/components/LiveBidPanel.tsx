@@ -1,97 +1,119 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { ArrowUp, CheckCircle2, Clock3, Eye, ShieldCheck, Sparkles, Wifi } from 'lucide-react';
 import { Button } from './Button';
 import { StatusBadge } from './StatusBadge';
 import { cn } from '../lib/cn';
+import { formatInt, formatMoney } from '../lib/format';
+import type { PublicBid } from '../data/ops';
 
-export interface PublicBid {
-  id: string;
-  alias: string;
-  resultingPrice: number;
-  occurredAt: string;
-  isMine?: boolean;
-}
+export type { PublicBid };
 
 export interface LiveBidPanelProps {
   currency?: string;
+  /** How this auction closes, in the bidder's words: ["A bid in the last 5 minutes extends the auction by 2 minutes", …]. */
+  closingRules?: string[];
   currentPrice: number;
   minimumBid: number;
   endsAt: string;
   bids: PublicBid[];
+  /** The total accepted bids when the list is a window of them. */
+  totalBids?: number;
   initialMaximum?: number;
   status?: 'leading' | 'outbid' | 'watching';
-  onPlaceBid?: (maximum: number) => void;
+  onPlaceBid?: (maximum: number) => void | Promise<void>;
   className?: string;
 }
 
-const money = (value: number, currency: string) => new Intl.NumberFormat('en-GB', {
-  style: 'currency', currency, maximumFractionDigits: 0,
-}).format(value);
+const aliasHue = (alias: string) => [...alias].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 360;
 
-export function LiveBidPanel({
-  currency = 'EUR', currentPrice, minimumBid, endsAt, bids, initialMaximum = minimumBid,
-  status = 'watching', onPlaceBid, className,
-}: LiveBidPanelProps) {
+/*
+  The bidder's panel: the one question is "am I leading, and what does the next bid cost?".
+  The current price is the main data element and carries the one hue; the rest is ink on paper.
+*/
+export function LiveBidPanel({ currency = 'EUR', closingRules = ['A bid in the last 5 minutes extends the auction by 2 minutes.', 'No extension past the hard deadline of 15:00 UTC.', 'The winner pays within 2 hours or the lot passes to the next bidder.'], currentPrice, minimumBid, endsAt, bids, totalBids, initialMaximum = minimumBid, status = 'watching', onPlaceBid, className }: LiveBidPanelProps) {
   const [maximum, setMaximum] = useState(initialMaximum);
   const [submitted, setSubmitted] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const money = (value: number) => formatMoney(value, currency);
   const statusCopy = {
-    leading: { tone: 'success' as const, label: 'You are leading', detail: 'Your maximum stays private' },
-    outbid: { tone: 'warning' as const, label: 'You were outbid', detail: 'Raise your private maximum to continue' },
-    watching: { tone: 'neutral' as const, label: 'Watching', detail: 'Set a private maximum to join' },
+    leading: { tone: 'success' as const, label: 'You are leading', detail: 'Your maximum stays private; we bid only enough to keep you ahead.' },
+    outbid: { tone: 'warning' as const, label: 'You were outbid', detail: 'Raise your maximum to stay in the auction.' },
+    watching: { tone: 'neutral' as const, label: 'Watching', detail: 'Set a private maximum to join the bidding.' },
   }[status];
   const quickBids = useMemo(() => [minimumBid, minimumBid + 500, minimumBid + 1_000], [minimumBid]);
+  const total = totalBids ?? bids.length;
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (maximum < minimumBid) return;
-    setSubmitted(maximum);
-    onPlaceBid?.(maximum);
+    if (maximum < minimumBid || submitting) return;
+    setSubmitting(true);
+    setSubmissionError(null);
+    try {
+      await onPlaceBid?.(maximum);
+      setSubmitted(maximum);
+    } catch (error) {
+      setSubmitted(null);
+      setSubmissionError(error instanceof Error ? error.message : 'The bid could not be placed.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <section className={cn('@container overflow-hidden rounded-2xl border border-paper-200 bg-paper-50 shadow-panel', className)}>
-      <header className="border-b border-paper-200 bg-ink-950 px-5 py-4 text-paper-50">
-        <div className="flex items-center justify-between gap-3">
-          <StatusBadge tone="success" style={{ color: '#78c8ad', backgroundColor: 'rgba(85, 167, 142, 0.12)', borderColor: 'rgba(85, 167, 142, 0.35)' }}><Wifi size={11} /> Live</StatusBadge>
-          <span className="flex items-center gap-1.5 font-mono text-xs text-paper-200/80"><Clock3 size={13} /> {endsAt}</span>
+    <section className={cn('@container rounded-[8px] border border-line bg-surface', className)} aria-label="Live bidding">
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 px-5 pt-4 pb-4">
+        <div>
+          <div className="flex items-center gap-2 text-sm text-muted"><StatusBadge tone="success" dot>Live</StatusBadge><span>Current price</span></div>
+          <p className="mt-1 text-[32px] leading-9 font-bold text-copper tabular-nums">{money(currentPrice)}</p>
+          <p className="mt-1 text-sm text-muted tabular-nums">{formatInt(total)} bids · next bid {money(minimumBid)}</p>
         </div>
-        <div className="mt-5 flex items-end justify-between gap-4">
-          <div><p className="m-0 text-[10px] font-bold uppercase tracking-[0.15em] text-paper-200/65">Current price</p><p className="mt-1 mb-0 text-4xl font-semibold tracking-[-0.05em]">{money(currentPrice, currency)}</p></div>
-          <div className="text-right text-xs text-paper-200/65"><div>{bids.length} bids</div><div className="mt-1">Step {money(minimumBid - currentPrice, currency)}</div></div>
+        <div className="text-right">
+          <p className="text-sm text-muted">Ends in</p>
+          <p className="text-lg font-medium text-ink tabular-nums">{endsAt}</p>
         </div>
       </header>
 
-      <div className="grid @3xl:grid-cols-[1fr_0.88fr]">
-        <div className="border-b border-paper-200 p-4 @3xl:border-r @3xl:border-b-0 @3xl:p-5">
-          <div className="flex items-start gap-3 rounded-xl border border-paper-200 bg-paper-100 p-3">
-            <span className={cn('mt-0.5 grid size-8 shrink-0 place-items-center rounded-full', status === 'leading' ? 'bg-moss-500 text-white' : status === 'outbid' ? 'bg-amber-500 text-ink-950' : 'bg-ink-950 text-white')}>
-              {status === 'leading' ? <CheckCircle2 size={16} /> : status === 'outbid' ? <ArrowUp size={16} /> : <Eye size={16} />}
-            </span>
-            <div><p className="m-0 text-sm font-bold">{statusCopy.label}</p><p className="mt-1 mb-0 text-xs text-ink-500">{statusCopy.detail}</p></div>
-          </div>
+      <div className="grid border-t border-rule @3xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+        <div className="border-b border-rule p-5 @3xl:border-r @3xl:border-b-0">
+          <p className="flex items-start gap-2 text-sm">
+            <span aria-hidden="true" className={cn('mt-1.5 size-2 shrink-0 rounded-full', status === 'leading' ? 'bg-positive' : status === 'outbid' ? 'bg-warning' : 'bg-control')} />
+            <span><span className="font-medium text-ink">{statusCopy.label}.</span> <span className="text-muted">{statusCopy.detail}</span></span>
+          </p>
 
-          <form onSubmit={submit} className="mt-5">
-            <label htmlFor="bid-maximum" className="text-xs font-bold text-ink-700">Your maximum</label>
-            <div className="mt-2 flex rounded-xl border border-paper-200 bg-white p-1 focus-within:border-copper-500 focus-within:ring-3 focus-within:ring-copper-500/10">
-              <span className="grid w-9 place-items-center text-sm text-ink-500">€</span>
-              <input id="bid-maximum" type="number" min={minimumBid} step="100" value={maximum} onChange={(event) => setMaximum(Number(event.target.value))} className="min-w-0 flex-1 border-0 bg-transparent px-1 text-lg font-bold tabular-nums outline-none" />
-              <Button type="submit" disabled={maximum < minimumBid}>Place bid</Button>
+          <form onSubmit={submit} className="mt-4">
+            <label htmlFor="bid-maximum" className="text-sm font-medium text-ink">Your maximum, €</label>
+            <div className="mt-2 flex gap-2">
+              <input id="bid-maximum" type="number" min={minimumBid} step={100} value={maximum} onChange={(event) => setMaximum(Number(event.target.value))} className="h-10 min-w-0 flex-1 rounded-[6px] border border-control bg-surface px-3 text-base text-ink outline-none tabular-nums focus:border-ink" />
+              <Button type="submit" size="lg" disabled={maximum < minimumBid || submitting} className="h-10">{submitting ? 'Placing…' : 'Place bid'}</Button>
             </div>
-            <p className="mt-2 mb-0 text-[11px] text-ink-500">Minimum {money(minimumBid, currency)}. We bid only enough to keep you ahead.</p>
-            <div className="mt-3 flex gap-2">{quickBids.map((value) => <button type="button" key={value} onClick={() => setMaximum(value)} className="flex-1 rounded-lg border border-paper-200 bg-paper-100 px-2 py-2 text-xs font-bold tabular-nums hover:border-ink-500">{money(value, currency)}</button>)}</div>
+            <p className="mt-2 text-xs text-muted">Minimum {money(minimumBid)}. Only the resulting public price is shown to others.</p>
+            <div className="mt-3 flex gap-2">
+              {quickBids.map((value) => <button type="button" key={value} onClick={() => setMaximum(value)} aria-pressed={maximum === value} className={cn('h-8 flex-1 rounded-[6px] border text-sm tabular-nums', maximum === value ? 'border-ink bg-active text-ink' : 'border-control bg-surface text-ink hover:bg-raised')}>{money(value)}</button>)}
+            </div>
           </form>
 
-          {submitted !== null && <div role="status" className="mt-4 flex gap-2 rounded-lg border border-moss-500/25 bg-moss-500/10 p-3 text-xs text-moss-600"><ShieldCheck className="shrink-0" size={16} /><span>Maximum {money(submitted, currency)} accepted. Only the resulting public price is visible.</span></div>}
+          {submitted !== null && <p role="status" className="mt-4 flex items-start gap-2 text-sm"><span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-positive" /><span className="text-ink">Maximum {money(submitted)} accepted.</span></p>}
+          {submissionError && <p role="alert" className="mt-4 flex items-start gap-2 text-sm"><span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-negative" /><span className="text-ink">{submissionError}</span></p>}
+          {closingRules.length > 0 && (
+            <div className="mt-5 border-t border-rule pt-4">
+              <h3 className="text-sm font-medium text-ink">How this auction closes</h3>
+              <ul className="mt-1 space-y-1 text-sm text-muted">{closingRules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
+            </div>
+          )}
         </div>
 
-        <div className="p-4 @3xl:p-5">
-          <div className="flex items-center justify-between"><h2 className="m-0 text-xs font-bold uppercase tracking-[0.13em] text-ink-700">Public bid history</h2><Sparkles size={15} className="text-copper-500" /></div>
-          <ol className="mt-4 mb-0 list-none space-y-1 p-0">{bids.slice(0, 6).map((bid, index) => <li key={bid.id} className={cn('flex items-center gap-3 rounded-lg px-2 py-2.5', index === 0 && 'bg-paper-100')}>
-            <span className={cn('grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-bold', bid.isMine ? 'bg-copper-500 text-white' : 'bg-paper-200 text-ink-700')}>{bid.alias.slice(0, 2)}</span>
-            <div className="min-w-0 flex-1"><p className="m-0 truncate text-xs font-semibold">{bid.isMine ? 'You' : bid.alias}</p><p className="mt-0.5 mb-0 font-mono text-[9px] text-ink-500">{bid.occurredAt}</p></div>
-            <span className="text-sm font-bold tabular-nums">{money(bid.resultingPrice, currency)}</span>
-          </li>)}</ol>
-          <p className="mt-4 mb-0 border-t border-paper-200 pt-3 text-[10px] leading-4 text-ink-500">Aliases are unique to this auction. Private maximums and participant identities are never shown.</p>
+        <div className="p-5 pt-4">
+          <div className="flex items-baseline justify-between"><h3 className="text-sm font-medium text-ink">Public bids</h3><span className="text-xs text-faint tabular-nums">latest {Math.min(bids.length, 6)} of {formatInt(total)}</span></div>
+          <ol className="mt-2 divide-y divide-rule">
+            {bids.slice(0, 6).map((bid) => (
+              <li key={bid.id} className="flex h-10 items-center gap-3">
+                <span aria-hidden="true" className="grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-medium" style={bid.isMine ? { background: 'var(--color-active)', color: 'var(--color-ink)' } : { background: `hsl(${aliasHue(bid.alias)} 40% 92%)`, color: `hsl(${aliasHue(bid.alias)} 40% 28%)` }}>{bid.alias.slice(0, 2)}</span>
+                <span className="min-w-0 flex-1 truncate text-sm text-ink">{bid.isMine ? 'You' : bid.alias}<span className="ml-2 text-xs text-muted tabular-nums">{bid.occurredAt}</span></span>
+                <span className={cn('text-sm tabular-nums', bid.isMine ? 'font-medium text-ink' : 'text-ink')}>{money(bid.resultingPrice)}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-xs text-muted">Aliases are unique to this auction. Private maximums and identities are never shown.</p>
         </div>
       </div>
     </section>

@@ -6,16 +6,25 @@ import {
   CreateLotPage,
   CustomerDetailPage,
   CustomersManagementPage,
+  ErrorState,
+  Kpi,
+  KpiStrip,
   LiveBidPanel,
   LotsManagementPage,
   OpsPageShell,
   Panel,
   SettlementRecoveryCard,
+  Skeleton,
   StatusBadge,
+  formatClock,
+  formatDuration,
+  formatInt,
+  formatMoney,
+  opsData,
   type OpsSection,
-  type PublicBid,
   type RecoveryState,
 } from '@gavel/ui';
+import { useLotWorkspace } from './graphql/useLotWorkspace';
 
 const sectionPaths: Record<OpsSection, string> = {
   overview: '/admin',
@@ -25,12 +34,7 @@ const sectionPaths: Record<OpsSection, string> = {
   workflows: '/admin/workflows',
 };
 
-const bids: PublicBid[] = [
-  { id: 'b-184', alias: 'Silver Fox', resultingPrice: 42_800, occurredAt: '14:31:52', isMine: true },
-  { id: 'b-183', alias: 'Atlas 17', resultingPrice: 42_600, occurredAt: '14:31:49' },
-  { id: 'b-182', alias: 'North Star', resultingPrice: 42_100, occurredAt: '14:30:08' },
-  { id: 'b-181', alias: 'Silver Fox', resultingPrice: 41_800, occurredAt: '14:29:44', isMine: true },
-];
+const { today, queue, queueTotal, queueTimeCritical, speedmasterBids, health, liveAuctions, bidsNow } = opsData;
 
 function usePathname() {
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -43,7 +47,7 @@ function usePathname() {
     if (next === window.location.pathname) return;
     window.history.pushState({}, '', next);
     setPathname(next);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0 });
   }, []);
   return { pathname, navigate };
 }
@@ -62,7 +66,7 @@ export function App() {
   } else if (pathname === '/admin/lots/new') {
     page = <CreateLotPage onBackToLots={() => navigate('/admin/lots')} onPublished={() => navigate('/admin/lots/LOT-D92F')} />;
   } else if (pathname.startsWith('/admin/lots/')) {
-    page = <LotWorkspace onNavigate={navigateSection} onBack={() => navigate('/admin/lots')} />;
+    page = <LotWorkspace lotId={decodeURIComponent(pathname.slice('/admin/lots/'.length))} onNavigate={navigateSection} onBack={() => navigate('/admin/lots')} />;
   } else if (pathname === '/admin/lots') {
     page = <LotsManagementPage onNavigate={navigateSection} onCreateLot={() => navigate('/admin/lots/new')} onOpenLot={(id) => navigate(`/admin/lots/${id}`)} />;
   } else if (pathname.startsWith('/admin/customers/')) {
@@ -77,63 +81,134 @@ export function App() {
     page = <AdminOverviewPage onNavigate={navigateSection} onOpenMonitor={() => navigate('/admin/monitor')} onOpenInbox={() => navigate('/admin/inbox')} onOpenObservability={() => navigate('/admin/observability')} onOpenSettlement={() => navigate('/admin/settlements')} onOpenCustomer={() => navigate('/admin/customers/USR-0834')} onOpenLot={() => navigate('/admin/lots/GV-2841')} />;
   }
 
-  return <div className="min-h-screen bg-paper-100 p-0 md:p-3 xl:p-5">{page}</div>;
+  return <div className="h-dvh overflow-hidden bg-ground">{page}</div>;
 }
 
-function LotWorkspace({ onNavigate, onBack }: { onNavigate: (section: OpsSection) => void; onBack: () => void }) {
-  return <OpsPageShell section="lots" onNavigate={onNavigate} title="Omega Speedmaster, 1969" subtitle="GV-2841 · live auction" actions={<Button size="sm" variant="secondary" onClick={onBack}>Back to lots</Button>}>
-    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-moss-500/20 bg-moss-500/10 p-4">
-      <div><p className="m-0 text-xs font-bold text-moss-600">Auction is live</p><p className="mt-1 mb-0 text-xs text-ink-500">184 accepted bids · 1,248 watching</p></div>
-      <StatusBadge tone="success">08:42 left</StatusBadge>
-    </div>
-    <LiveBidPanel currentPrice={42_800} minimumBid={43_000} endsAt="08:42 left" bids={bids} initialMaximum={45_000} status="leading" />
-  </OpsPageShell>;
+function LotWorkspace({ lotId, onNavigate, onBack }: { lotId: string; onNavigate: (section: OpsSection) => void; onBack: () => void }) {
+  const { data, error, loading, retry, placeBid, bidPending } = useLotWorkspace(lotId);
+  const title = data?.title ?? 'Lot';
+  const subtitle = loading ? `${lotId} · loading the federated snapshot` : data ? `${lotId} · auction ${data.auction.status.toLowerCase()} · version ${data.auction.version} · ${data.source === 'bff' ? 'federated GraphQL' : 'local demo snapshot'}` : lotId;
+  return (
+    <OpsPageShell section="lots" onNavigate={onNavigate} title={title} subtitle={subtitle} actions={<Button variant="secondary" onClick={onBack}>All lots</Button>}>
+      {loading && (
+        <Panel title="Lot" meta="composing Catalog, Auction and Analytics data">
+          <div className="grid gap-3 px-5 pb-5"><Skeleton height={32} width={220} /><Skeleton height={14} width={320} /><Skeleton height={160} /></div>
+        </Panel>
+      )}
+      {!loading && error && (
+        <Panel title="Lot">
+          <ErrorState message={`Couldn't load the lot: ${error.message}`} onRetry={retry} />
+          <p className="px-5 pb-5 text-xs text-muted">Check the Cosmo Router endpoint configured by VITE_GRAPHQL_URL.</p>
+        </Panel>
+      )}
+      {!loading && data && (
+        <>
+          <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-muted">
+            <StatusBadge tone={data.source === 'bff' ? 'success' : 'neutral'}>{data.source === 'bff' ? 'Live data' : 'Demo data'}</StatusBadge>
+            <span>{data.bids.length} public bids in this window · ends {data.auction.endsAt}</span>
+          </div>
+          <LiveBidPanel currency={data.auction.currency} currentPrice={data.auction.currentPrice} minimumBid={data.auction.minimumBid} endsAt={data.auction.endsAt} bids={data.bids} initialMaximum={data.auction.minimumBid + 2_000} status={data.auction.viewerStatus} onPlaceBid={placeBid} className={bidPending ? 'opacity-90' : undefined} />
+        </>
+      )}
+    </OpsPageShell>
+  );
 }
 
 function SettlementsPage({ onNavigate }: { onNavigate: (section: OpsSection) => void }) {
   const [state, setState] = useState<RecoveryState>('recovery_required');
   const [notice, setNotice] = useState('Recovery link prepared. No operator action recorded yet.');
   const transition = (next: RecoveryState, message: string) => { setState(next); setNotice(message); };
-  return <OpsPageShell section="settlements" onNavigate={onNavigate} title="Settlement recovery" subtitle="7 cases require operator attention">
-    <SettlementRecoveryCard state={state} caseId="STL-4912" amount="€42,800" closingPrice="€42,800" candidateAlias="Silver Fox" round={state === 'expired' ? 2 : 1} deadline="16:27 UTC" recoveryUrl="https://pay.gavel.test/recover/STL-4912?token=••••••••" onCopyLink={() => setNotice('Secure recovery link copied.')} onOpenRecovery={() => transition('processing', 'Customer opened recovery; waiting for the provider outcome.')} />
-    <div role="status" className="mt-4 flex flex-col gap-3 rounded-xl border border-paper-200 bg-paper-50 p-4 sm:flex-row sm:items-center">
-      <p className="m-0 flex-1 text-xs text-ink-700">{notice}</p>
-      <div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => transition('recovery_required', 'Recovery window reopened for the current candidate.')}>Reset</Button><Button size="sm" variant="secondary" disabled={state === 'succeeded' || state === 'expired'} onClick={() => transition('expired', 'Recovery expired; workflow advanced to candidate 2.')}>Expire window</Button><Button size="sm" disabled={state === 'succeeded' || state === 'expired'} onClick={() => transition('succeeded', 'Payment succeeded; winner confirmed and notifications scheduled.')}>Confirm payment</Button></div>
-    </div>
-  </OpsPageShell>;
+  const critical = queue[0];
+  const timeLeft = formatDuration(critical.dueAt! - today.nowMinutes);
+  return (
+    <OpsPageShell section="settlements" onNavigate={onNavigate} title="Settlements" subtitle={`${queue.filter((q) => q.target === 'settlements').length} cases need an operator · ${critical.id} expires at ${formatClock(critical.dueAt!)}, ${timeLeft} from now`}>
+      <SettlementRecoveryCard state={state} caseId={critical.id} amount="€42,800" closingPrice="€42,800" candidateAlias="Silver Fox" round={state === 'expired' ? 2 : 1} deadline={`${formatClock(critical.dueAt!)} UTC`} timeLeft={timeLeft} recoveryUrl="https://pay.gavel.test/recover/STL-4912?token=••••••••" onCopyLink={() => setNotice('Secure recovery link copied.')} onOpenRecovery={() => transition('processing', 'The customer opened recovery; waiting for the provider outcome.')} />
+      <div role="status" className="mt-4 flex flex-col gap-3 rounded-[8px] border border-line bg-surface px-5 py-3 sm:flex-row sm:items-center">
+        <p className="flex-1 text-sm text-ink">{notice}</p>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={() => transition('recovery_required', 'Recovery window reopened for the current candidate.')}>Reset</Button>
+          <Button variant="secondary" disabled={state === 'succeeded' || state === 'expired'} onClick={() => transition('expired', 'Recovery expired; the workflow advanced to candidate 2.')}>Expire window</Button>
+          <Button disabled={state === 'succeeded' || state === 'expired'} onClick={() => transition('succeeded', 'Payment succeeded; winner confirmed and notifications scheduled.')}>Confirm payment</Button>
+        </div>
+      </div>
+    </OpsPageShell>
+  );
 }
 
 function WorkflowsPage({ onNavigate }: { onNavigate: (section: OpsSection) => void }) {
   const [step, setStep] = useState<'recovery' | 'payment' | 'complete'>('recovery');
-  return <OpsPageShell section="workflows" onNavigate={onNavigate} title="Auction workflows" subtitle="Temporal-backed process visibility">
-    <Panel title="Settlement workflow" eyebrow="Live execution" action={<StatusBadge tone={step === 'complete' ? 'success' : 'warning'}>{step === 'recovery' ? 'Waiting for customer' : step === 'payment' ? 'Authorizing' : 'Completed'}</StatusBadge>}><div className="p-4"><AuctionFlow /><div className="mt-4 flex flex-wrap items-center gap-2"><p className="mr-auto m-0 text-xs text-ink-500">Replay a safe operator view of the workflow state.</p><Button size="sm" variant="secondary" onClick={() => setStep('recovery')}>Recovery</Button><Button size="sm" variant="secondary" onClick={() => setStep('payment')}>Payment</Button><Button size="sm" onClick={() => setStep('complete')}>Complete</Button></div></div></Panel>
-  </OpsPageShell>;
+  return (
+    <OpsPageShell section="workflows" onNavigate={onNavigate} title="Workflows" subtitle="Temporal executions behind the auctions · the settlement workflow for GV-2841 is waiting on the customer">
+      <Panel title="Settlement workflow" meta="GV-2841 · running" action={<StatusBadge tone={step === 'complete' ? 'success' : 'warning'}>{step === 'recovery' ? 'Waiting for the customer' : step === 'payment' ? 'Authorising' : 'Completed'}</StatusBadge>}>
+        <div className="px-5 pb-5">
+          <AuctionFlow />
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <p className="mr-auto text-sm text-muted">Replay a safe operator view of the workflow state.</p>
+            <Button variant="secondary" onClick={() => setStep('recovery')}>Recovery</Button>
+            <Button variant="secondary" onClick={() => setStep('payment')}>Payment</Button>
+            <Button onClick={() => setStep('complete')}>Complete</Button>
+          </div>
+        </div>
+      </Panel>
+    </OpsPageShell>
+  );
 }
 
 function LiveMonitorPage({ onNavigate, onOpenLot }: { onNavigate: (section: OpsSection) => void; onOpenLot: () => void }) {
-  return <OpsPageShell section="overview" onNavigate={onNavigate} title="Live auction monitor" subtitle="128 auctions · 2,418 accepted bids/min" actions={<Button size="sm" onClick={onOpenLot}>Open hottest lot</Button>}>
-    <div className="grid gap-4 sm:grid-cols-3"><MonitorMetric label="Command acceptance" value="99.99%" detail="p99 84 ms" /><MonitorMetric label="Realtime fan-out" value="128 ms" detail="p99 · healthy" /><MonitorMetric label="Bid rejection" value="0.34%" detail="mostly below minimum" /></div>
-    <Panel className="mt-5" title="Hottest auction" eyebrow="GV-2841"><div className="p-4"><LiveBidPanel currentPrice={42_800} minimumBid={43_000} endsAt="08:42 left" bids={bids} initialMaximum={45_000} status="leading" /></div></Panel>
-  </OpsPageShell>;
+  return (
+    <OpsPageShell section="overview" onNavigate={onNavigate} title="Live monitor" subtitle={`${liveAuctions.now} auctions live · ${formatInt(bidsNow)} accepted bids in the last minute · the Speedmaster carries the most bids`} actions={<Button onClick={onOpenLot}>Open the hottest lot</Button>}>
+      <KpiStrip>
+        <Kpi label="Command acceptance" value="99.99%" hint="p99 84 ms" />
+        <Kpi label="Realtime fan-out" value="128" unit="ms" hint="p99 · healthy" />
+        <Kpi label="Bids rejected" value="0.34%" hint="mostly below the minimum" />
+      </KpiStrip>
+      <Panel className="mt-4" title="Hottest auction" meta="GV-2841">
+        <div className="px-5 pb-5"><LiveBidPanel currentPrice={42_800} minimumBid={43_000} endsAt="8 m 42 s" bids={speedmasterBids} totalBids={184} initialMaximum={45_000} status="leading" /></div>
+      </Panel>
+    </OpsPageShell>
+  );
 }
 
 function OperationsInboxPage({ onNavigate, navigate }: { onNavigate: (section: OpsSection) => void; navigate: (path: string) => void }) {
-  const items = [
-    ['Payment recovery', 'STL-4912', '01:42 left', '/admin/settlements', 'danger'],
-    ['Identity review', 'USR-0834', 'High-value velocity', '/admin/customers/USR-0834', 'warning'],
-    ['Deadline conflict', 'GV-2839', 'Soft-close ceiling', '/admin/lots/GV-2839', 'warning'],
-    ['Image processing', 'LOT-D92F', 'Waiting 8 minutes', '/admin/lots/new', 'neutral'],
-  ] as const;
-  return <OpsPageShell section="overview" onNavigate={onNavigate} title="Operations inbox" subtitle="Prioritized exceptions across auction workflows">
-    <Panel title="Needs attention" eyebrow="7 open cases"><div className="divide-y divide-paper-200">{items.map(([title, id, detail, path, tone]) => <button key={id} onClick={() => navigate(path)} className="grid w-full grid-cols-[10px_1fr_auto] items-center gap-4 p-4 text-left hover:bg-paper-100"><span className={`size-2.5 rounded-full ${tone === 'danger' ? 'bg-red-700' : tone === 'warning' ? 'bg-amber-600' : 'bg-ink-500'}`} /><span><strong className="block text-sm">{title}</strong><span className="mt-1 block font-mono text-[10px] text-ink-500">{id} · {detail}</span></span><span className="text-xs font-semibold text-copper-600">Review →</span></button>)}</div></Panel>
-  </OpsPageShell>;
+  const paths = { settlements: '/admin/settlements', customers: '/admin/customers/USR-0834', lots: '/admin/lots/GV-2839', create: '/admin/lots/new' } as const;
+  return (
+    <OpsPageShell section="overview" onNavigate={onNavigate} title="Inbox" subtitle={`${queueTotal} open cases · ${queueTimeCritical} time-critical · oldest opened today 11:05`}>
+      <Panel title="Needs an operator" meta={`${queueTotal} open`}>
+        <ol className="divide-y divide-rule border-t border-rule">
+          {queue.map((item) => (
+            <li key={item.id}>
+              <button type="button" onClick={() => navigate(paths[item.target])} className="grid min-h-12 w-full grid-cols-[8px_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2.5 text-left hover:bg-raised">
+                <span aria-hidden="true" className={`size-2 rounded-full ${item.tone === 'danger' ? 'bg-negative' : item.tone === 'warning' ? 'bg-warning' : 'bg-control'}`} />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm text-ink">{item.kind} <span className="text-muted">· {item.object}</span></span>
+                  <span className="block truncate text-xs text-muted"><span className="font-mono">{item.id}</span> · {item.detail}</span>
+                </span>
+                <span className={`text-right text-xs tabular-nums ${item.tone === 'danger' ? 'font-medium text-negative' : 'text-muted'}`}>{item.dueAt !== null ? `${formatDuration(item.dueAt - today.nowMinutes)} left` : 'No deadline'}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </Panel>
+    </OpsPageShell>
+  );
 }
 
 function ObservabilityPage({ onNavigate }: { onNavigate: (section: OpsSection) => void }) {
-  return <OpsPageShell section="overview" onNavigate={onNavigate} title="Platform observability" subtitle="Critical paths · last 15 minutes">
-    <div className="grid gap-4 lg:grid-cols-2"><HealthPanel title="Auction commands" value="99.99%" detail="84 ms p99 · 0.02% errors" good /><HealthPanel title="Realtime fan-out" value="99.97%" detail="128 ms p99 · 3 reconnect spikes" good /><HealthPanel title="Settlement worker" value="12 pollers" detail="38 ms schedule-to-start" good /><HealthPanel title="Payment adapter" value="Degraded" detail="2.1% recovery challenge rate" /></div>
-  </OpsPageShell>;
+  const degraded = health.filter((row) => !row.ok);
+  return (
+    <OpsPageShell section="overview" onNavigate={onNavigate} title="Observability" subtitle={degraded.length ? `${degraded[0].name} is degraded: ${degraded[0].value} ${degraded[0].detail} · the other ${health.length - degraded.length} critical paths are healthy` : 'All critical paths healthy'}>
+      <Panel title="Critical paths" meta="last 15 minutes">
+        <ul className="divide-y divide-rule border-t border-rule">
+          {health.map((row) => (
+            <li key={row.name} className="grid h-12 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 px-5 text-sm">
+              <span className="truncate text-ink">{row.name}<span className="ml-2 text-xs text-muted">{row.detail}</span></span>
+              <span className={`tabular-nums ${row.ok ? 'text-ink' : 'font-medium text-negative'}`}>{row.value}</span>
+              <StatusBadge tone={row.ok ? 'success' : 'danger'}>{row.ok ? 'Healthy' : 'Degraded'}</StatusBadge>
+            </li>
+          ))}
+        </ul>
+      </Panel>
+      <p className="mt-3 text-xs text-muted">Hammer volume today {formatMoney(opsData.hammerVolume.now)} · figures refresh every minute.</p>
+    </OpsPageShell>
+  );
 }
-
-function MonitorMetric({ label, value, detail }: { label: string; value: string; detail: string }) { return <div className="rounded-xl border border-paper-200 bg-paper-50 p-4 shadow-panel"><p className="m-0 text-[10px] font-bold uppercase tracking-wider text-ink-500">{label}</p><p className="mt-2 mb-0 text-2xl font-bold">{value}</p><p className="mt-1 mb-0 text-xs text-ink-500">{detail}</p></div>; }
-function HealthPanel({ title, value, detail, good }: { title: string; value: string; detail: string; good?: boolean }) { return <Panel title={title} eyebrow="Service level" action={<StatusBadge tone={good ? 'success' : 'warning'}>{good ? 'Healthy' : 'Degraded'}</StatusBadge>}><div className="p-5"><p className="m-0 text-3xl font-bold tracking-tight">{value}</p><p className="mt-2 mb-0 text-xs text-ink-500">{detail}</p><div className="mt-5 h-16 rounded-lg bg-[linear-gradient(135deg,transparent_0_8%,rgba(189,86,52,.14)_8%_10%,transparent_10%_18%,rgba(189,86,52,.2)_18%_20%,transparent_20%_28%,rgba(46,118,98,.2)_28%_31%,transparent_31%)]" /></div></Panel>; }
