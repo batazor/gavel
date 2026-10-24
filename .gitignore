@@ -19,9 +19,6 @@ target/
 .lake/
 lake-packages/
 
-# Keploy
-keploy/reports/
-
 # Local env & secrets
 .env
 .env.*

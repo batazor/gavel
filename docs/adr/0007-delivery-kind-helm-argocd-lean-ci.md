@@ -12,7 +12,7 @@ Accepted
 
 ## Decision
 
-- **Локальная разработка — kind.** Один скрипт поднимает кластер с Istio, OTel Collector, Postgres, SpiceDB и брокером. Это же окружение используется для интеграционных тестов и записи Keploy.
+- **Локальная разработка — kind.** Один скрипт поднимает кластер с Istio, OTel Collector, Postgres, SpiceDB и брокером. Это же окружение используется для интеграционных тестов. Keploy отклонён (решение `reject`, см. `deploy/keploy/RESULTS.md`): публичная сборка не поддерживает PostgreSQL и gRPC.
 - **Деплой — Helm + ArgoCD.** По Helm-чарту на сервис, umbrella-чарт на систему. ArgoCD синхронизирует кластер с веткой `main` (GitOps), руками в кластер не ходим.
 - **CI — минимум на каждый PR, тяжёлое вручную.** На PR выполняются contract checks, Rust fmt/clippy для появившегося workspace и lint platform/service Helm charts. Полные тесты и Lean остаются выключенными; multi-stage images всех сервисов реально собираются matrix job только через `workflow_dispatch`, без push.
 
