@@ -5,8 +5,9 @@ use async_graphql::{
     SimpleObject,
 };
 use async_trait::async_trait;
+use base64::Engine as _;
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
+use sha2::{Digest, Sha256};
 
 use crate::application::{
     ApplicationError, ClosingPolicyInput, CommandContext, CompleteUploadInput,
@@ -159,6 +160,7 @@ impl MutationRoot {
         idempotency_key: String,
     ) -> Result<LotObject> {
         let verified = verified(context)?;
+        let lot_id = deterministic_lot_id(&verified.principal.principal_id, &idempotency_key);
         let scheduled_end_millis = parse_timestamp(&input.scheduled_end, "invalid_scheduled_end")?;
         let hard_deadline_millis = input
             .hard_deadline
@@ -199,7 +201,7 @@ impl MutationRoot {
         self.api
             .list_lot(ListLotInput {
                 context: command_context(&verified, idempotency_key)?,
-                lot_id: Uuid::now_v7().to_string(),
+                lot_id,
                 title: input.title,
                 description: input.description,
                 images: input
@@ -257,6 +259,18 @@ impl MutationRoot {
             .map(Into::into)
             .map_err(graphql_error)
     }
+}
+
+fn deterministic_lot_id(principal_id: &str, idempotency_key: &str) -> String {
+    let mut digest = Sha256::new();
+    digest.update(b"gavel-catalog-list-lot-id\0");
+    digest.update(principal_id.as_bytes());
+    digest.update([0]);
+    digest.update(idempotency_key.as_bytes());
+    format!(
+        "lot-{}",
+        base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(digest.finalize())
+    )
 }
 
 #[derive(InputObject)]

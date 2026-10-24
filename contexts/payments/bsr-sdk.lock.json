@@ -1,17 +1,17 @@
 {
   "module": "buf.build/gavel/payments",
-  "label": "main",
-  "commit": "ab5508e1a7a74c57b7c0c240607e9b88",
+  "label": "implement-processes-temporal-workflows",
+  "commit": "ee7ab816c2f044159bc1e084ac557fda",
   "generatedSdks": {
     "prost": {
       "plugin": "buf.build/community/neoeinstein-prost:v0.4.0",
       "package": "gavel_payments_community_neoeinstein-prost",
-      "version": "0.4.0-20261022143347-ab5508e1a7a7.1"
+      "version": "0.4.0-00000000000000-ee7ab816c2f0.1"
     },
     "tonic": {
       "plugin": "buf.build/community/neoeinstein-tonic:v0.4.1",
       "package": "gavel_payments_community_neoeinstein-tonic",
-      "version": "0.4.1-20261022143347-ab5508e1a7a7.1"
+      "version": "0.4.1-00000000000000-ee7ab816c2f0.1"
     }
   }
 }

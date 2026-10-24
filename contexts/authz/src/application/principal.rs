@@ -53,7 +53,10 @@ fn normalize_issuer(raw: &str) -> Result<String, ApplicationError> {
         return Err(invalid("invalid_issuer", "issuer is invalid"));
     }
     let mut issuer = Url::parse(raw).map_err(|_| invalid("invalid_issuer", "issuer is invalid"))?;
-    if issuer.scheme() != "https"
+    let secure_transport = issuer.scheme() == "https";
+    let local_loopback = issuer.scheme() == "http"
+        && matches!(issuer.host_str(), Some("localhost" | "127.0.0.1" | "::1"));
+    if (!secure_transport && !local_loopback)
         || issuer.host_str().is_none()
         || !issuer.username().is_empty()
         || issuer.password().is_some()
@@ -147,5 +150,24 @@ mod tests {
                 Err(ApplicationError::InvalidArgument { .. })
             ));
         }
+    }
+
+    #[test]
+    fn loopback_http_is_supported_only_for_the_local_identity_provider() {
+        assert!(
+            deriver()
+                .derive("http://127.0.0.1:8080/default", "seller-local")
+                .is_ok()
+        );
+        assert!(
+            deriver()
+                .derive("http://localhost:8080/default", "seller-local")
+                .is_ok()
+        );
+        assert!(
+            deriver()
+                .derive("http://local-jwt:8080/default", "seller-local")
+                .is_err()
+        );
     }
 }

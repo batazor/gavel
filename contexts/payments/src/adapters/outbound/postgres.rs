@@ -321,118 +321,139 @@ async fn append_events(
     events: &[DomainEvent],
 ) -> Result<(), CommitConflict> {
     for event in events {
-        let (event_id, event_type, value) = public_event(event);
-        sqlx::query("INSERT INTO payment_outbox(event_id,event_type,payload) VALUES($1,$2,$3) ON CONFLICT DO NOTHING").bind(event_id).bind(event_type).bind(Json(value)).execute(&mut **tx).await.map_err(|_| CommitConflict::Version)?;
+        let (event_id, topic, event_type, value) = public_event(event);
+        let aggregate_id = value
+            .get("aggregateId")
+            .and_then(serde_json::Value::as_str)
+            .ok_or(CommitConflict::Version)?
+            .to_owned();
+        sqlx::query("INSERT INTO payment_outbox(event_id,aggregate_id,topic,event_type,payload) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING").bind(event_id).bind(&aggregate_id).bind(topic).bind(event_type).bind(Json(value)).execute(&mut **tx).await.map_err(|_| CommitConflict::Version)?;
     }
     Ok(())
 }
 
-fn public_event(event: &DomainEvent) -> (String, &'static str, serde_json::Value) {
-    let (event_id, event_type, version, occurred_at_millis, payload) = match event {
-        DomainEvent::PaymentInstrumentReady {
-            event_id,
-            instrument_id,
-            owner_id,
-            version,
-            occurred_at_millis,
-        } => (
-            event_id,
-            "PaymentInstrumentReady",
-            *version,
-            *occurred_at_millis,
-            serde_json::json!({"instrumentId": instrument_id, "userId": owner_id}),
-        ),
-        DomainEvent::PaymentInstrumentRevoked {
-            event_id,
-            instrument_id,
-            owner_id,
-            version,
-            occurred_at_millis,
-        } => (
-            event_id,
-            "PaymentInstrumentRevoked",
-            *version,
-            *occurred_at_millis,
-            serde_json::json!({"instrumentId": instrument_id, "userId": owner_id}),
-        ),
-        DomainEvent::PaymentAttemptStarted {
-            event_id,
-            attempt_id,
-            auction_id,
-            settlement_round,
-            candidate_id,
-            amount,
-            version,
-            occurred_at_millis,
-        } => (
-            event_id,
-            "PaymentAttemptStarted",
-            *version,
-            *occurred_at_millis,
-            serde_json::json!({
-                "paymentAttemptId": attempt_id,
-                "auctionId": auction_id,
-                "settlementRound": settlement_round.get(),
-                "candidateId": candidate_id,
-                "amount": {
-                    "minorUnits": amount.minor_units(),
-                    "currencyCode": amount.currency().to_string()
-                }
-            }),
-        ),
-        DomainEvent::PaymentRecoveryRequired {
-            event_id,
-            attempt_id,
-            auction_id,
-            settlement_round,
-            version,
-            occurred_at_millis,
-        } => (
-            event_id,
-            "PaymentRecoveryRequired",
-            *version,
-            *occurred_at_millis,
-            serde_json::json!({"paymentAttemptId": attempt_id, "auctionId": auction_id, "settlementRound": settlement_round.get()}),
-        ),
-        DomainEvent::PaymentSucceeded {
-            event_id,
-            attempt_id,
-            auction_id,
-            settlement_round,
-            version,
-            occurred_at_millis,
-        } => (
-            event_id,
-            "PaymentSucceeded",
-            *version,
-            *occurred_at_millis,
-            serde_json::json!({"paymentAttemptId": attempt_id, "auctionId": auction_id, "settlementRound": settlement_round.get()}),
-        ),
-        DomainEvent::PaymentExpired {
-            event_id,
-            attempt_id,
-            auction_id,
-            settlement_round,
-            version,
-            occurred_at_millis,
-        } => (
-            event_id,
-            "PaymentExpired",
-            *version,
-            *occurred_at_millis,
-            serde_json::json!({"paymentAttemptId": attempt_id, "auctionId": auction_id, "settlementRound": settlement_round.get()}),
-        ),
-    };
+fn public_event(event: &DomainEvent) -> (String, &'static str, &'static str, serde_json::Value) {
+    let (event_id, topic, aggregate_id, event_type, version, occurred_at_millis, payload) =
+        match event {
+            DomainEvent::PaymentInstrumentReady {
+                event_id,
+                instrument_id,
+                owner_id,
+                version,
+                occurred_at_millis,
+            } => (
+                event_id,
+                "gavel.payments.instruments.v1",
+                instrument_id.to_string(),
+                "PaymentInstrumentReady",
+                *version,
+                *occurred_at_millis,
+                serde_json::json!({"instrumentId": instrument_id, "userId": owner_id}),
+            ),
+            DomainEvent::PaymentInstrumentRevoked {
+                event_id,
+                instrument_id,
+                owner_id,
+                version,
+                occurred_at_millis,
+            } => (
+                event_id,
+                "gavel.payments.instruments.v1",
+                instrument_id.to_string(),
+                "PaymentInstrumentRevoked",
+                *version,
+                *occurred_at_millis,
+                serde_json::json!({"instrumentId": instrument_id, "userId": owner_id}),
+            ),
+            DomainEvent::PaymentAttemptStarted {
+                event_id,
+                attempt_id,
+                auction_id,
+                settlement_round,
+                candidate_id,
+                amount,
+                version,
+                occurred_at_millis,
+            } => (
+                event_id,
+                "gavel.payments.attempts.v1",
+                attempt_id.to_string(),
+                "PaymentAttemptStarted",
+                *version,
+                *occurred_at_millis,
+                serde_json::json!({
+                    "paymentAttemptId": attempt_id,
+                    "auctionId": auction_id,
+                    "settlementRound": settlement_round.get(),
+                    "candidateId": candidate_id,
+                    "amount": {
+                        "minorUnits": amount.minor_units(),
+                        "currencyCode": amount.currency().to_string()
+                    }
+                }),
+            ),
+            DomainEvent::PaymentRecoveryRequired {
+                event_id,
+                attempt_id,
+                auction_id,
+                settlement_round,
+                version,
+                occurred_at_millis,
+            } => (
+                event_id,
+                "gavel.payments.attempts.v1",
+                attempt_id.to_string(),
+                "PaymentRecoveryRequired",
+                *version,
+                *occurred_at_millis,
+                serde_json::json!({"paymentAttemptId": attempt_id, "auctionId": auction_id, "settlementRound": settlement_round.get()}),
+            ),
+            DomainEvent::PaymentSucceeded {
+                event_id,
+                attempt_id,
+                auction_id,
+                settlement_round,
+                version,
+                occurred_at_millis,
+            } => (
+                event_id,
+                "gavel.payments.attempts.v1",
+                attempt_id.to_string(),
+                "PaymentSucceeded",
+                *version,
+                *occurred_at_millis,
+                serde_json::json!({"paymentAttemptId": attempt_id, "auctionId": auction_id, "settlementRound": settlement_round.get()}),
+            ),
+            DomainEvent::PaymentExpired {
+                event_id,
+                attempt_id,
+                auction_id,
+                settlement_round,
+                version,
+                occurred_at_millis,
+            } => (
+                event_id,
+                "gavel.payments.attempts.v1",
+                attempt_id.to_string(),
+                "PaymentExpired",
+                *version,
+                *occurred_at_millis,
+                serde_json::json!({"paymentAttemptId": attempt_id, "auctionId": auction_id, "settlementRound": settlement_round.get()}),
+            ),
+        };
     (
         event_id.clone(),
+        topic,
         event_type,
         serde_json::json!({
             "eventId": event_id,
+            "aggregateId": aggregate_id,
             "eventType": event_type,
             "schemaVersion": 1,
             "aggregateVersion": version,
             "occurredAtMillis": occurred_at_millis,
             "correlationId": event_id,
+            "causationId": event_id,
             "payload": payload
         }),
     )

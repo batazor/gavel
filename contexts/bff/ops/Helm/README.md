@@ -8,7 +8,7 @@ This directory is owned by the BFF project.
 docker build \
   -f contexts/bff/ops/Dockerfile \
   -t ghcr.io/batazor/gavel-bff:dev \
-  contexts/bff
+  .
 ```
 
 `Dockerfile.ignore` documents the intended build context. Docker automatically uses the equivalent `Dockerfile.dockerignore` located next to this non-default Dockerfile.
@@ -24,14 +24,27 @@ helm upgrade --install bff contexts/bff/ops/Helm \
 
 The chart owns the Deployment, Service, ServiceMonitor, PrometheusRule and Grafana dashboard for this project. Dashboard UID: `gavel-bff`.
 
-## Bootstrap endpoints
+Image build использует pinned `wgc` и компонует immutable execution config из service-owned SDL Catalog, Auction и Payments. Runtime image — pinned non-root Cosmo Router; Rust bootstrap не входит в delivery path.
 
-- `GET /` — hello-world response;
-- `GET /healthz` — liveness;
-- `GET /readyz` — readiness;
-- `GET /metrics` — Prometheus bootstrap metrics.
+## Router endpoints
 
-The bootstrap binary proves the build/deployment path only. Domain, GraphQL and integration interfaces remain defined by the project ADR and replace this shallow HTTP implementation incrementally.
+- `POST /graphql` — единая GraphQL-граница;
+- `GET /health/live` — liveness;
+- `GET /health/ready` — readiness;
+- `GET /metrics` — Router metrics.
+
+Execution config собирается локально и не требует Cosmo control plane либо graph token. Router содержит только composition/query-planning concerns; resolvers, авторизация ресурсов, идемпотентность и доменные решения остаются у subgraphs-владельцев.
+
+## Local JWT ingress
+
+Только local profile может включить `localAuth.enabled`. В этом режиме Envoy sidecar принимает публичный порт, проверяет подпись JWT по JWKS, точные issuer и audience, затем передаёт исходный Bearer token и verified claim headers в Cosmo Router. Сам Router остаётся доступен лишь внутри pod.
+
+```sh
+helm template gavel-bff contexts/bff/ops/Helm \
+  -f contexts/bff/fixtures/local-auth/local-values.yaml
+```
+
+Chart намеренно завершает render ошибкой, если `localAuth.enabled=true` при любом `deploymentProfile`, кроме `local`. Runtime negative check `deploy/kind/auth/check-jwt.sh` проверяет missing token, неверные audience/issuer и повреждённую подпись; он запускается только после поднятия MVP cluster.
 
 ## Alert runbook
 

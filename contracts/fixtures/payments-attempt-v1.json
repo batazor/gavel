@@ -1,0 +1,14 @@
+{
+  "eventId": "evt-payment-1",
+  "aggregateId": "payment-attempt-1",
+  "aggregateVersion": 3,
+  "schemaVersion": 1,
+  "occurredAtMillis": 1792713900000,
+  "correlationId": "correlation-1",
+  "causationId": "evt-auction-restricted-1",
+  "paymentRecoveryRequired": {
+    "paymentAttemptId": "payment-attempt-1",
+    "auctionId": "auction-1",
+    "settlementRound": 1
+  }
+}

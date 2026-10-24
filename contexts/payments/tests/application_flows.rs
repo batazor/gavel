@@ -6,7 +6,7 @@ use gavel_payments::{
     application::*,
     domain::*,
     rpc::{
-        self, attempt_payment_response, expire_payment_response,
+        self, attempt_payment_response, expire_payment_response, get_settlement_attempt_response,
         payments_service_server::PaymentsService,
     },
 };
@@ -678,6 +678,137 @@ async fn grpc_requires_trusted_extension_and_bounded_deadline_then_maps_typed_ou
 }
 
 #[tokio::test]
+async fn grpc_process_read_rejects_spoofing_and_maps_safe_typed_outcomes() {
+    let (app, uow, _, _) = app(true, vec![]);
+    insert_process_attempt(
+        &uow,
+        process_attempt(
+            "attempt-grpc-read",
+            "auction-grpc-read",
+            2,
+            PaymentAttemptState::RecoveryRequired,
+        ),
+    )
+    .await;
+    let allowed = "spiffe://cluster.local/ns/gavel/sa/gavel-processes";
+    let service = GrpcPayments::new(app, allowed.to_owned(), std::time::Duration::from_secs(15));
+    let message = rpc::GetSettlementAttemptRequest {
+        payment_attempt_id: "attempt-grpc-read".to_owned(),
+        expected_auction_id: "auction-grpc-read".to_owned(),
+        expected_settlement_round: 2,
+        correlation_id: "correlation-read".to_owned(),
+        consistency_token: "authz-token".to_owned(),
+    };
+
+    let mut spoofed = tonic_bsr::Request::new(message.clone());
+    spoofed
+        .metadata_mut()
+        .insert("x-spiffe-id", allowed.parse().unwrap());
+    spoofed
+        .metadata_mut()
+        .insert("grpc-timeout", "5S".parse().unwrap());
+    assert_eq!(
+        service
+            .get_settlement_attempt(spoofed)
+            .await
+            .unwrap_err()
+            .code(),
+        tonic_bsr::Code::Unauthenticated
+    );
+
+    let mut wrong_workload = tonic_bsr::Request::new(message.clone());
+    wrong_workload
+        .metadata_mut()
+        .insert("grpc-timeout", "5S".parse().unwrap());
+    wrong_workload
+        .extensions_mut()
+        .insert(AuthenticatedWorkload {
+            spiffe_id: "spiffe://cluster.local/ns/other/sa/other".to_owned(),
+        });
+    assert_eq!(
+        service
+            .get_settlement_attempt(wrong_workload)
+            .await
+            .unwrap_err()
+            .code(),
+        tonic_bsr::Code::PermissionDenied
+    );
+
+    let mut excessive_deadline = tonic_bsr::Request::new(message.clone());
+    excessive_deadline
+        .metadata_mut()
+        .insert("grpc-timeout", "16S".parse().unwrap());
+    excessive_deadline
+        .extensions_mut()
+        .insert(AuthenticatedWorkload {
+            spiffe_id: allowed.to_owned(),
+        });
+    assert_eq!(
+        service
+            .get_settlement_attempt(excessive_deadline)
+            .await
+            .unwrap_err()
+            .code(),
+        tonic_bsr::Code::InvalidArgument
+    );
+
+    let mut request = tonic_bsr::Request::new(message.clone());
+    request
+        .metadata_mut()
+        .insert("grpc-timeout", "5S".parse().unwrap());
+    request.extensions_mut().insert(AuthenticatedWorkload {
+        spiffe_id: allowed.to_owned(),
+    });
+    let result = match service
+        .get_settlement_attempt(request)
+        .await
+        .unwrap()
+        .into_inner()
+        .outcome
+        .unwrap()
+    {
+        get_settlement_attempt_response::Outcome::Result(result) => result,
+        other => panic!("unexpected outcome: {other:?}"),
+    };
+    assert_eq!(result.candidate_id, "user-1");
+    assert_eq!(
+        result.status,
+        rpc::PaymentAttemptStatus::RecoveryRequired as i32
+    );
+    assert!(!format!("{result:?}").contains("operation-secret"));
+    assert!(matches!(
+        result.state_data,
+        Some(
+            rpc::settlement_attempt_result::StateData::RecoveryRequired(
+                rpc::SettlementRecoveryData { ref recovery_url }
+            )
+        ) if recovery_url == "https://provider.example/recover"
+    ));
+
+    let mut stale = tonic_bsr::Request::new(rpc::GetSettlementAttemptRequest {
+        expected_settlement_round: 1,
+        ..message
+    });
+    stale
+        .metadata_mut()
+        .insert("grpc-timeout", "5S".parse().unwrap());
+    stale.extensions_mut().insert(AuthenticatedWorkload {
+        spiffe_id: allowed.to_owned(),
+    });
+    assert!(matches!(
+        service
+            .get_settlement_attempt(stale)
+            .await
+            .unwrap()
+            .into_inner()
+            .outcome,
+        Some(get_settlement_attempt_response::Outcome::Rejection(
+            rpc::DomainRejection { code, .. }
+        )) if code == rpc::PaymentRejectionCode::InvalidState as i32
+    ));
+}
+
+#[tokio::test]
 async fn verified_callback_is_monotonic_replayed_once_and_conflicts_on_changed_body() {
     let (app, uow, _, callbacks) = app(true, vec![]);
     let instrument = PaymentInstrument::pending(
@@ -851,6 +982,181 @@ fn attempt_command(suffix: &str) -> AttemptPaymentCommand {
         idempotency_key: format!("attempt-{suffix}"),
         consistency_token: None,
     }
+}
+
+fn process_attempt(
+    attempt_id: &str,
+    auction_id: &str,
+    round: u32,
+    state: PaymentAttemptState,
+) -> PaymentAttempt {
+    let mut attempt = PaymentAttempt::pending(
+        PaymentAttemptId::parse(attempt_id).unwrap(),
+        AuctionId::parse(auction_id).unwrap(),
+        SettlementRound::new(round).unwrap(),
+        CandidateId::parse("user-1").unwrap(),
+        Money::new(100, Currency::USD).unwrap(),
+        1,
+    );
+    match state {
+        PaymentAttemptState::Pending => {}
+        PaymentAttemptState::Processing => {
+            attempt
+                .mark_processing(ProviderReference::parse("operation-secret").unwrap(), 2)
+                .unwrap();
+        }
+        PaymentAttemptState::RecoveryRequired => {
+            attempt
+                .require_recovery(
+                    ProviderReference::parse("operation-secret").unwrap(),
+                    "https://provider.example/recover".to_owned(),
+                    2,
+                )
+                .unwrap();
+        }
+        PaymentAttemptState::Succeeded => {
+            attempt
+                .succeed(ProviderReference::parse("operation-secret").unwrap(), 2)
+                .unwrap();
+        }
+        PaymentAttemptState::Expired => {
+            attempt
+                .mark_processing(ProviderReference::parse("operation-secret").unwrap(), 2)
+                .unwrap();
+            attempt.expire(3).unwrap();
+        }
+    }
+    attempt
+}
+
+async fn insert_process_attempt(uow: &MemoryUow, attempt: PaymentAttempt) {
+    uow.save_attempt(
+        Commit {
+            value: attempt,
+            events: vec![],
+        },
+        None,
+    )
+    .await
+    .unwrap();
+}
+
+fn process_query(attempt_id: &str, auction_id: &str, round: u32) -> GetSettlementAttemptQuery {
+    GetSettlementAttemptQuery {
+        workload_id: "spiffe-processes".to_owned(),
+        attempt_id: attempt_id.to_owned(),
+        expected_auction_id: auction_id.to_owned(),
+        expected_settlement_round: round,
+        consistency_token: Some("authz-token".to_owned()),
+    }
+}
+
+#[tokio::test]
+async fn process_read_is_authoritative_bound_and_state_dependent() {
+    let (app, uow, _, _) = app(true, vec![]);
+    insert_process_attempt(
+        &uow,
+        process_attempt(
+            "attempt-process-recovery",
+            "auction-process",
+            2,
+            PaymentAttemptState::RecoveryRequired,
+        ),
+    )
+    .await;
+
+    let view = app
+        .get_settlement_attempt(process_query(
+            "attempt-process-recovery",
+            "auction-process",
+            2,
+        ))
+        .await
+        .unwrap();
+    assert_eq!(view.status, PaymentAttemptState::RecoveryRequired);
+    assert_eq!(view.candidate_id, "user-1");
+    assert_eq!(view.checked_at_token, "token-1");
+    assert_eq!(
+        view.state_data,
+        SettlementAttemptData::RecoveryRequired {
+            recovery_url: "https://provider.example/recover".to_owned()
+        }
+    );
+    let serialized = serde_json::to_string(&view).unwrap();
+    assert!(serialized.contains("recovery_url"));
+    assert!(!serialized.contains("operation-secret"));
+    assert!(!serialized.contains("amount"));
+}
+
+#[tokio::test]
+async fn process_read_rejects_denied_mismatched_stale_and_missing_requests() {
+    let (denied, _, _, _) = app(false, vec![]);
+    assert_eq!(
+        denied
+            .get_settlement_attempt(process_query("missing", "auction-process", 2))
+            .await
+            .unwrap_err(),
+        ApplicationError::PermissionDenied
+    );
+
+    let (app, uow, _, _) = app(true, vec![]);
+    insert_process_attempt(
+        &uow,
+        process_attempt(
+            "attempt-process-binding",
+            "auction-process",
+            2,
+            PaymentAttemptState::Processing,
+        ),
+    )
+    .await;
+    for query in [
+        process_query("attempt-process-binding", "auction-other", 2),
+        process_query("attempt-process-binding", "auction-process", 1),
+    ] {
+        assert_eq!(
+            app.get_settlement_attempt(query).await.unwrap_err(),
+            ApplicationError::InvalidState
+        );
+    }
+    assert_eq!(
+        app.get_settlement_attempt(process_query("missing", "auction-process", 2))
+            .await
+            .unwrap_err(),
+        ApplicationError::NotFound
+    );
+}
+
+#[tokio::test]
+async fn process_read_exposes_payment_id_only_after_success() {
+    let (app, uow, _, _) = app(true, vec![]);
+    insert_process_attempt(
+        &uow,
+        process_attempt(
+            "attempt-process-success",
+            "auction-success",
+            1,
+            PaymentAttemptState::Succeeded,
+        ),
+    )
+    .await;
+    let view = app
+        .get_settlement_attempt(process_query(
+            "attempt-process-success",
+            "auction-success",
+            1,
+        ))
+        .await
+        .unwrap();
+    assert_eq!(
+        view.state_data,
+        SettlementAttemptData::Succeeded {
+            payment_id: "attempt-process-success".to_owned()
+        }
+    );
+    let serialized = serde_json::to_string(&view).unwrap();
+    assert!(!serialized.contains("recovery_url"));
+    assert!(!serialized.contains("operation-secret"));
 }
 
 #[tokio::test]

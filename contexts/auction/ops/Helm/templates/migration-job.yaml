@@ -18,7 +18,6 @@ spec:
         app.kubernetes.io/component: migration
     spec:
       restartPolicy: Never
-      serviceAccountName: {{ include "gavel.fullname" . }}
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true

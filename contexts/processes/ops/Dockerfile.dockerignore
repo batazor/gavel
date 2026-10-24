@@ -1,4 +1,5 @@
-*
-!Cargo.toml
-!src/
-!src/**
+.git
+target
+**/target
+.DS_Store
+openspec/changes/archive

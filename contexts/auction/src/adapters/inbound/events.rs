@@ -154,6 +154,12 @@ where
                 .instrument_id
                 .as_deref()
                 .is_some_and(|value| value.trim().is_empty())
+            || envelope
+                .aggregate_id
+                .as_deref()
+                .is_some_and(|aggregate_id| {
+                    envelope.payload.instrument_id.as_deref() != Some(aggregate_id)
+                })
         {
             return Err(ConsumerError::Malformed);
         }
@@ -195,11 +201,15 @@ where
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct EventEnvelope<P> {
     event_id: String,
+    #[serde(default)]
+    aggregate_id: Option<String>,
     event_type: String,
     schema_version: u32,
     aggregate_version: u64,
     occurred_at_millis: u64,
     correlation_id: String,
+    #[serde(default)]
+    causation_id: Option<String>,
     payload: P,
 }
 
@@ -235,6 +245,14 @@ fn validate_envelope<P>(envelope: &EventEnvelope<P>) -> Result<(), ConsumerError
     if envelope.event_id.trim().is_empty()
         || envelope.correlation_id.trim().is_empty()
         || envelope.aggregate_version == 0
+        || envelope
+            .aggregate_id
+            .as_deref()
+            .is_some_and(|value| value.trim().is_empty())
+        || envelope
+            .causation_id
+            .as_deref()
+            .is_some_and(|value| value.trim().is_empty())
     {
         return Err(ConsumerError::Malformed);
     }

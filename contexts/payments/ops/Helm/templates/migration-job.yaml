@@ -15,7 +15,6 @@ spec:
         {{- include "gavel.labels" . | nindent 8 }}
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: {{ include "gavel.fullname" . }}
       automountServiceAccountToken: false
       containers:
         - name: migrate

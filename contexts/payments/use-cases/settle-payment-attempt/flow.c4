@@ -1,0 +1,26 @@
+// Диаграмма юзкейса. Модель — в docs/architecture/model.c4.
+views {
+
+  dynamic view flow_settle_payment_attempt {
+    title 'Платёжная попытка локального settlement'
+    description 'Stripe и local sandbox используют один ProviderGateway; attempt state и restricted outbox принадлежат Payments.'
+    autoLayout TopBottom
+
+    gavel.processes.activities -> gavel.payments.service.api 'gRPC AttemptPayment(auction, round, candidate, amount, key)'
+    gavel.payments.service.api -> gavel.authz.service.check 'trusted workload + operate_payments'
+    gavel.payments.service.api -> gavel.payments.service.payment 'load/create attempt; exact replay'
+    gavel.payments.service.payment -> gavel.payments.service.providerAdapter 'Charge(stable provider key)'
+    gavel.payments.service.providerAdapter -> stripe 'production: provider-specific request' {
+      notes 'local profile replaces only this adapter with deterministic sandbox'
+    }
+    gavel.payments.service.payment -> gavel.payments.service.repository 'attempt state + delivery-safe event'
+    gavel.payments.service.repository -> gavel.payments.db 'state + outbox, одна транзакция'
+    gavel.cdc -> gavel.payments.db 'capture committed payment_outbox'
+    gavel.cdc -> gavel.broker 'gavel.payments.attempts.v1; no provider refs or recovery URL'
+    gavel.broker -> gavel.processes.subscriber 'PaymentStarted | RecoveryRequired | Succeeded | Expired'
+    gavel.processes.activities -> gavel.payments.service.api 'GetSettlementAttempt(expected auction + round)'
+    gavel.payments.service.api -> gavel.processes.activities 'authoritative status; recovery URL only via RPC'
+    gavel.processes.activities -> gavel.payments.service.api 'ExpirePayment after workflow deadline'
+    gavel.payments.service.payment -> gavel.payments.service.providerAdapter 'QueryOrCancel(same operation ref)'
+  }
+}

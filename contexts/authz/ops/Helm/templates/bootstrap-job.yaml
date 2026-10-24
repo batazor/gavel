@@ -1,0 +1,67 @@
+{{- if .Values.bootstrap.enabled }}
+{{- if not .Values.bootstrap.localOnly }}
+{{- fail "Authz bootstrap requires bootstrap.localOnly=true" }}
+{{- end }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "gavel.bootstrapServiceAccount" . }}
+  labels:
+    app.kubernetes.io/name: gavel-authz-bootstrap
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: gavel
+automountServiceAccountToken: false
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "gavel.fullname" . }}-bootstrap-{{ .Release.Revision }}
+  labels:
+    app.kubernetes.io/name: gavel-authz-bootstrap
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: gavel
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gavel-authz-bootstrap
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/part-of: gavel
+    spec:
+      serviceAccountName: {{ include "gavel.bootstrapServiceAccount" . }}
+      automountServiceAccountToken: false
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["bootstrap"]
+          env:
+            - {name: AUTHZ_BOOTSTRAP_LOCAL_ONLY, value: "true"}
+            - name: AUTHZ_BOOTSTRAP_ENDPOINT
+              value: {{ printf "http://%s:%v" (include "gavel.fullname" .) .Values.service.grpcPort | quote }}
+            - {name: AUTHZ_BOOTSTRAP_SPIFFE_ID, value: {{ .Values.bootstrap.spiffeId | quote }}}
+            - {name: AUTHZ_BOOTSTRAP_ISSUER, value: {{ required "bootstrap.issuer is required" .Values.bootstrap.issuer | quote }}}
+            - {name: AUTHZ_BOOTSTRAP_SELLER_SUBJECT, value: {{ required "bootstrap.sellerSubject is required" .Values.bootstrap.sellerSubject | quote }}}
+            - {name: AUTHZ_BOOTSTRAP_BIDDER_ONE_SUBJECT, value: {{ required "bootstrap.bidderOneSubject is required" .Values.bootstrap.bidderOneSubject | quote }}}
+            - {name: AUTHZ_BOOTSTRAP_BIDDER_TWO_SUBJECT, value: {{ required "bootstrap.bidderTwoSubject is required" .Values.bootstrap.bidderTwoSubject | quote }}}
+            - {name: AUTHZ_BOOTSTRAP_TIMEOUT_MS, value: {{ .Values.bootstrap.timeoutMs | quote }}}
+            - {name: AUTHZ_BOOTSTRAP_CONNECT_ATTEMPTS, value: {{ .Values.bootstrap.connectAttempts | quote }}}
+          resources:
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {cpu: 200m, memory: 128Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+{{- end }}

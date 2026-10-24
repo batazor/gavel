@@ -127,6 +127,7 @@ fn parse_workload(value: &str, prefix: &str) -> Result<WorkloadIdentity, Status>
         .filter(|value| !value.is_empty() && !value.contains('/'))
         .ok_or_else(|| Status::unauthenticated("workload identity is invalid"))?;
     match workload {
+        "authz-bootstrap" | "gavel-authz-bootstrap" => Ok(WorkloadIdentity::Bootstrap),
         "bff" | "gavel-bff" => Ok(WorkloadIdentity::Bff),
         "auction" | "gavel-auction" => Ok(WorkloadIdentity::Auction),
         "catalog" | "gavel-catalog" => Ok(WorkloadIdentity::Catalog),
@@ -198,6 +199,17 @@ mod tests {
         assert_eq!(
             accepted.extensions().get::<WorkloadIdentity>(),
             Some(&WorkloadIdentity::Auction)
+        );
+
+        let bootstrap = interceptor
+            .call(request(
+                "10.20.4.8:41234",
+                Some("spiffe://cluster.local/ns/gavel/sa/gavel-authz-bootstrap"),
+            ))
+            .unwrap();
+        assert_eq!(
+            bootstrap.extensions().get::<WorkloadIdentity>(),
+            Some(&WorkloadIdentity::Bootstrap)
         );
 
         let deployed_service_account = interceptor

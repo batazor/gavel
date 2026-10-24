@@ -1,0 +1,14 @@
+views {
+  dynamic view flow_local_authz_bootstrap {
+    title 'Локальный Authz bootstrap'
+    description 'Development-only Job вызывает owner API; durable receipts обеспечивают repeat, compile-time policy ограничивает Processes grant.'
+    autoLayout TopBottom
+
+    gavel.authz.service.relationships -> gavel.authz.receipts '1. claim stable bootstrap idempotency keys'
+    gavel.authz.service.relationships -> gavel.authz.spicedb '2. TOUCH three platform members'
+    gavel.authz.service.relationships -> gavel.authz.receipts '3. exact replay returns stored opaque ids'
+    gavel.authz.service.relationships -> gavel.authz.spicedb '4. TOUCH only platform process_worker@processes'
+    gavel.authz.service.check -> gavel.authz.spicedb '5. verify member and process permissions at written revision'
+    gavel.processes.activities -> gavel.authz.service.check '6. later owner commands use service_account:processes'
+  }
+}

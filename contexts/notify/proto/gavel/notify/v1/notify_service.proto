@@ -6,12 +6,20 @@ service NotifyService {
   rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
 }
 
+// NotifyOperatorService is an internal read-only boundary for local smoke and
+// trusted operators. It is not exposed through BFF or browser routes.
+service NotifyOperatorService {
+  rpc GetNotification(GetNotificationRequest) returns (GetNotificationResponse);
+}
+
 message SendNotificationRequest {
   string notification_id = 1;
   string recipient_id = 2;
   NotificationTemplate template = 3;
   map<string, string> data = 4;
   string idempotency_key = 5;
+  uint32 template_version = 6;
+  string correlation_id = 7;
 }
 
 message SendNotificationResponse {
@@ -23,11 +31,47 @@ message SendNotificationResponse {
 
 message NotificationAccepted {
   NotificationStatus status = 1;
+  string notification_id = 2;
+  uint32 template_version = 3;
+  uint32 attempt_count = 4;
+  uint64 version = 5;
+}
+
+message GetNotificationRequest {
+  string notification_id = 1;
+}
+
+message GetNotificationResponse {
+  oneof outcome {
+    NotificationRecord result = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message NotificationRecord {
+  string notification_id = 1;
+  string recipient_id = 2;
+  NotificationTemplate template = 3;
+  uint32 template_version = 4;
+  NotificationStatus status = 5;
+  uint32 attempt_count = 6;
+  uint64 version = 7;
 }
 
 message DomainRejection {
   string reason = 1;
   string safe_message = 2;
+  NotificationRejectionCode code = 3;
+}
+
+enum NotificationRejectionCode {
+  NOTIFICATION_REJECTION_CODE_UNSPECIFIED = 0;
+  NOTIFICATION_REJECTION_CODE_INVALID_ARGUMENT = 1;
+  NOTIFICATION_REJECTION_CODE_PERMISSION_DENIED = 2;
+  NOTIFICATION_REJECTION_CODE_NOT_FOUND = 3;
+  NOTIFICATION_REJECTION_CODE_IDEMPOTENCY_CONFLICT = 4;
+  NOTIFICATION_REJECTION_CODE_IN_PROGRESS = 5;
+  NOTIFICATION_REJECTION_CODE_INTERNAL = 6;
 }
 
 enum NotificationTemplate {
@@ -35,6 +79,7 @@ enum NotificationTemplate {
   NOTIFICATION_TEMPLATE_SETTLEMENT_CANDIDATE = 1;
   NOTIFICATION_TEMPLATE_PAYMENT_RECOVERY_REQUIRED = 2;
   NOTIFICATION_TEMPLATE_WINNER_CONFIRMED = 3;
+  NOTIFICATION_TEMPLATE_SETTLEMENT_CANDIDATE_FAILED = 4;
 }
 
 enum NotificationStatus {

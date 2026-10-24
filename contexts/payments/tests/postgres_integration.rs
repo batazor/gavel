@@ -5,8 +5,9 @@ use gavel_payments::{
         ReceiptClaimResult, ReceiptStore,
     },
     domain::{
-        DebitAuthorization, DomainEvent, EmailAddress, PaymentInstrument, PaymentInstrumentId,
-        PrincipalId, ProviderReference, RedactedDisplay, TermsVersion,
+        AuctionId, CandidateId, Currency, DebitAuthorization, DomainEvent, EmailAddress, Money,
+        PaymentAttempt, PaymentAttemptId, PaymentInstrument, PaymentInstrumentId, PrincipalId,
+        ProviderReference, RedactedDisplay, SettlementRound, TermsVersion,
     },
 };
 use sqlx::postgres::PgPoolOptions;
@@ -26,6 +27,63 @@ async fn migrations_create_constraints_and_outbox() {
     assert!(names.contains(&"payment_command_receipts".to_owned()));
     assert!(names.contains(&"payment_callback_inbox".to_owned()));
     assert!(names.contains(&"payment_outbox".to_owned()));
+}
+
+#[tokio::test]
+#[ignore = "requires DATABASE_URL"]
+async fn attempt_outbox_uses_registered_topic_and_delivery_safe_envelope() {
+    let repository = repository().await;
+    let suffix = uuid::Uuid::now_v7().simple().to_string();
+    let attempt = PaymentAttempt::pending(
+        PaymentAttemptId::parse(format!("attempt-{suffix}")).unwrap(),
+        AuctionId::parse(format!("auction-{suffix}")).unwrap(),
+        SettlementRound::new(1).unwrap(),
+        CandidateId::parse(format!("candidate-{suffix}")).unwrap(),
+        Money::new(12_500, Currency::USD).unwrap(),
+        1,
+    );
+    let event_id = format!("attempt-event-{suffix}");
+    repository
+        .save_attempt(
+            Commit {
+                value: attempt.clone(),
+                events: vec![DomainEvent::PaymentAttemptStarted {
+                    event_id: event_id.clone(),
+                    attempt_id: attempt.id().clone(),
+                    auction_id: attempt.auction_id().clone(),
+                    settlement_round: attempt.settlement_round(),
+                    candidate_id: attempt.candidate_id().clone(),
+                    amount: attempt.amount().clone(),
+                    version: attempt.version(),
+                    occurred_at_millis: 1,
+                }],
+            },
+            None,
+        )
+        .await
+        .unwrap();
+
+    let (topic, payload): (String, serde_json::Value) =
+        sqlx::query_as("SELECT topic,payload FROM payment_outbox WHERE event_id=$1")
+            .bind(&event_id)
+            .fetch_one(repository.pool())
+            .await
+            .unwrap();
+    assert_eq!(topic, "gavel.payments.attempts.v1");
+    assert_eq!(payload["eventId"], event_id);
+    assert_eq!(payload["aggregateId"], attempt.id().as_str());
+    assert_eq!(payload["aggregateVersion"], attempt.version());
+    assert_eq!(payload["occurredAtMillis"], 1);
+    let serialized = payload.to_string().to_lowercase();
+    for forbidden in [
+        "recoveryurl",
+        "providerref",
+        "customerref",
+        "instrumentref",
+        "storagekey",
+    ] {
+        assert!(!serialized.contains(forbidden));
+    }
 }
 
 async fn repository() -> PostgresPayments {
@@ -126,6 +184,7 @@ async fn instrument_uow_is_atomic_and_optimistically_versioned() {
             .await
             .unwrap();
     assert_eq!(payload["eventType"], "PaymentInstrumentReady");
+    assert_eq!(payload["aggregateId"], format!("instrument-{suffix}"));
     assert_eq!(payload["schemaVersion"], 1);
     assert_eq!(payload["payload"]["userId"], format!("user-{suffix}"));
     assert_eq!(
@@ -136,6 +195,12 @@ async fn instrument_uow_is_atomic_and_optimistically_versioned() {
     for forbidden in ["provider", "email", "recovery", "signature"] {
         assert!(!serialized.to_lowercase().contains(forbidden));
     }
+    let topic: String = sqlx::query_scalar("SELECT topic FROM payment_outbox WHERE event_id=$1")
+        .bind(format!("event-{suffix}"))
+        .fetch_one(repository.pool())
+        .await
+        .unwrap();
+    assert_eq!(topic, "gavel.payments.instruments.v1");
 }
 
 #[tokio::test]

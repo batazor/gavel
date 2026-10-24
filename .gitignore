@@ -5,6 +5,8 @@ site/
 storybook-static/
 packages/ui/storybook-static/
 packages/web/dist/
+packages/web/test-results/
+packages/web/playwright-report/
 
 # Rust
 target/
@@ -37,6 +39,7 @@ kubeconfig*
 *.swp
 .DS_Store
 contexts/bff/cosmo/execution-config.json
+.gavel-mvp/
 
 # Helm dependency archives (Chart.lock stays versioned)
 deploy/charts/*/charts/

@@ -1,0 +1,75 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-bootstrap
+  labels: {app.kubernetes.io/name: postgres-bootstrap, app.kubernetes.io/part-of: gavel-mvp}
+spec:
+  backoffLimit: 8
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: postgres-bootstrap, app.kubernetes.io/part-of: gavel-mvp}
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      containers:
+        - name: bootstrap
+          image: postgres:17.6-alpine
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              until pg_isready -h postgresql -U postgres; do sleep 2; done
+              export PGPASSWORD="${POSTGRES_ADMIN_PASSWORD}"
+              psql -v ON_ERROR_STOP=1 -h postgresql -U postgres \
+                -v catalog_password="${CATALOG_PASSWORD}" \
+                -v auction_password="${AUCTION_PASSWORD}" \
+                -v payments_password="${PAYMENTS_PASSWORD}" \
+                -v notify_password="${NOTIFY_PASSWORD}" \
+                -v authz_password="${AUTHZ_PASSWORD}" \
+                -v spicedb_password="${SPICEDB_PASSWORD}" \
+                -v cdc_password="${CDC_PASSWORD}" <<'SQL'
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', name, password)
+              FROM (VALUES
+                ('catalog', :'catalog_password'), ('auction', :'auction_password'),
+                ('payments', :'payments_password'), ('notify', :'notify_password'),
+                ('authz', :'authz_password'), ('spicedb', :'spicedb_password')
+              ) AS roles(name, password)
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = name) \gexec
+              SELECT format('ALTER ROLE %I PASSWORD %L', name, password)
+              FROM (VALUES
+                ('catalog', :'catalog_password'), ('auction', :'auction_password'),
+                ('payments', :'payments_password'), ('notify', :'notify_password'),
+                ('authz', :'authz_password'), ('spicedb', :'spicedb_password')
+              ) AS roles(name, password) \gexec
+              SELECT format('CREATE ROLE gavel_cdc LOGIN REPLICATION PASSWORD %L', :'cdc_password')
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'gavel_cdc') \gexec
+              SELECT format('ALTER ROLE gavel_cdc WITH REPLICATION PASSWORD %L', :'cdc_password') \gexec
+              SELECT format('CREATE DATABASE %I OWNER %I', database_name, owner_name)
+              FROM (VALUES
+                ('gavel_catalog', 'catalog'), ('gavel_auction', 'auction'),
+                ('gavel_payments', 'payments'), ('gavel_notify', 'notify'),
+                ('gavel_authz', 'authz'), ('gavel_spicedb', 'spicedb')
+              ) AS databases(database_name, owner_name)
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = database_name) \gexec
+              GRANT CONNECT ON DATABASE gavel_catalog, gavel_auction, gavel_payments TO gavel_cdc;
+              SQL
+              for owner_db in catalog:gavel_catalog auction:gavel_auction payments:gavel_payments; do
+                owner="${owner_db%%:*}"
+                database="${owner_db#*:}"
+                psql -v ON_ERROR_STOP=1 -h postgresql -U postgres -d "${database}" \
+                  -c "GRANT USAGE ON SCHEMA public TO gavel_cdc" \
+                  -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO gavel_cdc" \
+                  -c "ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} IN SCHEMA public GRANT SELECT ON TABLES TO gavel_cdc"
+              done
+          env:
+            - {name: POSTGRES_ADMIN_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-platform-postgres, key: admin-password}}}
+            - {name: CATALOG_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-platform-postgres, key: catalog-password}}}
+            - {name: AUCTION_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-platform-postgres, key: auction-password}}}
+            - {name: PAYMENTS_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-platform-postgres, key: payments-password}}}
+            - {name: NOTIFY_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-platform-postgres, key: notify-password}}}
+            - {name: AUTHZ_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-platform-postgres, key: authz-password}}}
+            - {name: SPICEDB_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-platform-postgres, key: spicedb-password}}}
+            - {name: CDC_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-platform-postgres, key: cdc-password}}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}

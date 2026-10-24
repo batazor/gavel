@@ -1,4 +1,9 @@
-//! Notify bounded-context interfaces.
+//! Notify bounded context.
+
+pub mod adapters;
+pub mod application;
+pub mod bootstrap;
+pub mod domain;
 
 #[allow(clippy::result_large_err)]
 pub mod rpc {

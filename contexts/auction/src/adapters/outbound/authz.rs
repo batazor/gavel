@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use async_trait::async_trait;
-use tonic::{Request, transport::Channel};
+use tonic::{Request, metadata::MetadataValue, transport::Channel};
 
 use crate::{
     application::{
@@ -19,6 +19,7 @@ use crate::{
 pub struct AuthzGrpcAdapter {
     client: AuthzServiceClient<Channel>,
     timeout: Duration,
+    workload_identity: Option<MetadataValue<tonic::metadata::Ascii>>,
 }
 
 impl AuthzGrpcAdapter {
@@ -26,7 +27,20 @@ impl AuthzGrpcAdapter {
         Self {
             client: AuthzServiceClient::new(channel),
             timeout,
+            workload_identity: None,
         }
+    }
+
+    pub fn with_workload_identity(
+        channel: Channel,
+        timeout: Duration,
+        identity: &str,
+    ) -> Result<Self, PortError> {
+        Ok(Self {
+            client: AuthzServiceClient::new(channel),
+            timeout,
+            workload_identity: Some(identity.parse().map_err(|_| PortError::InvalidInput)?),
+        })
     }
 
     pub async fn connect(endpoint: impl AsRef<str>, timeout: Duration) -> Result<Self, PortError> {
@@ -37,6 +51,28 @@ impl AuthzGrpcAdapter {
             .await
             .map_err(|_| PortError::Unavailable)?;
         Ok(Self::new(channel, timeout))
+    }
+
+    pub async fn connect_authenticated(
+        endpoint: impl AsRef<str>,
+        timeout: Duration,
+        identity: &str,
+    ) -> Result<Self, PortError> {
+        let channel = tonic::transport::Endpoint::from_shared(endpoint.as_ref().to_owned())
+            .map_err(|_| PortError::InvalidInput)?
+            .connect_timeout(timeout)
+            .connect()
+            .await
+            .map_err(|_| PortError::Unavailable)?;
+        Self::with_workload_identity(channel, timeout, identity)
+    }
+
+    fn authenticate<T>(&self, request: &mut Request<T>) {
+        if let Some(identity) = &self.workload_identity {
+            request
+                .metadata_mut()
+                .insert("x-gavel-spiffe-id", identity.clone());
+        }
     }
 
     async fn call_with_deadline<T>(
@@ -69,6 +105,7 @@ impl Authorization for AuthzGrpcAdapter {
             consistency_token: String::new(),
         });
         request.set_timeout(self.timeout);
+        self.authenticate(&mut request);
         let mut client = self.client.clone();
         let response = self
             .call_with_deadline(async move { client.check_permission(request).await })
@@ -108,6 +145,7 @@ impl Authorization for AuthzGrpcAdapter {
             deletions: Vec::new(),
         });
         request.set_timeout(self.timeout);
+        self.authenticate(&mut request);
         let mut client = self.client.clone();
         let response = self
             .call_with_deadline(async move { client.write_relationships(request).await })

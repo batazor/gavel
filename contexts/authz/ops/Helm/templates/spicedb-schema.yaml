@@ -5,6 +5,10 @@ metadata:
   name: {{ include "gavel.fullname" . }}-spicedb-schema
   labels:
     {{- include "gavel.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation
 data:
   gavel.zed: |-
     {{- .Files.Get "files/spicedb/gavel.zed" | nindent 4 }}
@@ -48,7 +52,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.externalSecrets.spicedb.name | quote }}
-                  key: {{ .Values.externalSecrets.spicedb.endpointKey | quote }}
+                  key: {{ .Values.spicedbSchema.endpointKey | quote }}
             - name: SPICEDB_TOKEN
               valueFrom:
                 secretKeyRef:

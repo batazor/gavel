@@ -40,6 +40,10 @@ spec:
               value: {{ .Values.redis.url | quote }}
             - name: AUTHZ_URL
               value: {{ .Values.authz.url | quote }}
+            - name: AUTHZ_CALLER_SPIFFE_ID
+              value: {{ .Values.authz.callerSpiffeId | quote }}
+            - name: PROCESSES_SPIFFE_ID
+              value: {{ required "runtime.processesSpiffeId is required" .Values.runtime.processesSpiffeId | quote }}
             - name: COMMAND_FINGERPRINT_KEY_HEX
               valueFrom:
                 secretKeyRef:
@@ -47,6 +51,24 @@ spec:
                   key: {{ .Values.commandFingerprint.key | quote }}
             - name: DEPENDENCY_TIMEOUT_MILLIS
               value: {{ .Values.runtime.dependencyTimeoutMillis | quote }}
+            - name: REDPANDA_BROKERS
+              value: {{ .Values.redpanda.brokers | quote }}
+            - name: REDPANDA_GROUP_ID
+              value: {{ .Values.redpanda.groupId | quote }}
+            - name: REDPANDA_CLIENT_ID
+              value: {{ .Values.redpanda.clientId | quote }}
+            - name: REDPANDA_SECURITY_PROTOCOL
+              value: {{ .Values.redpanda.securityProtocol | quote }}
+            - name: REDPANDA_SASL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redpanda.sasl.secretRef.name | quote }}
+                  key: {{ .Values.redpanda.sasl.secretRef.usernameKey | quote }}
+            - name: REDPANDA_SASL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redpanda.sasl.secretRef.name | quote }}
+                  key: {{ .Values.redpanda.sasl.secretRef.passwordKey | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

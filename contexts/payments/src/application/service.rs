@@ -47,6 +47,14 @@ pub struct ExpirePaymentCommand {
     pub consistency_token: Option<String>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GetSettlementAttemptQuery {
+    pub workload_id: String,
+    pub attempt_id: String,
+    pub expected_auction_id: String,
+    pub expected_settlement_round: u32,
+    pub consistency_token: Option<String>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RevokeInstrumentCommand {
     pub principal_id: String,
     pub idempotency_key: String,
@@ -68,6 +76,24 @@ pub struct PaymentAttemptView {
     pub recovery_url: Option<String>,
     pub version: u64,
     pub checked_at_token: String,
+}
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "state", rename_all = "snake_case")]
+pub enum SettlementAttemptData {
+    None,
+    RecoveryRequired { recovery_url: String },
+    Succeeded { payment_id: String },
+}
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SettlementAttemptView {
+    pub payment_attempt_id: String,
+    pub auction_id: String,
+    pub settlement_round: u32,
+    pub candidate_id: String,
+    pub status: PaymentAttemptState,
+    pub version: u64,
+    pub checked_at_token: String,
+    pub state_data: SettlementAttemptData,
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RegistrationResult {
@@ -281,6 +307,62 @@ impl PaymentApplication {
             attempt.recovery_url().map(str::to_owned),
             auth.checked_at_token,
         ))
+    }
+
+    pub async fn get_settlement_attempt(
+        &self,
+        query: GetSettlementAttemptQuery,
+    ) -> Result<SettlementAttemptView, ApplicationError> {
+        let attempt_id = PaymentAttemptId::parse(&query.attempt_id)?;
+        let expected_auction = AuctionId::parse(&query.expected_auction_id)?;
+        let expected_round = SettlementRound::new(query.expected_settlement_round)?;
+        let auth = self
+            .authz
+            .check(AuthorizationRequest {
+                principal: query.workload_id,
+                permission: Permission::ProcessPayment,
+                resource_id: Some(expected_auction.to_string()),
+                consistency_token: query.consistency_token,
+                timeout_millis: 2_000,
+            })
+            .await?;
+        if !auth.allowed {
+            return Err(ApplicationError::PermissionDenied);
+        }
+        let attempt = self
+            .uow
+            .attempt(&attempt_id)
+            .await?
+            .ok_or(ApplicationError::NotFound)?;
+        if attempt.auction_id() != &expected_auction || attempt.settlement_round() != expected_round
+        {
+            return Err(ApplicationError::InvalidState);
+        }
+
+        let state_data = match attempt.state() {
+            PaymentAttemptState::RecoveryRequired => SettlementAttemptData::RecoveryRequired {
+                recovery_url: attempt
+                    .recovery_url()
+                    .ok_or(ApplicationError::Internal)?
+                    .to_owned(),
+            },
+            PaymentAttemptState::Succeeded => SettlementAttemptData::Succeeded {
+                payment_id: attempt.id().to_string(),
+            },
+            PaymentAttemptState::Pending
+            | PaymentAttemptState::Processing
+            | PaymentAttemptState::Expired => SettlementAttemptData::None,
+        };
+        Ok(SettlementAttemptView {
+            payment_attempt_id: attempt.id().to_string(),
+            auction_id: attempt.auction_id().to_string(),
+            settlement_round: attempt.settlement_round().get(),
+            candidate_id: attempt.candidate_id().to_string(),
+            status: attempt.state(),
+            version: attempt.version(),
+            checked_at_token: auth.checked_at_token,
+            state_data,
+        })
     }
 
     pub async fn revoke_instrument(

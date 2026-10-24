@@ -26,8 +26,38 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: PORT
-              value: {{ .Values.service.port | quote }}
+            - name: HTTP_ADDR
+              value: "0.0.0.0:{{ .Values.service.port }}"
+            - name: GRPC_ADDR
+              value: "0.0.0.0:{{ .Values.rpc.port }}"
+            - name: SMTP_ADDR
+              value: {{ .Values.config.smtpAddress | quote }}
+            - name: SMTP_FROM
+              value: {{ .Values.config.smtpFrom | quote }}
+            - name: SMTP_TIMEOUT_MILLIS
+              value: {{ .Values.config.smtpTimeoutMillis | quote }}
+            - name: NOTIFY_DELIVERY_ATTEMPTS
+              value: {{ .Values.config.deliveryAttempts | quote }}
+            - name: NOTIFY_RETRY_BASE_MILLIS
+              value: {{ .Values.config.retryBaseMillis | quote }}
+            - name: NOTIFY_RETRY_MAX_MILLIS
+              value: {{ .Values.config.retryMaxMillis | quote }}
+            - name: PROCESSES_SPIFFE_ID
+              value: {{ .Values.config.processesSpiffeId | quote }}
+            - name: NOTIFY_OPERATOR_PRINCIPAL
+              value: {{ .Values.config.operatorPrincipal | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecret.name | quote }}
+                  key: {{ .Values.externalSecret.databaseUrlKey | quote }}
+            {{- if .Values.localOperator.enabled }}
+            - name: NOTIFY_LOCAL_OPERATOR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecret.name | quote }}
+                  key: {{ .Values.externalSecret.localOperatorTokenKey | quote }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

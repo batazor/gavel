@@ -1,0 +1,14 @@
+[
+  {
+    "event_id": "owner-deadline-4",
+    "fingerprint": "owner-deadline-fingerprint-4",
+    "aggregate_version": 4,
+    "kind": { "AuctionRescheduled": { "close_at_millis": 9000 } }
+  },
+  {
+    "event_id": "terminal-5",
+    "fingerprint": "terminal-fingerprint-5",
+    "aggregate_version": 5,
+    "kind": { "Terminal": { "outcome": "Unsold" } }
+  }
+]

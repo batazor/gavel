@@ -18,7 +18,10 @@ use crate::{
     telemetry::{InboxMetricOutcome, record_inbox, record_outbox, record_replay},
 };
 
-use super::codec::{PrivateEventCodec, SnapshotCodec, StoredPrivateEvent, StoredSnapshot};
+use super::{
+    codec::{PrivateEventCodec, SnapshotCodec, StoredPrivateEvent, StoredSnapshot},
+    process_events::encode_process_event,
+};
 
 #[derive(Clone)]
 pub struct PostgresAuctionStore {
@@ -197,6 +200,8 @@ impl AuctionUnitOfWork for PostgresAuctionStore {
                 .checked_add(offset as u64 + 1)
                 .ok_or(CommitError::InvalidRequest)?;
             let stored = PrivateEventCodec::encode(event).map_err(|_| CommitError::Internal)?;
+            let event_id = Uuid::now_v7();
+            let occurred_at = private_event_time(event).unwrap_or(fallback_time);
             sqlx::query(
                 "INSERT INTO auction_events \
                  (auction_id, version, event_id, event_type, event_schema_version, payload, occurred_at) \
@@ -204,14 +209,38 @@ impl AuctionUnitOfWork for PostgresAuctionStore {
             )
             .bind(&request.auction_id)
             .bind(to_i64(version)?)
-            .bind(Uuid::now_v7())
+            .bind(event_id)
             .bind(stored.event_type)
             .bind(i32::try_from(stored.schema_version).map_err(|_| CommitError::InvalidRequest)?)
             .bind(Json(stored.payload))
-            .bind(private_event_time(event).unwrap_or(fallback_time))
+            .bind(occurred_at)
             .execute(&mut *transaction)
             .await
             .map_err(map_sqlx_error)?;
+
+            let occurred_at_millis = occurred_at
+                .timestamp_millis()
+                .try_into()
+                .map_err(|_| CommitError::InvalidRequest)?;
+            if let Some(process_event) = encode_process_event(
+                event_id.to_string(),
+                &request.auction_id,
+                version,
+                event,
+                Timestamp::from_millis(occurred_at_millis),
+                request
+                    .command
+                    .as_ref()
+                    .map_or("system", |(identity, _)| identity.correlation_id.as_str()),
+                request
+                    .command
+                    .as_ref()
+                    .map_or("system", |(identity, _)| identity.causation_id.as_str()),
+            )
+            .map_err(|_| CommitError::Internal)?
+            {
+                insert_process_event(&mut transaction, process_event).await?;
+            }
         }
 
         let resulting_version = request
@@ -296,6 +325,30 @@ impl AuctionUnitOfWork for PostgresAuctionStore {
             version: resulting_version,
         })
     }
+}
+
+async fn insert_process_event(
+    transaction: &mut Transaction<'_, Postgres>,
+    event: super::process_events::EncodedProcessEvent,
+) -> Result<(), CommitError> {
+    sqlx::query(
+        "INSERT INTO auction_process_outbox \
+         (event_id, aggregate_id, aggregate_version, event_type, schema_version, occurred_at, \
+          payload, correlation_id, causation_id) \
+         VALUES ($1::uuid, $2, $3, $4, 1, $5, $6, $7, $8)",
+    )
+    .bind(&event.event_id)
+    .bind(&event.aggregate_id)
+    .bind(to_i64(event.aggregate_version)?)
+    .bind(event.event_type)
+    .bind(timestamp_to_chrono(event.occurred_at)?)
+    .bind(event.payload)
+    .bind(event.correlation_id)
+    .bind(event.causation_id)
+    .execute(&mut **transaction)
+    .await
+    .map_err(map_sqlx_error)?;
+    Ok(())
 }
 
 #[async_trait]
@@ -514,6 +567,23 @@ impl AuctionProjectionReader for PostgresAuctionStore {
             },
             updated_at: Timestamp::from_millis(chrono_to_timestamp(updated_at)?),
         }))
+    }
+
+    async fn auction_by_lot_id(
+        &self,
+        lot_id: &str,
+    ) -> Result<Option<AuctionProjection>, PortError> {
+        let auction_id = sqlx::query_scalar::<_, String>(
+            "SELECT auction_id FROM auction_public_projection WHERE lot_id = $1",
+        )
+        .bind(lot_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_port_sqlx_error)?;
+        match auction_id {
+            Some(auction_id) => self.auction(&auction_id).await,
+            None => Ok(None),
+        }
     }
 }
 

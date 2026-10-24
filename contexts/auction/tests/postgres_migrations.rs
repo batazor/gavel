@@ -76,4 +76,51 @@ async fn migrations_are_repeatable_and_constraints_protect_contracts() {
         )
         .await;
     assert!(duplicate_inbox.is_err());
+
+    pool.execute(
+        "INSERT INTO auction_process_outbox \
+         (event_id, aggregate_id, aggregate_version, event_type, schema_version, occurred_at, \
+          payload, correlation_id, causation_id) \
+         VALUES ('00000000-0000-7000-8000-000000000010', 'auction-1', 1, \
+         'SettlementCandidateSelected', 1, clock_timestamp(), decode('01', 'hex'), \
+         'correlation-1', 'causation-1')",
+    )
+    .await
+    .unwrap();
+
+    let duplicate_process_version = pool
+        .execute(
+            "INSERT INTO auction_process_outbox \
+             (event_id, aggregate_id, aggregate_version, event_type, schema_version, occurred_at, \
+              payload, correlation_id, causation_id) \
+             VALUES ('00000000-0000-7000-8000-000000000011', 'auction-1', 1, \
+             'SettlementCandidateSelected', 1, clock_timestamp(), decode('02', 'hex'), \
+             'correlation-2', 'causation-2')",
+        )
+        .await;
+    assert!(duplicate_process_version.is_err());
+
+    let unsupported_process_event = pool
+        .execute(
+            "INSERT INTO auction_process_outbox \
+             (event_id, aggregate_id, aggregate_version, event_type, schema_version, occurred_at, \
+              payload, correlation_id, causation_id) \
+             VALUES ('00000000-0000-7000-8000-000000000012', 'auction-1', 2, \
+             'MaximumBidPlaced', 1, clock_timestamp(), decode('03', 'hex'), \
+             'correlation-3', 'causation-3')",
+        )
+        .await;
+    assert!(unsupported_process_event.is_err());
+
+    let empty_process_payload = pool
+        .execute(
+            "INSERT INTO auction_process_outbox \
+             (event_id, aggregate_id, aggregate_version, event_type, schema_version, occurred_at, \
+              payload, correlation_id, causation_id) \
+             VALUES ('00000000-0000-7000-8000-000000000013', 'auction-1', 2, \
+             'AuctionUnsold', 1, clock_timestamp(), ''::bytea, \
+             'correlation-4', 'causation-4')",
+        )
+        .await;
+    assert!(empty_process_payload.is_err());
 }

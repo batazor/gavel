@@ -22,6 +22,8 @@ helm upgrade --install auction contexts/auction/ops/Helm \
   --namespace auction --create-namespace
 ```
 
+Локальный профиль принадлежит сервису и хранится в `values-local.yaml`; `deploy/kind` накладывает поверх него только cluster-specific image overrides. Render assertions находятся в `tests/assert-render.sh` и запускаются единым gate 7.3.
+
 The chart owns the Deployment, Service, ServiceMonitor, PrometheusRule and Grafana dashboard for this project. Dashboard UID: `gavel-auction`.
 
 ## Runtime endpoints

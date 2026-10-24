@@ -58,6 +58,7 @@ assertions:
     - payment_profile:bidder#manage@user:seller
     - payment_attempt:attempt1#view@user:seller
     - payment_attempt:attempt1#process@user:admin
+    - payment_attempt:attempt1#process@service_account:payments
     - notification:notice1#view@user:seller
     - notification:notice1#deliver@user:admin
     - operation:operation1#view@user:bidder

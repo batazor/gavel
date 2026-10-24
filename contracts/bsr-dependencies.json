@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "plugins": [
+    "buf.build/community/neoeinstein-prost:v0.4.0",
+    "buf.build/community/neoeinstein-tonic:v0.4.1"
+  ],
+  "generatedSdks": [
+    {
+      "module": "buf.build/gavel/authz",
+      "consumerManifest": "contexts/payments/Cargo.toml",
+      "packages": [
+        {
+          "name": "gavel_authz_community_neoeinstein-prost",
+          "version": "0.4.0-00000000000000-16e6b397db2f.1"
+        },
+        {
+          "name": "gavel_authz_community_neoeinstein-tonic",
+          "version": "0.4.1-00000000000000-16e6b397db2f.1"
+        }
+      ]
+    },
+    {
+      "module": "buf.build/gavel/payments",
+      "consumerManifest": "contexts/payments/Cargo.toml",
+      "provenanceLock": "contexts/payments/bsr-sdk.lock.json",
+      "packages": [
+        {
+          "name": "gavel_payments_community_neoeinstein-prost",
+          "version": "0.4.0-00000000000000-ee7ab816c2f0.1"
+        },
+        {
+          "name": "gavel_payments_community_neoeinstein-tonic",
+          "version": "0.4.1-00000000000000-ee7ab816c2f0.1"
+        }
+      ]
+    },
+    {
+      "module": "buf.build/gavel/payments",
+      "consumerManifest": "contexts/processes/Cargo.toml",
+      "provenanceLock": "contexts/payments/bsr-sdk.lock.json",
+      "packages": [
+        {
+          "name": "gavel_payments_community_neoeinstein-prost",
+          "version": "0.4.0-00000000000000-ee7ab816c2f0.1"
+        },
+        {
+          "name": "gavel_payments_community_neoeinstein-tonic",
+          "version": "0.4.1-00000000000000-ee7ab816c2f0.1"
+        }
+      ]
+    }
+  ]
+}

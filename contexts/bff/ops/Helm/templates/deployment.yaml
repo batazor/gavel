@@ -1,5 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
+{{- include "gavel.localAuthGuard" . }}
 metadata:
   name: {{ include "gavel.fullname" . }}
   labels:
@@ -14,6 +15,10 @@ spec:
     metadata:
       labels:
         {{- include "gavel.labels" . | nindent 8 }}
+      {{- if .Values.localAuth.enabled }}
+      annotations:
+        checksum/local-auth: {{ include (print $.Template.BasePath "/local-auth-envoy.yaml") . | sha256sum }}
+      {{- end }}
     spec:
       serviceAccountName: {{ include "gavel.fullname" . }}
       automountServiceAccountToken: false
@@ -25,23 +30,25 @@ spec:
         - name: {{ include "gavel.name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.localAuth.enabled }}
           env:
-            - name: PORT
-              value: {{ .Values.service.port | quote }}
+            - name: LISTEN_ADDR
+              value: {{ printf "0.0.0.0:%v" .Values.localAuth.routerPort | quote }}
+          {{- end }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
+            - name: router
+              containerPort: {{ ternary .Values.localAuth.routerPort .Values.service.port .Values.localAuth.enabled }}
               protocol: TCP
           readinessProbe:
             httpGet:
-              path: /readyz
-              port: http
+              path: /health/ready
+              port: router
             initialDelaySeconds: 1
             periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /healthz
-              port: http
+              path: /health/live
+              port: router
             initialDelaySeconds: 3
             periodSeconds: 10
           resources:
@@ -51,3 +58,38 @@ spec:
             capabilities:
               drop: [ALL]
             readOnlyRootFilesystem: true
+        {{- if .Values.localAuth.enabled }}
+        - name: local-auth-ingress
+          image: {{ .Values.localAuth.envoy.image | quote }}
+          imagePullPolicy: {{ .Values.localAuth.envoy.pullPolicy }}
+          args: ["-c", "/etc/envoy/envoy.yaml", "--service-cluster", "gavel-local-auth"]
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.localAuth.envoy.resources | nindent 12 }}
+          securityContext:
+            runAsUser: 65532
+            runAsGroup: 65532
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: local-auth-envoy
+              mountPath: /etc/envoy
+              readOnly: true
+        {{- end }}
+      {{- if .Values.localAuth.enabled }}
+      volumes:
+        - name: local-auth-envoy
+          configMap:
+            name: {{ include "gavel.fullname" . }}-local-auth
+      {{- end }}

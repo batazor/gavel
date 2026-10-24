@@ -34,7 +34,7 @@ deployment {
       // ---- Приложение ----
       webNs = namespace 'web' {
         webPod = pod 'web' {
-          description '≥3 stateless replicas across zones'
+          description '≥3 stateless replicas across zones; immutable Vite SPA, /healthz и /readyz'
           instanceOf gavel.web
           envoy = sidecar 'envoy' {
             #mesh
@@ -44,7 +44,7 @@ deployment {
 
       bffNs = namespace 'bff' {
         bffPod = pod 'cosmo-router' {
-          description '≥3 stateless replicas across zones; local execution config, PDB + graceful subscription drain'
+          description '≥3 stateless replicas across zones; local execution config. Local profile ставит JWT-verifying Envoy перед Router; production identity остаётся edge/mesh concern.'
           instanceOf gavel.bff
           envoy = sidecar 'envoy' {
             #mesh
@@ -211,10 +211,32 @@ deployment {
     stripeInst = instanceOf stripe
     emailProviderInst = instanceOf emailProvider
     mediaStore = instanceOf gavel.catalog.media {
-      description 'HA S3-compatible object storage. MinIO используется в local/kind; production provider выбирается отдельно и не обязан жить в Kubernetes.'
+      description 'HA S3-compatible object storage. Production provider выбирается отдельно и не обязан жить в Kubernetes; local/kind использует ephemeral in-process adapter Catalog.'
     }
     telemetryBackends = instanceOf observability
     cloudflareInst = instanceOf cloudflare
+  }
+
+  local = environment 'Local MVP (kind)' {
+    localCluster = cluster 'kind: gavel-mvp' {
+      localNs = namespace 'gavel-mvp' {
+        localWeb = pod 'Web + Cosmo Router' {
+          description 'Connected Web, development-only identity switcher и JWT-verifying Envoy.'
+          instanceOf gavel.web
+        }
+        localOwners = pod 'Owner services' {
+          description 'Catalog, Auction, Payments, Authz и Notify из service-owned Helm charts.'
+          instanceOf gavel.auction.service
+        }
+        localProcesses = pod 'Processes workers' {
+          description 'Два Temporal task queue worker и restart-safe Redpanda ingress.'
+          instanceOf gavel.processes
+        }
+        localPlatform = pod 'Local platform' {
+          description 'PostgreSQL, SpiceDB, Redpanda, Debezium, Temporal, Redis и Mailpit; ephemeral media storage встроен в local profile Catalog.'
+        }
+      }
+    }
   }
 
   // Вход: Cloudflare -> outbound Tunnel connectors -> Istio ingress -> приложение.
@@ -242,4 +264,8 @@ deployment {
   prod.k8s.obsNs.prometheusPod -[exports]-> prod.telemetryBackends 'remote_write to Mimir'
   prod.k8s.obsNs.grafanaPod -> prod.k8s.obsNs.prometheusPod 'PromQL'
   prod.k8s.obsNs.grafanaPod -> prod.telemetryBackends 'Tempo / Mimir / Loki queries'
+  local.localCluster.localNs.localWeb -> local.localCluster.localNs.localOwners 'Federated GraphQL with verified local principal'
+  local.localCluster.localNs.localOwners -> local.localCluster.localNs.localPlatform 'owner DB, policy, object storage and outbox routes'
+  local.localCluster.localNs.localPlatform -> local.localCluster.localNs.localProcesses 'versioned owner events via Redpanda and Temporal'
+  local.localCluster.localNs.localProcesses -> local.localCluster.localNs.localOwners 'versioned owner gRPC commands'
 }

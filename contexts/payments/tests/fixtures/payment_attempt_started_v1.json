@@ -1,10 +1,12 @@
 {
   "eventId": "payments-event-attempt-1",
+  "aggregateId": "attempt-1",
   "eventType": "PaymentAttemptStarted",
   "schemaVersion": 1,
   "aggregateVersion": 2,
   "occurredAtMillis": 1700000000000,
   "correlationId": "payments-correlation-2",
+  "causationId": "auction-candidate-selected-1",
   "payload": {
     "paymentAttemptId": "attempt-1",
     "auctionId": "auction-1",

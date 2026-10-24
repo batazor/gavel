@@ -1,27 +1,26 @@
 # syntax=docker/dockerfile:1.7
-FROM rust:1.98-alpine3.24 AS builder
+FROM node:22.22.0-alpine3.23 AS composer
 
-WORKDIR /build
-COPY Cargo.toml ./
-COPY src ./src
+WORKDIR /workspace
+RUN npm install --global --ignore-scripts wgc@0.133.0
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/build/target \
-    cargo build --release && \
-    cp target/release/gavel-bff /tmp/service
+COPY contexts/bff/cosmo/supergraph.yaml contexts/bff/cosmo/supergraph.yaml
+COPY contexts/catalog/graphql/schema.graphql contexts/catalog/graphql/schema.graphql
+COPY contexts/auction/graphql/schema.graphql contexts/auction/graphql/schema.graphql
+COPY contexts/payments/graphql/schema.graphql contexts/payments/graphql/schema.graphql
 
-FROM alpine:3.24 AS runtime
+RUN mkdir -p /out && \
+    wgc router compose \
+      --input contexts/bff/cosmo/supergraph.yaml \
+      --out /out/execution-config.json
 
-RUN apk add --no-cache ca-certificates && \
-    addgroup -S -g 10001 gavel && \
-    adduser -S -D -H -u 10001 -G gavel gavel
+FROM ghcr.io/wundergraph/cosmo/router:0.361.0-nonroot
 
-COPY --from=builder /tmp/service /usr/local/bin/service
+COPY --from=composer /out/execution-config.json /etc/cosmo/execution-config.json
+COPY contexts/bff/cosmo/router.yaml /etc/cosmo/router.yaml
 
-USER 10001:10001
-ENV PORT=8080
+ENV DEV_MODE=false \
+    LISTEN_ADDR=0.0.0.0:8080 \
+    EXECUTION_CONFIG_FILE_PATH=/etc/cosmo/execution-config.json
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -q -O /dev/null "http://127.0.0.1:${PORT}/healthz" || exit 1
-
-ENTRYPOINT ["/usr/local/bin/service"]
+CMD ["/router", "-config", "/etc/cosmo/router.yaml"]

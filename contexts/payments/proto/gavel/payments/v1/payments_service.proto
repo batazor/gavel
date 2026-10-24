@@ -4,6 +4,7 @@ package gavel.payments.v1;
 
 service PaymentsService {
   rpc AttemptPayment(AttemptPaymentRequest) returns (AttemptPaymentResponse);
+  rpc GetSettlementAttempt(GetSettlementAttemptRequest) returns (GetSettlementAttemptResponse);
   rpc ExpirePayment(ExpirePaymentRequest) returns (ExpirePaymentResponse);
 }
 
@@ -35,6 +36,43 @@ message PaymentAttemptResult {
   string recovery_url = 3;
   uint64 version = 4;
   string checked_at_token = 5;
+}
+
+message GetSettlementAttemptRequest {
+  string payment_attempt_id = 1;
+  string expected_auction_id = 2;
+  uint32 expected_settlement_round = 3;
+  string correlation_id = 4;
+  string consistency_token = 5;
+}
+
+message GetSettlementAttemptResponse {
+  oneof outcome {
+    SettlementAttemptResult result = 1;
+    DomainRejection rejection = 2;
+  }
+}
+
+message SettlementAttemptResult {
+  string payment_attempt_id = 1;
+  string auction_id = 2;
+  uint32 settlement_round = 3;
+  string candidate_id = 4;
+  PaymentAttemptStatus status = 5;
+  uint64 version = 6;
+  string checked_at_token = 7;
+  oneof state_data {
+    SettlementRecoveryData recovery_required = 8;
+    SettlementSuccessData succeeded = 9;
+  }
+}
+
+message SettlementRecoveryData {
+  string recovery_url = 1;
+}
+
+message SettlementSuccessData {
+  string payment_id = 1;
 }
 
 message ExpirePaymentRequest {

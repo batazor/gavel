@@ -1,0 +1,45 @@
+# Local kind profile. Secrets are created by deploy/kind/scripts/secrets.sh and
+# remain outside Git; this file contains only service discovery and safe tuning.
+replicaCount: 1
+
+image:
+  repository: gavel-processes
+  tag: local
+  pullPolicy: IfNotPresent
+
+temporal:
+  endpoint: http://temporal-frontend.gavel-mvp.svc.cluster.local:7233
+  namespace: gavel
+  apiKeySecretRef:
+    name: gavel-processes-temporal
+    key: api-key
+
+owners:
+  auctionEndpoint: http://gavel-auction-gavel-auction.gavel-mvp.svc.cluster.local:9090
+  paymentsEndpoint: http://gavel-payments-gavel-payments.gavel-mvp.svc.cluster.local:9090
+  notifyEndpoint: http://gavel-notify-gavel-notify.gavel-mvp.svc.cluster.local:9090
+  auctionPrincipalId: processes
+  workloadSpiffeId: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-processes
+
+redpanda:
+  brokers: redpanda.gavel-mvp.svc.cluster.local:9092
+  groupId: gavel-processes-v1
+  clientId: gavel-processes-local
+  securityProtocol: SASL_PLAINTEXT
+  sasl:
+    enabled: true
+    secretRef:
+      name: gavel-redpanda-processes
+      usernameKey: username
+      passwordKey: password
+  quarantineTimeoutMs: 2000
+  retry:
+    attempts: 4
+    initialMs: 100
+    maxMs: 1000
+
+podDisruptionBudget:
+  enabled: false
+
+topologySpreadConstraints:
+  enabled: false

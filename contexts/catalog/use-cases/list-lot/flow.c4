@@ -7,8 +7,8 @@ views {
     autoLayout TopBottom
 
     seller -> gavel.web 'новый лот'
-    gavel.web -> gavel.bff.graphql 'mutation listLot(input)'
-    gavel.bff.graphql -> gavel.catalog.service.api 'ListLot'
+    gavel.web -> gavel.bff.graphql 'mutation listLot(input, idempotency key)'
+    gavel.bff.graphql -> gavel.catalog.service.api 'ListLot; deterministic lot_id from verified principal + key'
     gavel.catalog.service.api -> gavel.catalog.db 'claim HMAC command receipt'
     gavel.catalog.service.api -> gavel.authz.service.check 'platform:gavel#create_lot; causal token + deadline'
     gavel.catalog.service.api -> gavel.authz.service.relationships 'atomic TOUCH lot:platform + lot:seller'

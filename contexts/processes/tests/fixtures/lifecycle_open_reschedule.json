@@ -1,0 +1,14 @@
+[
+  {
+    "event_id": "extended-1",
+    "fingerprint": "fingerprint-extended-1",
+    "aggregate_version": 2,
+    "kind": { "DeadlineExtended": { "close_at_millis": 2000 } }
+  },
+  {
+    "event_id": "rescheduled-1",
+    "fingerprint": "fingerprint-rescheduled-1",
+    "aggregate_version": 3,
+    "kind": { "AuctionRescheduled": { "close_at_millis": 3000 } }
+  }
+]

@@ -7,7 +7,7 @@ use gavel_authz::rpc::{
     WriteRelationshipsRequest, authz_service_client::AuthzServiceClient,
     write_relationships_response::Outcome,
 };
-use tonic::{Request, transport::Channel};
+use tonic::{Request, metadata::MetadataValue, transport::Channel};
 use tower::ServiceExt;
 
 use crate::{
@@ -22,6 +22,7 @@ use crate::{
 pub struct AuthzGrpcAdapter {
     client: AuthzServiceClient<Channel>,
     channel: Channel,
+    workload_identity: Option<MetadataValue<tonic::metadata::Ascii>>,
 }
 
 struct PermissionRpcRequest {
@@ -39,7 +40,17 @@ impl AuthzGrpcAdapter {
         Self {
             client: AuthzServiceClient::new(channel.clone()),
             channel,
+            workload_identity: None,
         }
+    }
+
+    pub fn with_workload_identity(channel: Channel, identity: &str) -> Result<Self, PortError> {
+        let workload_identity = identity.parse().map_err(|_| PortError::Internal)?;
+        Ok(Self {
+            client: AuthzServiceClient::new(channel.clone()),
+            channel,
+            workload_identity: Some(workload_identity),
+        })
     }
 
     pub async fn connect(
@@ -56,6 +67,31 @@ impl AuthzGrpcAdapter {
             .await
             .map_err(|_| PortError::Unavailable)?;
         Ok(Self::new(channel))
+    }
+
+    pub async fn connect_authenticated(
+        endpoint: impl AsRef<str>,
+        connect_timeout: Duration,
+        identity: &str,
+    ) -> Result<Self, PortError> {
+        if connect_timeout.is_zero() {
+            return Err(PortError::Internal);
+        }
+        let channel = tonic::transport::Endpoint::from_shared(endpoint.as_ref().to_owned())
+            .map_err(|_| PortError::Internal)?
+            .connect_timeout(connect_timeout)
+            .connect()
+            .await
+            .map_err(|_| PortError::Unavailable)?;
+        Self::with_workload_identity(channel, identity)
+    }
+
+    fn authenticate<T>(&self, request: &mut Request<T>) {
+        if let Some(identity) = &self.workload_identity {
+            request
+                .metadata_mut()
+                .insert("x-gavel-spiffe-id", identity.clone());
+        }
     }
 
     pub async fn ready(&self) -> Result<(), PortError> {
@@ -96,6 +132,7 @@ impl AuthzGrpcAdapter {
             consistency_token: input.consistency_token.unwrap_or_default(),
         });
         request.set_timeout(timeout);
+        self.authenticate(&mut request);
         let mut client = self.client.clone();
         let response = tokio::time::timeout(timeout, client.check_permission(request))
             .await
@@ -131,6 +168,7 @@ impl AuthzGrpcAdapter {
             deletions,
         });
         request.set_timeout(timeout);
+        self.authenticate(&mut request);
         let mut client = self.client.clone();
         let response = tokio::time::timeout(timeout, client.write_relationships(request))
             .await

@@ -10,6 +10,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &[
                 "proto/gavel/auction/v1/auction_service.proto",
                 "proto/gavel/auction/v1/auction_events.proto",
+                "proto/gavel/auction/v1/auction_process_events.proto",
                 "../authz/proto/gavel/authz/v1/authz_service.proto",
             ],
             &["proto", "../authz/proto"],

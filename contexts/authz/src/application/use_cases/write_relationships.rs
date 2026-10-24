@@ -328,6 +328,37 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn bootstrap_process_worker_grant_replays_without_second_write() {
+        let policy = Arc::new(FakePolicy::default());
+        let use_case = WriteRelationshipsUseCase::new(
+            Arc::clone(&policy),
+            Arc::new(MemoryStore::default()),
+            [5; 32],
+        );
+        let grant = Relationship {
+            resource: ResourceReference {
+                resource_type: "platform".to_owned(),
+                resource_id: "gavel".to_owned(),
+            },
+            relation: "process_worker".to_owned(),
+            subject: PrincipalReference {
+                principal_type: "service_account".to_owned(),
+                principal_id: "processes".to_owned(),
+            },
+        };
+        let request = || WriteRelationshipsInput {
+            caller: WorkloadIdentity::Bootstrap,
+            updates: vec![grant.clone()],
+            deletions: vec![],
+            idempotency_key: "local-mvp-authz-process-worker-v1".to_owned(),
+        };
+        let first = use_case.execute(request()).await.unwrap();
+        let replay = use_case.execute(request()).await.unwrap();
+        assert_eq!(first, replay);
+        assert_eq!(policy.calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
     async fn invalid_scope_shape_overlap_and_size_reject_the_whole_batch() {
         let cases = [
             input(vec![], vec![], "empty"),

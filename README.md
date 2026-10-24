@@ -46,6 +46,22 @@ npm run web:check
 npm run web:build
 ```
 
+## Локальный вертикальный MVP
+
+Полный путь Catalog → Auction → Payments → Temporal Processes → Notify запускается в выделенном `kind`-кластере `gavel-mvp`. Нужны Docker, `kind`, `kubectl`, Helm, `curl`, `jq` и OpenSSL.
+
+```bash
+make mvp-up
+make mvp-ready
+make mvp-seed
+make mvp-smoke
+make mvp-e2e
+```
+
+Повторный `make mvp-up` и `make mvp-seed` безопасны: platform resources, Helm releases, Authz principals и domain commands сверяются идемпотентно. При сбое выполните `make mvp-diagnostics`; sanitized bundle появится в `.gavel-mvp/diagnostics/`. Удаление только локального кластера и его generated secrets/data: `make mvp-down`.
+
+После запуска Web доступен через service port-forward, а development identity switcher получает короткоживущие JWT для seller, bidder one и bidder two. Этот issuer и switcher блокируются production Helm profile. Подробности, ручные port-forward команды и управление sandbox outcomes описаны в [`deploy/kind/README.md`](deploy/kind/README.md).
+
 Опубликованная версия: `https://batazor.github.io/gavel/`.
 
 ## Как добавить
@@ -57,4 +73,4 @@ npm run web:build
 
 ## Статус
 
-Этап проектирования. У каждого проекта уже есть собираемый Rust hello-world runtime и эксплуатационный scaffold; доменные реализации и Lean-спека Auction остаются следующими шагами.
+Локальный вертикальный MVP реализован и проверен: `make mvp-smoke` проходит happy settlement, переход к следующему кандидату и восстановление Processes после перезапуска, а `make mvp-e2e` подтверждает браузерный путь участника через публичный GraphQL endpoint. Capability specs синхронизированы, OpenSpec change архивирован. Production edge, HA и live provider credentials намеренно не входят в этот MVP.

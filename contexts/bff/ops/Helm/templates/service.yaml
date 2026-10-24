@@ -5,11 +5,15 @@ metadata:
   labels:
     {{- include "gavel.labels" . | nindent 4 }}
 spec:
+  type: {{ .Values.service.type }}
   selector:
     app.kubernetes.io/name: {{ include "gavel.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
     - name: http
       port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: {{ ternary "http" "router" .Values.localAuth.enabled }}
       protocol: TCP
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePort }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}

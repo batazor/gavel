@@ -1,0 +1,16 @@
+{
+  "eventId": "evt-auction-public-1",
+  "aggregateId": "auction-1",
+  "aggregateVersion": 7,
+  "schemaVersion": 1,
+  "occurredAt": "2026-10-23T00:00:00Z",
+  "correlationId": "correlation-1",
+  "causationId": "command-1",
+  "priceChanged": {
+    "price": {
+      "minorUnits": 12500,
+      "currencyCode": "USD"
+    },
+    "endsAt": "2026-10-23T00:05:00Z"
+  }
+}

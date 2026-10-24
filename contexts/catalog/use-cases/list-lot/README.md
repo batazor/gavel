@@ -23,7 +23,7 @@ sequenceDiagram
 
     Note over Seller,Catalog: 1–20 изображений заранее загружены и имеют READY
     Seller->>Web: Выставить лот
-    Web->>Router: listLot(input with imageId + alt)
+    Web->>Router: listLot(input with imageId + alt, idempotency key)
     Router->>Catalog: ListLot
     Catalog->>Catalog: Validate fields, image owner and READY state
     Catalog->>CatalogDB: Claim HMAC command receipt
@@ -47,6 +47,7 @@ sequenceDiagram
 ## Ошибки и граничные случаи
 - Consumer идемпотентен по `lot_id`: повторная доставка `LotListed` не открывает второй аукцион.
 - Точный повтор команды возвращает durable receipt; тот же ключ с другим payload даёт `idempotency_conflict`.
+- GraphQL adapter детерминированно выводит `lot_id` из verified principal и idempotency key, поэтому потерянный ответ не превращает точный повтор в новый intent; server timestamp не входит в canonical client payload.
 - Если Authz grant записан, а local commit не состоялся, lease-based reconciliation удаляет его только после proof-of-absence лота.
 - Метрики используют только bounded `operation/outcome`; seller/lot/image ids, tokens, URLs и object keys в labels/logs запрещены.
 - Политика «только `inactivity`» без `hard_deadline` допустима, UI предупреждает, что торги могут длиться долго.

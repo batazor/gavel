@@ -4,5 +4,6 @@ mod error_mapping;
 pub mod events;
 pub mod graphql;
 pub mod grpc;
+pub mod redpanda;
 
 pub use error_mapping::{GraphqlErrorView, GrpcError};

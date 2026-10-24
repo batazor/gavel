@@ -2,6 +2,7 @@
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum WorkloadIdentity {
+    Bootstrap,
     Bff,
     Auction,
     Catalog,
@@ -13,6 +14,7 @@ pub enum WorkloadIdentity {
 impl WorkloadIdentity {
     pub const fn as_str(self) -> &'static str {
         match self {
+            Self::Bootstrap => "bootstrap",
             Self::Bff => "bff",
             Self::Auction => "auction",
             Self::Catalog => "catalog",

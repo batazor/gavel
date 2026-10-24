@@ -9,6 +9,9 @@ views {
     bidder -> gavel.web 'ставка: максимум 120'
     gavel.web -> gavel.bff.graphql 'mutation placeBid(id, amount, idempotencyKey)'
     gavel.bff.graphql -> gavel.auction.service.api 'PlaceBid(user_id, amount)'
+    gavel.auction.service.api -> gavel.auction.service.api 'derive stable bid_id(user, auction, key)' {
+      notes 'Серверное время не входит в canonical fingerprint; exact retry получает тот же bid_id'
+    }
     gavel.auction.service.api -> gavel.auction.db 'lookup idempotency key + request fingerprint' {
       notes 'Тот же request → stored result без нового события; другой payload → IDEMPOTENCY_CONFLICT'
     }
@@ -28,7 +31,7 @@ views {
     gavel.bff.graphql -> gavel.web 'GraphQL result'
 
     gavel.cdc -> gavel.auction.db 'capture outbox from WAL'
-    gavel.cdc -> gavel.broker 'publish BidRecorded + optional PriceChanged'
+    gavel.cdc -> gavel.broker 'publish BidRecorded + optional PriceChanged to gavel.auction.public.v1'
     gavel.broker -> gavel.realtime.subscription 'PriceChanged'
     gavel.bff.graphql -> gavel.web 'subscription: price, version: N+1' {
       notes 'Все подписчики лота, включая автора ставки'

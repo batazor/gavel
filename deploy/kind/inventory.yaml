@@ -1,0 +1,88 @@
+apiVersion: gavel.dev/v1alpha1
+kind: LocalRuntimeInventory
+metadata:
+  name: gavel-mvp
+spec:
+  cluster:
+    name: gavel-mvp
+    config: cluster.yaml
+    kubernetes: v1.34.0
+    cni: cilium-1.20.0
+    serviceMesh: istio-1.31.3
+    certificateController: cert-manager-v1.21.2
+    metricsController: prometheus-operator-v0.94.1
+  namespace: gavel-mvp
+  platformWorkloads:
+    - name: postgresql
+      kind: StatefulSet
+      manifest: platform/postgresql.yaml
+      image: postgres:17.6-alpine
+    - name: temporal
+      kind: Deployment
+      manifest: platform/temporal.yaml
+      image: temporalio/auto-setup:1.28.1
+    - name: redpanda
+      kind: StatefulSet
+      manifest: platform/redpanda.yaml
+      image: docker.redpanda.com/redpandadata/redpanda:v25.2.10
+    - name: kafka-connect
+      kind: Deployment
+      manifest: platform/kafka-connect.yaml
+      image: quay.io/debezium/connect:3.3.1.Final
+    - name: spicedb
+      kind: Deployment
+      manifest: platform/spicedb.yaml
+      image: authzed/spicedb:v1.46.2
+    - name: local-jwt
+      kind: Deployment
+      manifest: auth/local-jwt.yaml
+      image: ghcr.io/navikt/mock-oauth2-server:2.2.1
+    - name: mailpit
+      kind: Deployment
+      manifest: platform/mailpit.yaml
+      image: axllent/mailpit:v1.27.8
+    - name: redis
+      kind: Deployment
+      manifest: platform/redis.yaml
+      image: redis:8.2.1-alpine
+  serviceOwners:
+    - catalog
+    - auction
+    - payments
+    - processes
+    - notify
+    - authz
+    - bff
+    - web
+  generatedSecrets:
+    - gavel-platform-postgres
+    - gavel-redpanda-admin
+    - gavel-redpanda-connect
+    - gavel-redpanda-processes
+    - gavel-redpanda-auction
+    - gavel-spicedb
+    - gavel-auction-database
+    - gavel-auction-command-fingerprint
+    - gavel-catalog-database
+    - gavel-catalog-object-storage
+    - gavel-catalog-hmac
+    - gavel-payments-runtime
+    - gavel-authz-database
+    - gavel-authz-spicedb
+    - gavel-authz-hmac
+    - gavel-notify-database
+    - gavel-processes-temporal
+  bootstrap:
+    clusterPlatform: scripts/platform.sh
+    topics: scripts/topics.sh
+    connectors: scripts/connectors.sh
+    migrations: scripts/migrations.sh
+  commands:
+    up: scripts/mvp.sh up
+    down: scripts/mvp.sh down
+    seed: scripts/mvp.sh seed
+    ready: scripts/mvp.sh ready
+    smoke: scripts/mvp.sh smoke
+    e2e: scripts/mvp.sh e2e
+    diagnostics: scripts/mvp.sh diagnostics
+    authz: contexts/authz/ops/Helm/templates/bootstrap-job.yaml

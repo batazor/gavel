@@ -212,6 +212,33 @@ async fn mutation_parsing_and_error_extensions_are_stable() {
     assert!(!error.message.contains("private.database"));
 }
 
+#[tokio::test]
+async fn list_lot_reuses_server_generated_id_for_exact_retry() {
+    let api = Arc::new(MockApi::default());
+    let document = "mutation { listLot(input: {title:\"Lot\", images:[{imageId:\"image-1\", alt:\"front\"}], \
+         startPrice:\"100\", currency:\"USD\", scheduledEnd:\"2023-11-14T22:14:20Z\"}, \
+         idempotencyKey:\"stable-list-key\") { id } }";
+
+    let first = schema(Arc::clone(&api) as Arc<dyn CatalogGraphqlApi>)
+        .execute(Request::new(document).data(verified()))
+        .await;
+    let mut later = verified();
+    later.now_millis += 5_000;
+    let retry = schema(Arc::clone(&api) as Arc<dyn CatalogGraphqlApi>)
+        .execute(Request::new(document).data(later))
+        .await;
+
+    assert!(first.errors.is_empty(), "{:?}", first.errors);
+    assert!(retry.errors.is_empty(), "{:?}", retry.errors);
+    let listings = api.listings.lock().unwrap();
+    assert_eq!(listings.len(), 2);
+    assert_eq!(listings[0].lot_id, listings[1].lot_id);
+    assert_ne!(
+        listings[0].occurred_at_millis,
+        listings[1].occurred_at_millis
+    );
+}
+
 #[test]
 fn executable_schema_contains_owned_federation_contract_without_private_fields() {
     let sdl = schema(Arc::new(MockApi::default()))

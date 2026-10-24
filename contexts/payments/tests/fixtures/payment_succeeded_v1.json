@@ -1,9 +1,11 @@
 {
   "eventId": "payments-event-success-1",
+  "aggregateId": "attempt-1",
   "eventType": "PaymentSucceeded",
   "schemaVersion": 1,
   "aggregateVersion": 4,
   "occurredAtMillis": 1700000002000,
   "correlationId": "payments-correlation-2",
+  "causationId": "provider-callback-2",
   "payload": { "paymentAttemptId": "attempt-1", "auctionId": "auction-1", "settlementRound": 1 }
 }

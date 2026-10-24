@@ -54,6 +54,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap_or_else(|_| "gavel_authz=info".into()),
         )
         .init();
+    if std::env::args().nth(1).as_deref() == Some("bootstrap") {
+        let report = gavel_authz::local_bootstrap::run_from_env().await?;
+        println!("{}", serde_json::to_string(&report)?);
+        return Ok(());
+    }
     if std::env::args().nth(1).as_deref() == Some("--migrate") {
         let database_url = std::env::var("AUTHZ_DATABASE_URL")?;
         let pool = PgPoolOptions::new()

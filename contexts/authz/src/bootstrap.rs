@@ -119,6 +119,7 @@ fn key(name: &'static str) -> Result<[u8; 32], ConfigError> {
 fn parse_workload(value: &str) -> Result<crate::application::WorkloadIdentity, ConfigError> {
     use crate::application::WorkloadIdentity;
     match value {
+        "bootstrap" => Ok(WorkloadIdentity::Bootstrap),
         "bff" => Ok(WorkloadIdentity::Bff),
         "auction" => Ok(WorkloadIdentity::Auction),
         "catalog" => Ok(WorkloadIdentity::Catalog),

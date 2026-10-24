@@ -1,0 +1,17 @@
+{
+  "eventId": "evt-auction-restricted-1",
+  "aggregateId": "auction-1",
+  "aggregateVersion": 8,
+  "schemaVersion": 1,
+  "occurredAt": "2026-10-23T00:05:00Z",
+  "correlationId": "correlation-1",
+  "causationId": "evt-auction-public-1",
+  "settlementCandidateSelected": {
+    "candidateId": "bidder-1",
+    "settlementRound": 1,
+    "amount": {
+      "minorUnits": 12500,
+      "currencyCode": "USD"
+    }
+  }
+}

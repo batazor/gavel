@@ -13,6 +13,8 @@ helm upgrade --install authz contexts/authz/ops/Helm --namespace gavel --create-
 
 Before install, provision the Secrets named by `externalSecrets` in `values.yaml`: PostgreSQL URL, SpiceDB endpoint/credential, principal HMAC key, and receipt fingerprint key. The HMAC values must be independently generated 32-byte values and rotated deliberately; changing the principal key changes derived principal IDs.
 
+`bootstrap.enabled` defaults to `false`. The local kind overlay is the only checked-in profile that enables it together with `bootstrap.localOnly=true`. The post-install/post-upgrade Job has a dedicated ServiceAccount, calls Authz gRPC owner APIs with stable keys, verifies expected allow/deny decisions, and never receives the SpiceDB credential. Enabling the Job without the explicit local guard fails Helm rendering.
+
 ## Endpoints and SLI
 
 - `GET /healthz`: process liveness.

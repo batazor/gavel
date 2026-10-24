@@ -5,16 +5,18 @@ use async_graphql::{
     SimpleObject,
 };
 use async_trait::async_trait;
+use base64::Engine as _;
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
+use sha2::{Digest, Sha256};
 
 use crate::{
     application::{
         ApplicationError, AuctionProjectionReader, AuctionUnitOfWork, AuctionView, Authorization,
-        CommandContext, PaymentReadiness, PlaceBid, PlaceBidInput, PlaceBidResult, Principal,
-        PublicAuctionStatus, RescheduleAuction, RescheduleAuctionInput,
+        AuthorizationDecision, CommandContext, PaymentReadiness, PermissionCheck, PlaceBid,
+        PlaceBidInput, PlaceBidResult, Principal, PrincipalKind, PublicAuctionStatus,
+        RescheduleAuction, RescheduleAuctionInput,
     },
-    domain::Timestamp,
+    domain::{Auction, BidderId, Timestamp},
 };
 
 #[derive(Clone)]
@@ -28,6 +30,17 @@ pub struct VerifiedRequestContext {
 #[async_trait]
 pub trait AuctionGraphqlApi: Send + Sync {
     async fn auction(&self, auction_id: &str) -> Result<Option<AuctionView>, ApplicationError>;
+    async fn auction_by_lot_id(
+        &self,
+        lot_id: &str,
+    ) -> Result<Option<AuctionView>, ApplicationError>;
+    async fn viewer(
+        &self,
+        _auction_id: &str,
+        _principal: &Principal,
+    ) -> Result<Option<AuctionViewerObject>, ApplicationError> {
+        Ok(None)
+    }
     async fn place_bid(
         &self,
         context: &CommandContext,
@@ -42,6 +55,9 @@ pub trait AuctionGraphqlApi: Send + Sync {
 
 pub struct AuctionGraphqlApplication<U, A, P> {
     reader: Arc<U>,
+    unit_of_work: Arc<U>,
+    authorization: Arc<A>,
+    payment_readiness: Arc<P>,
     place_bid: PlaceBid<U, A, P>,
     reschedule: RescheduleAuction<U, A>,
 }
@@ -61,6 +77,9 @@ where
     ) -> Self {
         Self {
             reader: Arc::clone(&unit_of_work),
+            unit_of_work: Arc::clone(&unit_of_work),
+            authorization: Arc::clone(&authorization),
+            payment_readiness: Arc::clone(&payment_readiness),
             place_bid: PlaceBid::new(
                 Arc::clone(&unit_of_work),
                 Arc::clone(&authorization),
@@ -95,6 +114,75 @@ where
             })
     }
 
+    async fn auction_by_lot_id(
+        &self,
+        lot_id: &str,
+    ) -> Result<Option<AuctionView>, ApplicationError> {
+        self.reader
+            .auction_by_lot_id(lot_id)
+            .await
+            .map(|projection| projection.map(|projection| projection.view))
+            .map_err(|_| ApplicationError::DependencyUnavailable {
+                dependency: "auction_db",
+            })
+    }
+
+    async fn viewer(
+        &self,
+        auction_id: &str,
+        principal: &Principal,
+    ) -> Result<Option<AuctionViewerObject>, ApplicationError> {
+        if principal.kind != PrincipalKind::User {
+            return Ok(None);
+        }
+        let loaded = self
+            .unit_of_work
+            .load(auction_id)
+            .await
+            .map_err(|_| ApplicationError::DependencyUnavailable {
+                dependency: "auction_db",
+            })?
+            .ok_or(ApplicationError::NotFound)?;
+        let mut aggregate: Auction = loaded.snapshot.unwrap_or_default();
+        for event in loaded.events {
+            aggregate.apply(event).map_err(ApplicationError::from)?;
+        }
+        let bidder = BidderId::from(principal.id.clone());
+        let can_bid = if aggregate.status() == crate::domain::AuctionStatus::Open {
+            let authorized = self
+                .authorization
+                .check(PermissionCheck {
+                    principal: principal.clone(),
+                    resource_type: "auction".to_owned(),
+                    resource_id: auction_id.to_owned(),
+                    permission: "place_bid".to_owned(),
+                })
+                .await
+                .map_err(|_| ApplicationError::DependencyUnavailable {
+                    dependency: "authz",
+                })?
+                == AuthorizationDecision::Allowed;
+            authorized
+                && self
+                    .payment_readiness
+                    .is_ready(&principal.id)
+                    .await
+                    .map_err(|_| ApplicationError::DependencyUnavailable {
+                        dependency: "payments_projection",
+                    })?
+        } else {
+            false
+        };
+        Ok(Some(AuctionViewerObject {
+            is_leader: aggregate.leader() == Some(&bidder),
+            is_settlement_candidate: aggregate
+                .settlement_candidate()
+                .is_some_and(|(candidate, _, _)| candidate == &bidder),
+            is_winner: aggregate.winner() == Some(&bidder),
+            can_bid,
+        }))
+    }
+
     async fn place_bid(
         &self,
         context: &CommandContext,
@@ -122,6 +210,7 @@ pub fn schema(api: Arc<dyn AuctionGraphqlApi>) -> AuctionSchema {
         MutationRoot { api },
         EmptySubscription,
     )
+    .enable_federation()
     .finish()
 }
 
@@ -129,15 +218,15 @@ pub struct QueryRoot {
     api: Arc<dyn AuctionGraphqlApi>,
 }
 
-#[Object]
+#[Object(name = "Query")]
 impl QueryRoot {
-    async fn auction(&self, id: async_graphql::ID) -> Result<Option<AuctionObject>> {
-        self.api
-            .auction(id.as_str())
-            .await
-            .map(|view| view.map(AuctionObject::try_from).transpose())
-            .map_err(graphql_error)?
-            .map_err(graphql_error)
+    async fn auction(
+        &self,
+        context: &Context<'_>,
+        id: async_graphql::ID,
+    ) -> Result<Option<AuctionObject>> {
+        let view = self.api.auction(id.as_str()).await.map_err(graphql_error)?;
+        auction_object(&self.api, context, view).await
     }
 
     async fn current_price(
@@ -151,13 +240,31 @@ impl QueryRoot {
             .map_err(graphql_error)?
             .map_err(graphql_error)
     }
+
+    #[graphql(entity)]
+    async fn find_auction_by_id(
+        &self,
+        context: &Context<'_>,
+        id: async_graphql::ID,
+    ) -> Result<Option<AuctionObject>> {
+        let view = self.api.auction(id.as_str()).await.map_err(graphql_error)?;
+        auction_object(&self.api, context, view).await
+    }
+
+    #[graphql(entity)]
+    async fn find_lot_by_id(&self, id: async_graphql::ID) -> LotObject {
+        LotObject {
+            id,
+            api: Arc::clone(&self.api),
+        }
+    }
 }
 
 pub struct MutationRoot {
     api: Arc<dyn AuctionGraphqlApi>,
 }
 
-#[Object]
+#[Object(name = "Mutation")]
 impl MutationRoot {
     async fn place_bid(
         &self,
@@ -167,6 +274,11 @@ impl MutationRoot {
     ) -> Result<PlaceBidObject> {
         let verified = verified_context(context)?;
         let command_context = command_context(&verified, idempotency_key)?;
+        let bid_id = deterministic_bid_id(
+            &verified.principal.id,
+            input.auction_id.as_str(),
+            &command_context.idempotency_key,
+        );
         let maximum_minor = input.maximum_amount.parse().map_err(|_| {
             graphql_error(ApplicationError::InvalidArgument {
                 reason: "invalid_maximum_amount",
@@ -179,7 +291,7 @@ impl MutationRoot {
                 &command_context,
                 PlaceBidInput {
                     auction_id: input.auction_id.to_string(),
-                    bid_id: Uuid::now_v7().to_string(),
+                    bid_id,
                     maximum_minor,
                     currency_code: input.currency,
                     placed_at: verified.now,
@@ -187,7 +299,15 @@ impl MutationRoot {
             )
             .await
             .map_err(graphql_error)?;
-        PlaceBidObject::try_from(result).map_err(graphql_error)
+        let is_leader = !result.outbid;
+        let mut object = PlaceBidObject::try_from(result).map_err(graphql_error)?;
+        object.auction.viewer = Some(AuctionViewerObject {
+            is_leader,
+            is_settlement_candidate: false,
+            is_winner: false,
+            can_bid: true,
+        });
+        Ok(object)
     }
 
     async fn reschedule_auction(
@@ -221,6 +341,28 @@ impl MutationRoot {
             .await
             .map_err(graphql_error)?;
         AuctionObject::try_from(view).map_err(graphql_error)
+    }
+}
+
+pub struct LotObject {
+    id: async_graphql::ID,
+    api: Arc<dyn AuctionGraphqlApi>,
+}
+
+#[Object(name = "Lot", extends)]
+impl LotObject {
+    #[graphql(external)]
+    async fn id(&self) -> &async_graphql::ID {
+        &self.id
+    }
+
+    async fn auction(&self, context: &Context<'_>) -> Result<Option<AuctionObject>> {
+        let view = self
+            .api
+            .auction_by_lot_id(self.id.as_str())
+            .await
+            .map_err(graphql_error)?;
+        auction_object(&self.api, context, view).await
     }
 }
 
@@ -309,13 +451,29 @@ impl TryFrom<AuctionView> for CurrentPriceObject {
     }
 }
 
-#[derive(SimpleObject)]
+#[derive(Clone, SimpleObject)]
 #[graphql(name = "AuctionViewer")]
 pub struct AuctionViewerObject {
     pub is_leader: bool,
     pub is_settlement_candidate: bool,
     pub is_winner: bool,
     pub can_bid: bool,
+}
+
+async fn auction_object(
+    api: &Arc<dyn AuctionGraphqlApi>,
+    context: &Context<'_>,
+    view: Option<AuctionView>,
+) -> Result<Option<AuctionObject>> {
+    let Some(view) = view else { return Ok(None) };
+    let mut object = AuctionObject::try_from(view).map_err(graphql_error)?;
+    if let Some(verified) = context.data_opt::<VerifiedRequestContext>() {
+        object.viewer = api
+            .viewer(object.id.as_str(), &verified.principal)
+            .await
+            .map_err(graphql_error)?;
+    }
+    Ok(Some(object))
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
@@ -365,6 +523,20 @@ fn command_context(
         correlation_id: verified.correlation_id.clone(),
         causation_id: verified.causation_id.clone(),
     })
+}
+
+fn deterministic_bid_id(principal_id: &str, auction_id: &str, idempotency_key: &str) -> String {
+    let mut digest = Sha256::new();
+    digest.update(b"gavel-auction-place-bid-id\0");
+    digest.update(principal_id.as_bytes());
+    digest.update([0]);
+    digest.update(auction_id.as_bytes());
+    digest.update([0]);
+    digest.update(idempotency_key.as_bytes());
+    format!(
+        "bid-{}",
+        base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(digest.finalize())
+    )
 }
 
 fn graphql_error(error: ApplicationError) -> Error {

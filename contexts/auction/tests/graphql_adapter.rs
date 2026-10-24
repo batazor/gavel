@@ -13,21 +13,21 @@ use gavel_auction::{
 
 struct MockApi {
     error: Option<ApplicationError>,
-    placed_maxima: Mutex<Vec<u64>>,
+    placed_bids: Mutex<Vec<PlaceBidInput>>,
 }
 
 impl MockApi {
     fn success() -> Self {
         Self {
             error: None,
-            placed_maxima: Mutex::new(Vec::new()),
+            placed_bids: Mutex::new(Vec::new()),
         }
     }
 
     fn failing(error: ApplicationError) -> Self {
         Self {
             error: Some(error),
-            placed_maxima: Mutex::new(Vec::new()),
+            placed_bids: Mutex::new(Vec::new()),
         }
     }
 }
@@ -55,6 +55,16 @@ impl AuctionGraphqlApi for MockApi {
         Ok(Some(view()))
     }
 
+    async fn auction_by_lot_id(
+        &self,
+        lot_id: &str,
+    ) -> Result<Option<AuctionView>, ApplicationError> {
+        if let Some(error) = &self.error {
+            return Err(error.clone());
+        }
+        Ok((lot_id == "lot-1").then(view))
+    }
+
     async fn place_bid(
         &self,
         _context: &CommandContext,
@@ -63,7 +73,7 @@ impl AuctionGraphqlApi for MockApi {
         if let Some(error) = &self.error {
             return Err(error.clone());
         }
-        self.placed_maxima.lock().unwrap().push(input.maximum_minor);
+        self.placed_bids.lock().unwrap().push(input);
         Ok(PlaceBidResult {
             auction: view(),
             accepted_version: 7,
@@ -130,8 +140,54 @@ async fn mutation_uses_verified_context_and_never_echoes_maximum() {
         .execute(request)
         .await;
     assert!(response.errors.is_empty(), "{:?}", response.errors);
-    assert_eq!(*api.placed_maxima.lock().unwrap(), vec![9_000]);
+    assert_eq!(api.placed_bids.lock().unwrap()[0].maximum_minor, 9_000);
     assert!(!serde_json::to_string(&response).unwrap().contains("9000"));
+}
+
+#[tokio::test]
+async fn exact_retry_reuses_server_generated_bid_id() {
+    let api = Arc::new(MockApi::success());
+    let document = "mutation { placeBid(input: {auctionId: \"auction-1\", maximumAmount: \"9000\", currency: \"USD\"}, idempotencyKey: \"stable-bid-key\") { acceptedVersion } }";
+
+    let first = schema(Arc::clone(&api) as Arc<dyn AuctionGraphqlApi>)
+        .execute(Request::new(document).data(verified()))
+        .await;
+    let mut later = verified();
+    later.now = Timestamp::from_millis(1_700_000_005_000);
+    let retry = schema(Arc::clone(&api) as Arc<dyn AuctionGraphqlApi>)
+        .execute(Request::new(document).data(later))
+        .await;
+
+    assert!(first.errors.is_empty(), "{:?}", first.errors);
+    assert!(retry.errors.is_empty(), "{:?}", retry.errors);
+    let bids = api.placed_bids.lock().unwrap();
+    assert_eq!(bids.len(), 2);
+    assert_eq!(bids[0].bid_id, bids[1].bid_id);
+    assert_ne!(bids[0].placed_at, bids[1].placed_at);
+}
+
+#[tokio::test]
+async fn federation_lot_entity_resolves_owner_backed_auction() {
+    let response = schema(Arc::new(MockApi::success()))
+        .execute(
+            r#"query {
+                _entities(representations: [{__typename: "Lot", id: "lot-1"}]) {
+                    ... on Lot { id auction { id lotId status } }
+                }
+            }"#,
+        )
+        .await;
+
+    assert!(response.errors.is_empty(), "{:?}", response.errors);
+    assert_eq!(
+        response.data,
+        value!({
+            "_entities": [{
+                "id": "lot-1",
+                "auction": {"id": "auction-1", "lotId": "lot-1", "status": "OPEN"}
+            }]
+        })
+    );
 }
 
 #[tokio::test]
@@ -165,8 +221,16 @@ async fn errors_have_stable_extensions_and_auth_is_required() {
 
 #[test]
 fn executable_schema_contains_the_owned_operations_only() {
-    let sdl = schema(Arc::new(MockApi::success())).sdl();
-    for field in ["auction", "currentPrice", "placeBid", "rescheduleAuction"] {
+    let sdl = schema(Arc::new(MockApi::success()))
+        .sdl_with_options(async_graphql::SDLExportOptions::new().federation());
+    for field in [
+        "auction",
+        "currentPrice",
+        "placeBid",
+        "rescheduleAuction",
+        "type Auction @key(fields: \"id\")",
+        "extend type Lot @key(fields: \"id\")",
+    ] {
         assert!(sdl.contains(field), "missing {field} in schema:\n{sdl}");
     }
     for secret in ["maximumMinor", "bidderId", "paymentId", "providerObject"] {

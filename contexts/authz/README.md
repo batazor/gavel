@@ -21,6 +21,7 @@ Runtime предоставляет `CheckPermission`, `BulkCheckPermissions`, `R
 ## Юзкейсы
 
 - [authorize-command](use-cases/authorize-command/README.md) — pre-check в BFF и authoritative check у владельца команды
+- [local-bootstrap](use-cases/local-bootstrap/README.md) — идемпотентная регистрация seller/two bidders и минимального Processes workload grant через owner gRPC API
 
 ## Enforcement
 
@@ -51,7 +52,7 @@ Runtime предоставляет `CheckPermission`, `BulkCheckPermissions`, `R
 
 | Owner | Relationships |
 |---|---|
-| Authz/bootstrap | `platform:member`, `platform:administrator`, `platform:process_worker` |
+| Authz/bootstrap | `platform:member` через `RegisterPrincipal`; только фиксированный `platform:gavel#process_worker@service_account:processes` через `WriteRelationships` |
 | Catalog | `lot:platform`, `lot:seller` |
 | Auction | `auction:platform`, `auction:lot`, `auction:participant` |
 | Payments | `payment_profile:owner`, `payment_attempt:owner/platform/auction` |
@@ -60,9 +61,10 @@ Runtime предоставляет `CheckPermission`, `BulkCheckPermissions`, `R
 
 Relationship writes use stable domain ids and are idempotent. Они проходят через Authz relationship writer, который по mTLS workload identity разрешает каждому проекту только его resource types. The owning context stores the latest ZedToken needed for causal permission checks.
 
-Закрытая workload allowlist: BFF регистрирует principals и владеет `operation`; Catalog — `lot`; Auction — `auction`; Payments — `payment_profile`/`payment_attempt`; Notify — `notification`; Processes может только читать permissions. Любой неизвестный workload или cross-owner write отклоняется до SpiceDB.
+Закрытая workload allowlist: BFF регистрирует principals и владеет `operation`; Catalog — `lot`; Auction — `auction`; Payments — `payment_profile`/`payment_attempt`; Notify — `notification`; Processes может только читать permissions. Local bootstrap имеет отдельную workload identity: она может повторно зарегистрировать local actors и записать только фиксированный Processes grant. Любой неизвестный workload или cross-owner write отклоняется до SpiceDB.
 
 ## Operations
 
 - [Tokio runtime](src/main.rs) — HTTP health/metrics, internal gRPC, readiness PostgreSQL/SpiceDB и graceful shutdown.
+- `gavel-authz bootstrap` — development-only клиент owner API; требует `AUTHZ_BOOTSTRAP_LOCAL_ONLY=true`, возвращает только opaque principal ids и fail closed проверяет ожидаемые allow/deny решения.
 - [Docker image, Helm chart, Prometheus rules и Grafana dashboard](ops/Helm/README.md)

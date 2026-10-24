@@ -164,19 +164,15 @@ fn prepare_bid(
 #[derive(Serialize)]
 struct CanonicalPlaceBid<'a> {
     auction_id: &'a str,
-    bid_id: &'a str,
     maximum_minor: u64,
     currency_code: &'a str,
-    placed_at_millis: u64,
 }
 
 fn canonical_payload(input: &PlaceBidInput) -> Result<Vec<u8>, ApplicationError> {
     serde_json::to_vec(&CanonicalPlaceBid {
         auction_id: &input.auction_id,
-        bid_id: &input.bid_id,
         maximum_minor: input.maximum_minor,
         currency_code: &input.currency_code,
-        placed_at_millis: input.placed_at.as_millis(),
     })
     .map_err(|_| ApplicationError::Internal)
 }

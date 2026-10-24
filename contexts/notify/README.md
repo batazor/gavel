@@ -12,11 +12,11 @@ Provider-neutral bounded context доставки пользовательски
 
 ## Компоненты
 
-- **Notification API** — идемпотентная команда `SendNotification(notification_id, recipient, template, data)`.
-- **Notification aggregate** — состояния `Pending → Sent | Failed`, логические retry и audit.
-- **Template renderer** — версионированные шаблоны без settlement-правил.
-- **Channel adapter** — сменный email-провайдер; другие каналы можно добавить позже.
-- **Transactional outbox** — `NotificationSent`/`NotificationFailed`, публикуемые Debezium.
+- **Notification API** — trusted gRPC-команда `SendNotification` только от Processes и read-only `GetNotification` для доверенного smoke/operator workload.
+- **Notification aggregate** — состояния `PENDING → SENT | FAILED`, canonical fingerprint, exact replay и typed conflict при повторном id с другим payload.
+- **PostgreSQL repository** — notification, bounded delivery attempts, terminal result и безопасный transactional outbox принадлежат Notify.
+- **Template renderer** — owner-controlled ссылки `settlement_candidate.v1`, `settlement_candidate_failed.v1`, `payment_recovery_required.v1`, `winner_confirmed.v1`.
+- **SMTP adapter** — Mailpit-compatible доставка с ограниченными retry; адрес восстановления остаётся только в теле письма и не попадает в telemetry.
 
 ## Юзкейсы
 
@@ -24,5 +24,11 @@ Provider-neutral bounded context доставки пользовательски
 
 ## Operations
 
-- [Hello-world build scaffold](src/main.rs)
+- HTTP `:8080/healthz`, `/readyz`, `/metrics`; readiness проверяет PostgreSQL и доступность SMTP.
+- gRPC `:9090`: `NotifyService` и внутренний `NotifyOperatorService`; доступ ограничивается mesh principal и NetworkPolicy.
+- Миграции выполняются `gavel-notify migrate` либо pre-install/pre-upgrade Helm job.
 - [Docker image, Helm chart, Prometheus rules и Grafana dashboard](ops/Helm/README.md)
+
+Локальный профиль использует `ops/Helm/values-local.yaml`; секрет `gavel-notify-runtime` с ключом `database-url` создаёт platform bootstrap и не хранится в Git.
+
+Telemetry содержит только template reference и bounded outcome. Recipient, notification id, idempotency key, template data, recovery URL и SMTP payload запрещены в labels и логах.

@@ -103,13 +103,14 @@ async fn postgres_uow_is_atomic_idempotent_and_optimistically_concurrent() {
         "auction_streams",
         "auction_events",
         "auction_outbox",
+        "auction_process_outbox",
         "auction_command_results",
     ] {
         let query = format!(
             "SELECT count(*) FROM {table} WHERE {} = $1",
             if table == "auction_command_results" {
                 "idempotency_key"
-            } else if table == "auction_outbox" {
+            } else if matches!(table, "auction_outbox" | "auction_process_outbox") {
                 "aggregate_id"
             } else {
                 "auction_id"
@@ -216,6 +217,13 @@ async fn postgres_uow_is_atomic_idempotent_and_optimistically_concurrent() {
     assert_eq!(terminal.view.status, PublicAuctionStatus::Cancelled);
     assert_eq!(terminal.view.version, 2);
     assert_eq!(terminal.view.current_price.minor_units, 100);
+    let process_count: i64 =
+        sqlx::query_scalar("SELECT count(*) FROM auction_process_outbox WHERE aggregate_id = $1")
+            .bind(&replay_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(process_count, 1, "cancel must emit one restricted fact");
 
     let concurrent_id = format!("concurrent-{suffix}");
     let left = open_request(&concurrent_id, &format!("left-{suffix}"));

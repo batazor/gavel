@@ -2,6 +2,10 @@
 {{- .Chart.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "gavel.bootstrapServiceAccount" -}}
+{{- printf "%s-bootstrap" (include "gavel.name" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{- define "gavel.fullname" -}}
 {{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

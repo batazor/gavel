@@ -15,6 +15,31 @@ rpc:
     - cluster.local/ns/gavel/sa/gavel-processes
   allowedApplications:
     - gavel-processes
+    - gavel-mvp-smoke
+  operatorPrincipals:
+    - cluster.local/ns/gavel/sa/gavel-mvp-smoke
+
+config:
+  smtpAddress: mailpit.gavel.svc.cluster.local:1025
+  smtpFrom: no-reply@gavel.local
+  smtpTimeoutMillis: 3000
+  deliveryAttempts: 3
+  retryBaseMillis: 100
+  retryMaxMillis: 1000
+  processesSpiffeId: spiffe://cluster.local/ns/gavel/sa/gavel-processes
+  operatorPrincipal: spiffe://cluster.local/ns/gavel/sa/gavel-mvp-smoke
+
+externalSecret:
+  name: gavel-notify-runtime
+  databaseUrlKey: database-url
+  localOperatorTokenKey: local-operator-token
+
+localOperator:
+  enabled: false
+
+migration:
+  enabled: true
+  backoffLimit: 3
 
 resources:
   requests:

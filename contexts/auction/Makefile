@@ -1,6 +1,12 @@
 SERVICE := auction
 include ../../ops/Makefiles/service.mk
 
+.PHONY: helm-render-check
+helm-check: helm-render-check
+helm-render-check: ## проверить default/local render и обязательный runtime contract Auction
+	helm template gavel-auction ops/Helm | ops/Helm/tests/assert-render.sh
+	helm template gavel-auction ops/Helm -f ops/Helm/values-local.yaml | ops/Helm/tests/assert-render.sh
+
 POSTGRES_IMAGE := postgres:17.6-alpine
 POSTGRES_CONTAINER := gavel-auction-postgres-test
 POSTGRES_PORT ?= 55439

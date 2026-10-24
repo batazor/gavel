@@ -164,6 +164,8 @@ pub trait PaymentReadinessStore: PaymentReadiness {
 #[async_trait]
 pub trait AuctionProjectionReader: Send + Sync {
     async fn auction(&self, auction_id: &str) -> Result<Option<AuctionProjection>, PortError>;
+    async fn auction_by_lot_id(&self, lot_id: &str)
+    -> Result<Option<AuctionProjection>, PortError>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

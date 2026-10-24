@@ -1,0 +1,24 @@
+deploymentProfile: local
+replicaCount: 1
+
+image:
+  repository: gavel-bff
+  tag: local
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30080
+
+localAuth:
+  enabled: true
+  issuer: http://127.0.0.1:8080/default
+  audience: gavel-web
+  jwksUri: http://local-jwt:8080/default/jwks
+  catalogHttpEndpoint: gavel-catalog-gavel-catalog
+  corsOrigins:
+    - http://127.0.0.1:4173
+    - http://localhost:4173
+    - http://127.0.0.1:3000
+    - http://localhost:3000

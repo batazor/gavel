@@ -1,10 +1,12 @@
 {
   "eventId": "payments-event-revoked-1",
+  "aggregateId": "instrument-1",
   "eventType": "PaymentInstrumentRevoked",
   "schemaVersion": 1,
   "aggregateVersion": 1,
   "occurredAtMillis": 1699999999000,
   "correlationId": "payments-correlation-1",
+  "causationId": "revoke-instrument-1",
   "payload": {
     "instrumentId": "instrument-1",
     "userId": "user-1"

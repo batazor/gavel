@@ -3,6 +3,7 @@ FROM rust:1.85-bookworm AS builder
 
 WORKDIR /workspace
 COPY Cargo.toml Cargo.lock ./
+COPY .cargo ./.cargo
 COPY contexts ./contexts
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

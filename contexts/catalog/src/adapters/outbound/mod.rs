@@ -2,6 +2,7 @@
 
 pub mod authz;
 pub mod events;
+pub mod local_storage;
 pub mod postgres;
 pub mod postgres_reader;
 pub mod s3;

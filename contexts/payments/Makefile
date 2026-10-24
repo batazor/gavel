@@ -3,6 +3,12 @@ DOCKER_CONTEXT := ../..
 DOCKERFILE := ops/Dockerfile
 include ../../ops/Makefiles/service.mk
 
+.PHONY: helm-render-check
+helm-check: helm-render-check
+helm-render-check: ## проверить default/local render и обязательный runtime contract Payments
+	helm template gavel-payments ops/Helm | ops/Helm/tests/assert-render.sh
+	helm template gavel-payments ops/Helm -f ops/Helm/values-local.yaml | ops/Helm/tests/assert-render.sh
+
 POSTGRES_IMAGE := postgres:17.6-alpine3.22
 POSTGRES_CONTAINER := gavel-payments-postgres
 TEST_DATABASE_URL := postgres://postgres:postgres@127.0.0.1:55432/payments

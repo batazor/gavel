@@ -1,0 +1,127 @@
+{{- include "gavel.localAuthGuard" . }}
+{{- if .Values.localAuth.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gavel.fullname" . }}-local-auth
+  labels:
+    {{- include "gavel.labels" . | nindent 4 }}
+    gavel.dev/development-only: "true"
+data:
+  envoy.yaml: |-
+    static_resources:
+      listeners:
+        - name: local_ingress
+          address:
+            socket_address: { address: 0.0.0.0, port_value: {{ .Values.service.port }} }
+          filter_chains:
+            - filters:
+                - name: envoy.filters.network.http_connection_manager
+                  typed_config:
+                    "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                    stat_prefix: local_auth_ingress
+                    route_config:
+                      name: gavel_local_routes
+                      virtual_hosts:
+                        - name: gavel
+                          domains: ["*"]
+                          typed_per_filter_config:
+                            envoy.filters.http.cors:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
+                              allow_origin_string_match:
+                                {{- range .Values.localAuth.corsOrigins }}
+                                - exact: {{ . | quote }}
+                                {{- end }}
+                              allow_methods: "GET, POST, OPTIONS"
+                              allow_headers: "authorization,content-type,accept,x-correlation-id"
+                              allow_credentials: true
+                              max_age: "86400"
+                          routes:
+                            - match: { prefix: "/default/" }
+                              route: { cluster: local_jwt, timeout: 5s }
+                            - match: { prefix: "/foreign/" }
+                              route: { cluster: local_jwt, timeout: 5s }
+                            - match: { prefix: "/images/" }
+                              route: { cluster: catalog_http, timeout: 5s }
+                            - match: { prefix: "/" }
+                              route: { cluster: cosmo_router, timeout: 15s }
+                    http_filters:
+                      - name: envoy.filters.http.jwt_authn
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
+                          providers:
+                            gavel_local:
+                              issuer: {{ .Values.localAuth.issuer | quote }}
+                              audiences: [{{ .Values.localAuth.audience | quote }}]
+                              forward: true
+                              forward_payload_header: x-gavel-verified-jwt
+                              claim_to_headers:
+                                - { header_name: x-gavel-principal-sub, claim_name: sub }
+                                - { header_name: x-gavel-principal-issuer, claim_name: iss }
+                                - { header_name: x-gavel-user-id, claim_name: principal_id }
+                                - { header_name: x-gavel-principal, claim_name: principal_id }
+                              remote_jwks:
+                                http_uri:
+                                  uri: {{ .Values.localAuth.jwksUri | quote }}
+                                  cluster: local_jwt
+                                  timeout: 3s
+                                cache_duration: 300s
+                          rules:
+                            - match:
+                                prefix: "/graphql"
+                                headers:
+                                  - name: ":method"
+                                    string_match: { exact: "OPTIONS" }
+                            - match: { prefix: "/graphql" }
+                              requires: { provider_name: gavel_local }
+                            - match: { prefix: "/" }
+                      - name: envoy.filters.http.header_mutation
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.header_mutation.v3.HeaderMutation
+                          mutations:
+                            request_mutations:
+                              - append:
+                                  header:
+                                    key: x-correlation-id
+                                    value: "%REQ(X-REQUEST-ID)%"
+                                  append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                      - name: envoy.filters.http.cors
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+                      - name: envoy.filters.http.router
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+      clusters:
+        - name: cosmo_router
+          connect_timeout: 2s
+          type: STATIC
+          load_assignment:
+            cluster_name: cosmo_router
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address: { address: 127.0.0.1, port_value: {{ .Values.localAuth.routerPort }} }
+        - name: local_jwt
+          connect_timeout: 2s
+          type: STRICT_DNS
+          load_assignment:
+            cluster_name: local_jwt
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address: { address: local-jwt, port_value: 8080 }
+        - name: catalog_http
+          connect_timeout: 2s
+          type: STRICT_DNS
+          load_assignment:
+            cluster_name: catalog_http
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ .Values.localAuth.catalogHttpEndpoint | quote }}
+                          port_value: 8080
+{{- end }}

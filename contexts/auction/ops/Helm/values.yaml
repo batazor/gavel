@@ -18,6 +18,7 @@ rpc:
 
 runtime:
   dependencyTimeoutMillis: 500
+  processesSpiffeId: spiffe://cluster.local/ns/gavel/sa/gavel-processes
 
 database:
   existingSecret: gavel-auction-database
@@ -28,10 +29,22 @@ redis:
 
 authz:
   url: http://gavel-authz:9090
+  callerSpiffeId: spiffe://cluster.local/ns/gavel/sa/gavel-auction
 
 commandFingerprint:
   existingSecret: gavel-auction-command-fingerprint
   key: key-hex
+
+redpanda:
+  brokers: redpanda.gavel-mvp.svc.cluster.local:9092
+  groupId: gavel-auction-owner-events-v1
+  clientId: gavel-auction
+  securityProtocol: SASL_PLAINTEXT
+  sasl:
+    secretRef:
+      name: gavel-redpanda-auction
+      usernameKey: username
+      passwordKey: password
 
 migrations:
   enabled: true

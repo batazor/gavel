@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-connect
+  labels: {app.kubernetes.io/name: kafka-connect, app.kubernetes.io/part-of: gavel-mvp}
+spec:
+  selector: {app.kubernetes.io/name: kafka-connect}
+  ports:
+    - {name: http, port: 8083, targetPort: http}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-connect
+  labels: {app.kubernetes.io/name: kafka-connect, app.kubernetes.io/part-of: gavel-mvp}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: kafka-connect}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: kafka-connect, app.kubernetes.io/part-of: gavel-mvp}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: kafka-connect
+          image: quay.io/debezium/connect:3.3.1.Final
+          imagePullPolicy: IfNotPresent
+          command: [/bin/bash, -ec]
+          args:
+            - >-
+              jaas="org.apache.kafka.common.security.scram.ScramLoginModule required username='${KAFKA_USERNAME}' password='${KAFKA_PASSWORD}';";
+              export CONNECT_SASL_JAAS_CONFIG="${jaas}";
+              export CONNECT_PRODUCER_SASL_JAAS_CONFIG="${jaas}";
+              export CONNECT_CONSUMER_SASL_JAAS_CONFIG="${jaas}";
+              exec /docker-entrypoint.sh start
+          env:
+            - {name: BOOTSTRAP_SERVERS, value: redpanda:9092}
+            - {name: GROUP_ID, value: gavel-debezium-connect-v1}
+            - {name: CONFIG_STORAGE_TOPIC, value: _gavel_connect_configs}
+            - {name: OFFSET_STORAGE_TOPIC, value: _gavel_connect_offsets}
+            - {name: STATUS_STORAGE_TOPIC, value: _gavel_connect_status}
+            - {name: CONNECT_SECURITY_PROTOCOL, value: SASL_PLAINTEXT}
+            - {name: CONNECT_SASL_MECHANISM, value: SCRAM-SHA-256}
+            - {name: CONNECT_PRODUCER_SECURITY_PROTOCOL, value: SASL_PLAINTEXT}
+            - {name: CONNECT_PRODUCER_SASL_MECHANISM, value: SCRAM-SHA-256}
+            - {name: CONNECT_CONSUMER_SECURITY_PROTOCOL, value: SASL_PLAINTEXT}
+            - {name: CONNECT_CONSUMER_SASL_MECHANISM, value: SCRAM-SHA-256}
+            - {name: CONNECT_KEY_CONVERTER, value: org.apache.kafka.connect.json.JsonConverter}
+            - {name: CONNECT_VALUE_CONVERTER, value: org.apache.kafka.connect.json.JsonConverter}
+            - {name: CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE, value: "false"}
+            - {name: CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE, value: "false"}
+            - {name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR, value: "1"}
+            - {name: CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR, value: "1"}
+            - {name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR, value: "1"}
+            - {name: KAFKA_HEAP_OPTS, value: "-Xms128M -Xmx512M"}
+            - {name: KAFKA_USERNAME, valueFrom: {secretKeyRef: {name: gavel-redpanda-connect, key: username}}}
+            - {name: KAFKA_PASSWORD, valueFrom: {secretKeyRef: {name: gavel-redpanda-connect, key: password}}}
+          ports:
+            - {name: http, containerPort: 8083}
+          readinessProbe:
+            httpGet: {path: /connectors, port: http}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 100m, memory: 384Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}

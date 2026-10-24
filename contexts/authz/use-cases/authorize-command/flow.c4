@@ -15,5 +15,6 @@ views {
     gavel.auction.service.api -> gavel.authz.service.relationships '9. owner-scoped TOUCH/delete when required'
     gavel.auction.service.api -> gavel.auction.service.aggregate '10. after allow: evaluate domain invariants'
     gavel.auction.service.api -> gavel.bff.graphql '11. typed result or stable GraphQL error'
+    gavel.processes.activities -> gavel.authz.service.check '12. service_account:processes uses bootstrap-provisioned grant'
   }
 }

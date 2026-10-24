@@ -1,0 +1,27 @@
+replicaCount: 1
+
+image:
+  repository: gavel-payments
+  tag: local
+  pullPolicy: IfNotPresent
+
+podDisruptionBudget:
+  minAvailable: 0
+
+config:
+  runtimeProfile: local
+  providerAdapter: sandbox
+  authzEndpoint: http://gavel-authz-gavel-authz:9090
+  authzCallerSpiffeId: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-payments
+  processesSpiffeId: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-processes
+  sandboxDefaultOutcome: success
+
+rpc:
+  allowedPrincipals:
+    - cluster.local/ns/gavel-mvp/sa/gavel-processes-gavel-processes
+  allowedApplications:
+    - gavel-processes
+  allowedHttpPrincipals:
+    - cluster.local/ns/gavel-mvp/sa/gavel-bff-gavel-bff
+  sandboxControlPrincipals:
+    - cluster.local/ns/gavel-mvp/sa/gavel-mvp-smoke

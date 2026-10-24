@@ -6,7 +6,30 @@ image:
   pullPolicy: IfNotPresent
 
 service:
+  type: ClusterIP
   port: 8080
+  nodePort: null
+
+deploymentProfile: production
+
+localAuth:
+  enabled: false
+  issuer: ""
+  audience: ""
+  jwksUri: ""
+  catalogHttpEndpoint: ""
+  corsOrigins: []
+  routerPort: 8081
+  envoy:
+    image: envoyproxy/envoy:v1.35.3
+    pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 20m
+        memory: 32Mi
+      limits:
+        cpu: 250m
+        memory: 128Mi
 
 resources:
   requests:

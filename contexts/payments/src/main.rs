@@ -11,16 +11,17 @@ use axum::{
 use gavel_payments::{
     adapters::{
         inbound::{
-            AuthenticatedPrincipal, AuthenticatedWorkload, CallbackIngress, GrpcPayments,
-            PaymentSchema, StripeCallbackSink, build_schema, callback_router,
+            AuthenticatedPrincipal, CallbackIngress, GrpcPayments, PaymentSchema,
+            StripeCallbackSink, authenticate_workload, build_schema, callback_router,
+            sandbox_control_router,
         },
         outbound::{
-            AuthzGrpc, MetricsTelemetry, PostgresPayments, StripeConfig, StripeGateway,
-            StripeSignatureVerifier, SystemClock, UuidIds,
+            AuthzGrpc, MetricsTelemetry, PostgresPayments, SandboxGateway, StripeConfig,
+            StripeGateway, StripeSignatureVerifier, SystemClock, UuidIds,
         },
     },
-    application::{CommandFingerprint, PaymentApplication, ReceiptExecutor},
-    bootstrap::Config,
+    application::{CommandFingerprint, PaymentApplication, ProviderGateway, ReceiptExecutor},
+    bootstrap::{Config, ProviderConfig},
     rpc::payments_service_server::PaymentsServiceServer,
 };
 use metrics_exporter_prometheus::{PrometheusBuilder, PrometheusHandle};
@@ -28,6 +29,12 @@ use sqlx::postgres::PgPoolOptions;
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 use tonic_bsr::transport::Server;
+
+type ProviderRuntime = (
+    Arc<dyn ProviderGateway>,
+    Option<StripeConfig>,
+    Option<(Arc<SandboxGateway>, String)>,
+);
 
 #[tokio::main]
 #[allow(clippy::result_large_err)]
@@ -55,23 +62,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .connect(&config.database_url)
         .await?;
     let postgres = Arc::new(PostgresPayments::new(pool));
-    postgres.migrate().await?;
     let authz = Arc::new(
-        AuthzGrpc::connect(&config.authz_endpoint)
-            .await
-            .map_err(|_| io::Error::other("authz dependency unavailable"))?,
+        AuthzGrpc::connect_authenticated(
+            &config.authz_endpoint,
+            &std::env::var("AUTHZ_CALLER_SPIFFE_ID")?,
+        )
+        .await
+        .map_err(|_| io::Error::other("authz dependency unavailable"))?,
     );
-    let provider_config = StripeConfig::new(
-        config.provider_endpoint.clone(),
-        config.provider_secret.clone(),
-        config.callback_secret.clone(),
-        300,
-    )
-    .map_err(|_| io::Error::other("provider configuration invalid"))?;
-    let provider = Arc::new(StripeGateway::new(
-        reqwest::Client::new(),
-        provider_config.clone(),
-    ));
+    let (provider, stripe_config, sandbox_runtime): ProviderRuntime = match config.provider.clone()
+    {
+        ProviderConfig::Stripe {
+            endpoint,
+            secret,
+            callback_secret,
+        } => {
+            let provider_config = StripeConfig::new(endpoint, secret, callback_secret, 300)
+                .map_err(|_| io::Error::other("provider configuration invalid"))?;
+            (
+                Arc::new(StripeGateway::new(
+                    reqwest::Client::new(),
+                    provider_config.clone(),
+                )),
+                Some(provider_config),
+                None,
+            )
+        }
+        ProviderConfig::Sandbox {
+            default_outcome,
+            control_token,
+        } => {
+            let gateway = Arc::new(SandboxGateway::new(default_outcome));
+            (gateway.clone(), None, Some((gateway, control_token)))
+        }
+    };
     let clock = Arc::new(SystemClock);
     let receipts = Arc::new(ReceiptExecutor::new(
         postgres.clone(),
@@ -90,41 +114,45 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         callbacks: postgres.clone(),
     });
 
-    let callback_sink = Arc::new(StripeCallbackSink::new(
-        application.clone(),
-        CommandFingerprint::new(config.fingerprint_secret.as_bytes())?,
-    ));
-    let callback_ingress = Arc::new(CallbackIngress {
-        verifier: StripeSignatureVerifier::new(&provider_config),
-        sink: callback_sink,
-        now_secs: Arc::new(|| u64::try_from(chrono::Utc::now().timestamp()).unwrap_or_default()),
-    });
     let state = HttpState {
         schema: build_schema(application.clone()),
         postgres: postgres.clone(),
         metrics: metrics_handle,
     };
-    let http = Router::new()
+    let mut http = Router::new()
         .route("/graphql", post(graphql))
         .route("/healthz", get(health))
         .route("/readyz", get(ready))
         .route("/metrics", get(metrics))
-        .with_state(state)
-        .merge(callback_router(callback_ingress));
+        .with_state(state);
+    if let Some(provider_config) = stripe_config {
+        let callback_sink = Arc::new(StripeCallbackSink::new(
+            application.clone(),
+            CommandFingerprint::new(config.fingerprint_secret.as_bytes())?,
+        ));
+        let callback_ingress = Arc::new(CallbackIngress {
+            verifier: StripeSignatureVerifier::new(&provider_config),
+            sink: callback_sink,
+            now_secs: Arc::new(|| {
+                u64::try_from(chrono::Utc::now().timestamp()).unwrap_or_default()
+            }),
+        });
+        http = http.merge(callback_router(callback_ingress));
+    }
+    if let Some((gateway, control_token)) = sandbox_runtime {
+        http = http.merge(sandbox_control_router(
+            application.clone(),
+            gateway,
+            control_token,
+        ));
+    }
 
     let grpc = GrpcPayments::new(
         application.clone(),
         config.processes_spiffe_id.clone(),
         Duration::from_secs(15),
     );
-    let workload_id = config.processes_spiffe_id;
-    let grpc_service =
-        PaymentsServiceServer::with_interceptor(grpc, move |mut request: tonic_bsr::Request<()>| {
-            request.extensions_mut().insert(AuthenticatedWorkload {
-                spiffe_id: workload_id.clone(),
-            });
-            Ok(request)
-        });
+    let grpc_service = PaymentsServiceServer::with_interceptor(grpc, authenticate_workload);
     let http_listener = tokio::net::TcpListener::bind(config.http_addr).await?;
     let shutdown = CancellationToken::new();
     let mut tasks = JoinSet::new();

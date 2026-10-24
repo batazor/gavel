@@ -14,10 +14,11 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use async_trait::async_trait;
 use axum::{
     Router,
-    extract::{ConnectInfo, State},
-    http::{HeaderMap, StatusCode},
+    body::Bytes,
+    extract::{ConnectInfo, DefaultBodyLimit, Path, State},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{IntoResponse, Response},
-    routing::{get, post},
+    routing::{get, post, put},
 };
 use serde::Serialize;
 use tokio::{net::TcpListener, task::JoinSet};
@@ -31,6 +32,7 @@ use crate::{
         grpc::CatalogGrpcService,
         workload_identity::{TrustedProxyCidr, WorkloadIdentityInterceptor},
     },
+    adapters::outbound::local_storage::{LocalObjectStorage, LocalUploadError},
     application::Principal,
     rpc::catalog_service_server::CatalogServiceServer,
 };
@@ -136,6 +138,7 @@ struct HttpState {
     schema: CatalogSchema,
     runtime: Arc<RuntimeState>,
     trusted_proxies: Arc<Vec<TrustedProxyCidr>>,
+    local_storage: Option<Arc<LocalObjectStorage>>,
 }
 
 pub fn http_router(
@@ -143,15 +146,30 @@ pub fn http_router(
     runtime: Arc<RuntimeState>,
     trusted_proxies: Vec<TrustedProxyCidr>,
 ) -> Router {
+    http_router_with_local_storage(schema, runtime, trusted_proxies, None)
+}
+
+pub fn http_router_with_local_storage(
+    schema: CatalogSchema,
+    runtime: Arc<RuntimeState>,
+    trusted_proxies: Vec<TrustedProxyCidr>,
+    local_storage: Option<Arc<LocalObjectStorage>>,
+) -> Router {
     Router::new()
         .route("/healthz", get(health))
         .route("/readyz", get(ready))
         .route("/metrics", get(metrics))
         .route("/graphql", post(graphql))
+        .route("/images/{image_id}", get(local_image))
+        .route(
+            "/local/object-storage/{token}",
+            put(local_upload).layer(DefaultBodyLimit::max(10 * 1024 * 1024)),
+        )
         .with_state(HttpState {
             schema,
             runtime,
             trusted_proxies: Arc::new(trusted_proxies),
+            local_storage,
         })
 }
 
@@ -167,7 +185,40 @@ pub async fn serve(
     trusted_proxies: Vec<TrustedProxyCidr>,
     shutdown: CancellationToken,
 ) -> Result<(), RuntimeError> {
-    let app = http_router(schema, Arc::clone(&runtime), trusted_proxies);
+    serve_with_local_storage(
+        http_listener,
+        grpc_listener,
+        schema,
+        grpc_service,
+        interceptor,
+        workers,
+        runtime,
+        trusted_proxies,
+        None,
+        shutdown,
+    )
+    .await
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn serve_with_local_storage(
+    http_listener: TcpListener,
+    grpc_listener: TcpListener,
+    schema: CatalogSchema,
+    grpc_service: CatalogGrpcService,
+    interceptor: WorkloadIdentityInterceptor,
+    workers: Vec<Arc<dyn BackgroundWorker>>,
+    runtime: Arc<RuntimeState>,
+    trusted_proxies: Vec<TrustedProxyCidr>,
+    local_storage: Option<Arc<LocalObjectStorage>>,
+    shutdown: CancellationToken,
+) -> Result<(), RuntimeError> {
+    let app = http_router_with_local_storage(
+        schema,
+        Arc::clone(&runtime),
+        trusted_proxies,
+        local_storage,
+    );
     let server_shutdown = shutdown.child_token();
     let mut tasks = JoinSet::new();
     let http_shutdown = server_shutdown.clone();
@@ -262,6 +313,47 @@ async fn ready(State(state): State<HttpState>) -> Response {
 
 async fn metrics() -> impl IntoResponse {
     (StatusCode::OK, crate::telemetry::render_prometheus())
+}
+
+async fn local_upload(
+    State(state): State<HttpState>,
+    Path(token): Path<String>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> Response {
+    let Some(storage) = state.local_storage else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    match storage.upload(&token, &headers, body).await {
+        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Err(LocalUploadError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(LocalUploadError::Expired) => StatusCode::GONE.into_response(),
+        Err(LocalUploadError::MetadataMismatch) => StatusCode::UNPROCESSABLE_ENTITY.into_response(),
+    }
+}
+
+async fn local_image(State(state): State<HttpState>, Path(image_id): Path<String>) -> Response {
+    let Some(storage) = state.local_storage else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let Some((content_type, body)) = storage.image(&image_id).await else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let Ok(content_type) = HeaderValue::from_str(&content_type) else {
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+    };
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, content_type),
+            (
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=3600"),
+            ),
+        ],
+        body,
+    )
+        .into_response()
 }
 
 async fn graphql(

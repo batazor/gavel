@@ -16,13 +16,15 @@ define require_service
 endef
 
 ## OpenSpec, contracts и архитектура
-.PHONY: openspec-status openspec-validate openspec-doctor buf-check buf-breaking buf-generate arch arch-validate arch-build arch-fmt
+.PHONY: openspec-status openspec-validate openspec-doctor contract-check buf-check buf-breaking buf-generate arch arch-validate arch-build arch-fmt
 openspec-status: ## OpenSpec: показать активные changes
 	openspec status
 openspec-validate: ## OpenSpec: проверить все specs и changes
 	openspec validate --all
 openspec-doctor: ## OpenSpec: проверить root и stores/references
 	openspec doctor
+contract-check: ## Contracts: проверить event registry, privacy ACL и exact Buf/BSR pins
+	node contracts/check-contracts.mjs
 buf-check: ## Protobuf: проверить формат, lint и сборку Buf workspace
 	buf format --diff --exit-code
 	buf lint
@@ -63,7 +65,7 @@ test: ## тесты всех сервисов
 image: ## собрать image: make image SERVICE=auction
 	$(call require_service)
 	@$(MAKE) --no-print-directory -C contexts/$(SERVICE) image
-helm-check: platform-helm-check ## platform chart + Helm chart каждого сервиса
+helm-check: platform-helm-check web-helm-check ## platform, Web и Helm chart каждого сервиса
 	$(call run_for_services,helm-check)
 service-observability-check: ## service-owned Prometheus rules и Grafana dashboards
 	$(call run_for_services,observability-check)
@@ -77,11 +79,13 @@ authz-validate: ## SpiceDB schema через Makefile Authz
 	@$(MAKE) --no-print-directory -C contexts/authz schema-validate
 
 ## Общая платформа
-.PHONY: platform-helm-check observability-check observability-up observability-down lean kind-up kind-down
+.PHONY: platform-helm-check web-helm-check observability-check observability-up observability-down lean kind-up kind-down mvp-platform mvp-up mvp-down mvp-seed mvp-ready mvp-smoke mvp-e2e mvp-diagnostics mvp-command-check
 platform-helm-check: ## общий observability Helm chart
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update
 	helm dependency build deploy/charts/observability
 	helm lint deploy/charts/observability -f deploy/charts/observability/values-production.yaml
+web-helm-check: ## Web chart, local image/ports и render assertions
+	$(MAKE) --no-print-directory -C packages/web helm-check
 observability-check: helm-check service-observability-check ## platform и service-owned observability
 	docker compose -f deploy/compose/observability/compose.yaml config --quiet
 observability-up: ## поднять локальный observability stack
@@ -90,13 +94,29 @@ observability-down: ## остановить локальный observability sta
 	docker compose -f deploy/compose/observability/compose.yaml down
 lean: ## lake build в proofs/
 	@[ -d proofs ] && (cd proofs && lake build) || echo "proofs/ нет, пропуск"
-kind-up: ## поднять локальный kind-кластер
-	@echo "TODO: deploy/kind/up.sh"
-kind-down: ## удалить локальный kind-кластер
-	@echo "TODO: deploy/kind/down.sh"
+mvp-platform: ## MVP: создать kind и последовательно установить cluster platform
+	@deploy/kind/scripts/mvp.sh platform
+mvp-up: ## MVP: создать/сверить cluster gavel-mvp, bootstrap platform и дождаться readiness
+	@deploy/kind/scripts/mvp.sh up
+mvp-down: ## MVP: удалить только выделенный kind cluster gavel-mvp
+	@deploy/kind/scripts/mvp.sh down
+mvp-seed: ## MVP: идемпотентно подготовить local actors и короткий аукцион
+	@deploy/kind/scripts/mvp.sh seed
+mvp-ready: ## MVP: проверить готовность полного пользовательского пути
+	@deploy/kind/scripts/mvp.sh ready
+mvp-smoke: ## MVP: выполнить единый пакет трёх сквозных сценариев
+	@deploy/kind/scripts/mvp.sh smoke
+mvp-e2e: ## MVP: пройти happy path через настоящий Web UI, Temporal и Mailpit
+	@deploy/kind/scripts/mvp.sh e2e
+mvp-diagnostics: ## MVP: собрать ограниченный sanitized diagnostic bundle
+	@deploy/kind/scripts/mvp.sh diagnostics
+mvp-command-check: ## MVP: статически проверить command inventory и безопасные targets
+	@deploy/kind/tests/command-inventory.sh
+kind-up: mvp-up ## совместимый alias для mvp-up
+kind-down: mvp-down ## совместимый alias для mvp-down
 
 ## Всё перед PR
 .PHONY: check help
 check: openspec-validate arch-validate services-check lean ## дешёвые monorepo checks
 help: ## показать этот список
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'

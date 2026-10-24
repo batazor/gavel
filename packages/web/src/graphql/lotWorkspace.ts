@@ -1,7 +1,7 @@
-import { configuredGraphQLEndpoint, configuredGraphQLSubscriptionsEndpoint, executeGraphQL, subscribeGraphQL } from './client';
+import { configuredGraphQLEndpoint, executeGraphQL, GraphQLRequestError } from './client';
 
 export const LOT_WORKSPACE_OPERATION = /* GraphQL */ `
-  query LotWorkspace($lotId: ID!, $historyFirst: Int! = 20) {
+  query LotWorkspace($lotId: ID!) {
     lot(id: $lotId) {
       id
       title
@@ -13,13 +13,6 @@ export const LOT_WORKSPACE_OPERATION = /* GraphQL */ `
         endsAt
         currentPrice { amount currency version }
         viewer { isLeader isSettlementCandidate isWinner canBid }
-        bidHistory(first: $historyFirst) {
-          asOfVersion
-          edges {
-            cursor
-            node { bidderAlias resultingPrice currency version acceptedAt }
-          }
-        }
       }
     }
   }
@@ -41,19 +34,6 @@ export const PLACE_BID_OPERATION = /* GraphQL */ `
   }
 `;
 
-export const AUCTION_UPDATES_OPERATION = /* GraphQL */ `
-  subscription AuctionUpdates($auctionId: ID!, $afterVersion: Int) {
-    auctionUpdates(auctionId: $auctionId, afterVersion: $afterVersion) {
-      auctionId
-      version
-      kind
-      currentPrice
-      currency
-      endsAt
-    }
-  }
-`;
-
 type LotWorkspaceResponse = {
   lot: null | {
     id: string;
@@ -66,10 +46,6 @@ type LotWorkspaceResponse = {
       endsAt: string;
       currentPrice: { amount: string; currency: string; version: number };
       viewer: null | { isLeader: boolean; isSettlementCandidate: boolean; isWinner: boolean; canBid: boolean };
-      bidHistory: {
-        asOfVersion: number;
-        edges: Array<{ cursor: string; node: { bidderAlias: string; resultingPrice: string; currency: string; version: number; acceptedAt: string } }>;
-      };
     };
   };
 };
@@ -88,6 +64,9 @@ export type LotWorkspaceModel = {
     version: number;
     minimumBid: number;
     viewerStatus: 'leading' | 'outbid' | 'watching';
+    canBid: boolean;
+    isSettlementCandidate: boolean;
+    isWinner: boolean;
   };
   bids: Array<{ id: string; alias: string; resultingPrice: number; occurredAt: string; isMine?: boolean }>;
 };
@@ -102,21 +81,21 @@ export type PlaceBidOutcome = {
   viewerStatus: LotWorkspaceModel['auction']['viewerStatus'];
 };
 
-export type AuctionUpdate = {
-  auctionId: string;
-  version: number;
-  kind: 'PRICE_CHANGED' | 'DEADLINE_CHANGED' | 'CLOSED' | 'PAID' | 'CANCELLED';
-  currentPrice: number | null;
-  currency: string | null;
-  endsAt: string | null;
-};
+export type BidErrorCode = 'AUCTION_CLOSED' | 'BID_TOO_LOW' | 'PAYMENT_NOT_READY' | 'FORBIDDEN' | 'CONFLICT' | 'NETWORK_ERROR' | 'UNKNOWN';
+
+export class PlaceBidError extends Error {
+  constructor(readonly code: BidErrorCode, message: string) {
+    super(message);
+    this.name = 'PlaceBidError';
+  }
+}
 
 const fixture: LotWorkspaceModel = {
   id: 'GV-2841',
   title: 'Omega Speedmaster, 1969',
   description: 'Calibre 861, original stepped dial, recently serviced.',
   source: 'fixture',
-  auction: { id: 'AUC-2841', status: 'OPEN', endsAt: '08:42 left', currentPrice: 42_800, currency: 'EUR', version: 184, minimumBid: 43_000, viewerStatus: 'leading' },
+  auction: { id: 'AUC-2841', status: 'OPEN', endsAt: '08:42 left', currentPrice: 42_800, currency: 'EUR', version: 184, minimumBid: 43_000, viewerStatus: 'leading', canBid: true, isSettlementCandidate: false, isWinner: false },
   bids: [
     { id: '184', alias: 'Silver Fox', resultingPrice: 42_800, occurredAt: '14:31:52', isMine: true },
     { id: '183', alias: 'Atlas 17', resultingPrice: 42_600, occurredAt: '14:31:49' },
@@ -151,27 +130,41 @@ function mapResponse(response: LotWorkspaceResponse): LotWorkspaceModel {
       endsAt: auction.endsAt,
       currentPrice,
       currency: auction.currentPrice.currency,
-      version: Math.max(auction.currentPrice.version, auction.bidHistory.asOfVersion),
+      version: auction.currentPrice.version,
       minimumBid: currentPrice + 200,
       viewerStatus,
+      canBid: auction.viewer?.canBid ?? false,
+      isSettlementCandidate: auction.viewer?.isSettlementCandidate ?? false,
+      isWinner: auction.viewer?.isWinner ?? false,
     },
-    bids: auction.bidHistory.edges.map(({ cursor, node }) => ({
-      id: cursor,
-      alias: node.bidderAlias,
-      resultingPrice: amount(node.resultingPrice, 'bidHistory.resultingPrice'),
-      occurredAt: node.acceptedAt,
-    })),
+    bids: [],
   };
+}
+
+export function isTerminalAuction(status: LotWorkspaceModel['auction']['status']) {
+  return status === 'SOLD' || status === 'UNSOLD' || status === 'CANCELLED';
+}
+
+export function newerWorkspace(current: LotWorkspaceModel | null, incoming: LotWorkspaceModel) {
+  if (!current || current.auction.id !== incoming.auction.id) return incoming;
+  return incoming.auction.version > current.auction.version ? incoming : current;
+}
+
+function configuredMode() {
+  const mode = import.meta.env.VITE_DATA_MODE?.trim() || 'demo';
+  if (mode !== 'demo' && mode !== 'connected') throw new Error('VITE_DATA_MODE must be demo or connected.');
+  return mode;
 }
 
 export async function getLotWorkspace(lotId: string, signal?: AbortSignal): Promise<LotWorkspaceModel> {
   const endpoint = configuredGraphQLEndpoint();
-  if (!endpoint) {
+  if (configuredMode() === 'demo') {
     const auction = fixtureAuctions.get(fixture.auction.id) ?? { ...fixture.auction };
     fixtureAuctions.set(auction.id, auction);
     return { ...fixture, id: lotId, auction: { ...auction }, bids: [...fixture.bids] };
   }
-  const response = await executeGraphQL<LotWorkspaceResponse, { lotId: string; historyFirst: number }>(endpoint, 'LotWorkspace', LOT_WORKSPACE_OPERATION, { lotId, historyFirst: 20 }, signal);
+  if (!endpoint) throw new Error('Connected mode requires VITE_GRAPHQL_URL.');
+  const response = await executeGraphQL<LotWorkspaceResponse, { lotId: string }>(endpoint, 'LotWorkspace', LOT_WORKSPACE_OPERATION, { lotId }, signal);
   return mapResponse(response);
 }
 
@@ -191,7 +184,7 @@ type PlaceBidResponse = {
 
 export async function placeBid(auctionId: string, maximumAmount: number, currency: string, signal?: AbortSignal): Promise<PlaceBidOutcome> {
   const endpoint = configuredGraphQLEndpoint();
-  if (!endpoint) {
+  if (configuredMode() === 'demo') {
     await new Promise<void>((resolve, reject) => {
       const timeout = window.setTimeout(resolve, 350);
       signal?.addEventListener('abort', () => { window.clearTimeout(timeout); reject(new DOMException('Aborted', 'AbortError')); }, { once: true });
@@ -201,14 +194,22 @@ export async function placeBid(auctionId: string, maximumAmount: number, currenc
     fixtureAuctions.set(auctionId, next);
     return { acceptedVersion: next.version, outbid: false, currentPrice: next.currentPrice, currency: next.currency, endsAt: next.endsAt, status: next.status, viewerStatus: next.viewerStatus };
   }
+  if (!endpoint) throw new PlaceBidError('NETWORK_ERROR', 'Connected mode requires VITE_GRAPHQL_URL.');
 
-  const response = await executeGraphQL<PlaceBidResponse, { input: { auctionId: string; maximumAmount: string; currency: string }; idempotencyKey: string }>(
-    endpoint,
-    'PlaceBid',
-    PLACE_BID_OPERATION,
-    { input: { auctionId, maximumAmount: String(maximumAmount), currency }, idempotencyKey: crypto.randomUUID() },
-    signal,
-  );
+  let response: PlaceBidResponse;
+  try {
+    response = await executeGraphQL<PlaceBidResponse, { input: { auctionId: string; maximumAmount: string; currency: string }; idempotencyKey: string }>(
+      endpoint,
+      'PlaceBid',
+      PLACE_BID_OPERATION,
+      { input: { auctionId, maximumAmount: String(maximumAmount), currency }, idempotencyKey: crypto.randomUUID() },
+      signal,
+    );
+  } catch (error) {
+    if (!(error instanceof GraphQLRequestError)) throw error;
+    const code = normalizeBidErrorCode(error.code);
+    throw new PlaceBidError(code, bidErrorMessage(code));
+  }
   const result = response.placeBid;
   const currentPrice = amount(result.auction.currentPrice.amount, 'placeBid.auction.currentPrice');
   return {
@@ -222,22 +223,28 @@ export async function placeBid(auctionId: string, maximumAmount: number, currenc
   };
 }
 
-type AuctionUpdatesResponse = {
-  auctionUpdates: {
-    auctionId: string;
-    version: number;
-    kind: AuctionUpdate['kind'];
-    currentPrice: string | null;
-    currency: string | null;
-    endsAt: string | null;
-  };
-};
+function normalizeBidErrorCode(code?: string): BidErrorCode {
+  switch (code) {
+    case 'AUCTION_CLOSED':
+    case 'BID_TOO_LOW':
+    case 'PAYMENT_NOT_READY':
+    case 'FORBIDDEN':
+    case 'CONFLICT':
+    case 'NETWORK_ERROR':
+      return code;
+    default:
+      return 'UNKNOWN';
+  }
+}
 
-export async function subscribeAuctionUpdates(auctionId: string, afterVersion: number, onUpdate: (update: AuctionUpdate) => void, signal: AbortSignal) {
-  const endpoint = configuredGraphQLSubscriptionsEndpoint();
-  if (!endpoint) return;
-  await subscribeGraphQL<AuctionUpdatesResponse, { auctionId: string; afterVersion: number }>(endpoint, 'AuctionUpdates', AUCTION_UPDATES_OPERATION, { auctionId, afterVersion }, (response) => {
-    const update = response.auctionUpdates;
-    onUpdate({ ...update, currentPrice: update.currentPrice === null ? null : amount(update.currentPrice, 'auctionUpdates.currentPrice') });
-  }, signal);
+function bidErrorMessage(code: BidErrorCode) {
+  switch (code) {
+    case 'AUCTION_CLOSED': return 'This auction is no longer accepting bids.';
+    case 'BID_TOO_LOW': return 'Your maximum is below the current minimum bid.';
+    case 'PAYMENT_NOT_READY': return 'Add a ready payment instrument before bidding.';
+    case 'FORBIDDEN': return 'This identity is not allowed to bid on the auction.';
+    case 'CONFLICT': return 'The bid conflicts with a newer auction version. The lot will refresh.';
+    case 'NETWORK_ERROR': return 'The bid service is unreachable. Your request can be retried safely.';
+    default: return 'The bid could not be accepted.';
+  }
 }

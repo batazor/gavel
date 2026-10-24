@@ -1,0 +1,173 @@
+{
+  "registryVersion": 1,
+  "defaultCompatibility": "BACKWARD_TRANSITIVE",
+  "defaultAclPolicy": "DENY",
+  "topics": [
+    {
+      "id": "catalog-lifecycle",
+      "topic": "gavel.catalog.events.v1",
+      "owner": "catalog",
+      "visibility": "OWNER_INTEGRATION",
+      "schema": {
+        "format": "JSON",
+        "source": "contexts/catalog/src/adapters/outbound/events.rs",
+        "message": "gavel.catalog.EventEnvelope<LotListedV1>",
+        "version": 1,
+        "compatibility": "BACKWARD_TRANSITIVE"
+      },
+      "partitionKey": "aggregate_id",
+      "allowedEventTypes": ["LotListed"],
+      "acl": {
+        "produce": ["service_account:catalog-outbox"],
+        "read": ["service_account:auction"]
+      },
+      "forbiddenFields": ["object_key", "upload_url", "credential", "storage_key"]
+    },
+    {
+      "id": "payments-instruments",
+      "topic": "gavel.payments.instruments.v1",
+      "owner": "payments",
+      "visibility": "OWNER_INTEGRATION",
+      "schema": {
+        "format": "JSON",
+        "source": "contexts/payments/src/adapters/outbound/postgres.rs",
+        "message": "gavel.payments.PaymentInstrumentEventEnvelope",
+        "version": 1,
+        "compatibility": "BACKWARD_TRANSITIVE"
+      },
+      "partitionKey": "aggregate_id",
+      "allowedEventTypes": ["PaymentInstrumentReady", "PaymentInstrumentRevoked"],
+      "acl": {
+        "produce": ["service_account:payments-outbox"],
+        "read": ["service_account:auction"]
+      },
+      "forbiddenFields": ["provider_object", "provider_ref", "customer_ref", "credential"]
+    },
+    {
+      "id": "auction-public",
+      "topic": "gavel.auction.public.v1",
+      "owner": "auction",
+      "visibility": "PUBLIC_INTEGRATION",
+      "schema": {
+        "format": "PROTOBUF_JSON",
+        "source": "contexts/auction/proto/gavel/auction/v1/auction_events.proto",
+        "message": "gavel.auction.v1.AuctionPublicEvent",
+        "version": 1,
+        "compatibility": "BACKWARD_TRANSITIVE"
+      },
+      "partitionKey": "aggregate_id",
+      "allowedEventTypes": [
+        "AuctionOpened",
+        "BidRecorded",
+        "PriceChanged",
+        "DeadlineExtended",
+        "AuctionRescheduled",
+        "AuctionClosed",
+        "AuctionCancelled",
+        "AuctionUnsold",
+        "WinnerConfirmed"
+      ],
+      "acl": {
+        "produce": ["service_account:auction-outbox"],
+        "read": ["service_account:processes"]
+      },
+      "forbiddenFields": [
+        "candidate_id",
+        "user_id",
+        "bidder_id",
+        "leader_id",
+        "maximum_amount",
+        "secret_maximum",
+        "payment_id",
+        "provider_object",
+        "storage_key"
+      ]
+    },
+    {
+      "id": "auction-restricted",
+      "topic": "gavel.auction.processes.v1",
+      "owner": "auction",
+      "visibility": "RESTRICTED_PROCESS",
+      "schema": {
+        "format": "PROTOBUF_JSON",
+        "source": "contexts/auction/proto/gavel/auction/v1/auction_process_events.proto",
+        "message": "gavel.auction.v1.AuctionProcessEvent",
+        "version": 1,
+        "compatibility": "BACKWARD_TRANSITIVE"
+      },
+      "partitionKey": "aggregate_id",
+      "allowedEventTypes": [
+        "SettlementCandidateSelected",
+        "AuctionUnsold",
+        "WinnerConfirmed",
+        "AuctionCancelled"
+      ],
+      "acl": {
+        "produce": ["service_account:auction-outbox"],
+        "read": ["service_account:processes"]
+      }
+    },
+    {
+      "id": "payments-attempts",
+      "topic": "gavel.payments.attempts.v1",
+      "owner": "payments",
+      "visibility": "RESTRICTED_PROCESS",
+      "schema": {
+        "format": "PROTOBUF_JSON",
+        "source": "contexts/payments/proto/gavel/payments/v1/payments_events.proto",
+        "message": "gavel.payments.v1.PaymentEventEnvelope",
+        "version": 1,
+        "compatibility": "BACKWARD_TRANSITIVE"
+      },
+      "partitionKey": "aggregate_id",
+      "allowedEventTypes": [
+        "PaymentAttemptStarted",
+        "PaymentRecoveryRequired",
+        "PaymentSucceeded",
+        "PaymentExpired"
+      ],
+      "acl": {
+        "produce": ["service_account:payments-outbox"],
+        "read": ["service_account:processes"]
+      },
+      "forbiddenFields": [
+        "recovery_url",
+        "provider_object",
+        "provider_ref",
+        "customer_ref",
+        "instrument_ref",
+        "storage_key"
+      ]
+    },
+    {
+      "id": "processes-quarantine",
+      "topic": "gavel.processes.quarantine.v1",
+      "owner": "processes",
+      "visibility": "OPERATOR_DIAGNOSTIC",
+      "schema": {
+        "format": "JSON",
+        "source": "contracts/schemas/processes-quarantine-v1.schema.json",
+        "message": "gavel.processes.QuarantineRecord",
+        "version": 1,
+        "compatibility": "BACKWARD_TRANSITIVE"
+      },
+      "partitionKey": "source.partition_key_hash",
+      "allowedEventTypes": ["IngressQuarantined"],
+      "acl": {
+        "produce": ["service_account:processes"],
+        "read": ["service_account:processes", "service_account:local-operator"]
+      },
+      "forbiddenFields": [
+        "payload",
+        "candidate_id",
+        "amount",
+        "maximum_amount",
+        "recovery_url",
+        "provider_object",
+        "email",
+        "token",
+        "credential"
+      ]
+    }
+  ]
+}

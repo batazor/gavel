@@ -560,7 +560,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn minio_round_trip_verifies_metadata_mismatch_expiry_and_delete() {
+    async fn s3s_round_trip_verifies_metadata_mismatch_expiry_and_delete() {
         let Ok(endpoint) = std::env::var("CATALOG_TEST_S3_ENDPOINT") else {
             return;
         };

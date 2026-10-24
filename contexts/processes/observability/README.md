@@ -13,6 +13,11 @@
 | `temporal_num_pollers` | SDK gauge | `namespace`, `task_queue`, `poller_type` | Активные pollers |
 | `temporal_worker_task_slots_available` | SDK gauge | `namespace`, `task_queue`, `worker_type` | Свободные execution slots; применимо к fixed-size supplier |
 | `gavel_process_workflow_terminal_total` | custom counter | `workflow_type`, `outcome` | Терминальный результат workflow |
+| `gavel_process_worker_ready` | custom gauge | — | Все обязательные dependencies готовы, consumer активен и оба worker poller-а запущены |
+| `gavel_process_dependency_ready` | custom gauge | `dependency` | Bounded readiness для `temporal`, `broker`, `broker_consumer`, `auction_rpc`, `payments_rpc`, `notify_rpc` |
+| `gavel_process_ingress_delivery_total` | custom counter | `owner`, `route`, `outcome` | Receive/retry/quarantine/commit broker delivery без event identity или payload labels |
+| `gavel_process_activity_total` | custom counter | `activity_type`, `outcome` | Bounded owner-effect outcomes |
+| `gavel_process_signal_total` | custom counter | `event_type`, `disposition` | Applied/duplicate/stale/gap signal outcomes |
 | `gavel_process_overdue_auction_workflows` | custom gauge | `namespace`, `task_queue` | Не подтверждённые закрытия после `ends_at + 120s` |
 
 Prometheus exporter добавляет `_total` counters и `_seconds_bucket/_sum/_count` histograms. Не добавлять entity IDs в labels: для конкретного workflow используйте Temporal UI, trace correlation и structured logs.
@@ -28,6 +33,8 @@ Dashboard UID: `gavel-processes-temporal`. Он отвечает в таком �
 3. может ли worker получить задачу — schedule-to-start, pollers и slots;
 4. исправна ли связь worker → Temporal — long request latency/errors;
 5. хватает ли CPU/memory и нет ли restart storm.
+
+Readiness panel отдельно показывает каждую обязательную зависимость. Broker probe проверяет metadata public, restricted, payments и quarantine topics; owner RPC probe проверяет готовность tonic channels. Эти probes не читают payload и не выполняют доменные команды.
 
 Canonical JSON и rules лежат в [Processes Helm chart](../ops/Helm/). Compose монтирует те же service-owned файлы, поэтому локальная панель не расходится с production.
 
@@ -66,6 +73,36 @@ Canonical JSON и rules лежат в [Processes Helm chart](../ops/Helm/). Comp
 1. Сравнить long-request latency/failure с Temporal frontend CPU, DB latency и network telemetry.
 2. Если long-request нормален, а schedule-to-start высокий — искать нехватку pollers/slots или CPU worker.
 3. Если оба высоки — проверить mesh/network и Temporal matching/frontend capacity.
+
+### `ProcessActivityFailuresHigh`
+
+1. Разбить по bounded `activity_type` и `outcome`; entity IDs искать только в Temporal UI/trace.
+2. Для transient outcome проверить owner endpoint и retry exhaustion. Для rejection проверить owner contract, не форсировать domain transition вручную.
+3. Перед повтором убедиться, что используется исходный idempotency key.
+
+### `ProcessSignalGapDetected`
+
+1. Найти `event_type` с disposition `gap`, проверить lag/offset ingress и restricted topic ACL.
+2. Не синтезировать пропущенный owner event в Processes; восстановить доставку из owner outbox.
+3. После replay убедиться, что monotonic version восстановилась без changed redelivery.
+
+### `ProcessIngressDeliveryFailures`
+
+1. Разбить series только по bounded `owner`, `route` и `outcome`; не добавлять topic key, event id или payload в labels/logs.
+2. Для `commit_failed` проверить group membership и broker authorization: workflow effect уже мог быть принят, поэтому следующий delivery должен сойтись через тот же event id.
+3. Для `failed` проверить Temporal transport и quarantine producer; offset не продвигать вручную.
+
+### `ProcessQuarantineGrowing`
+
+1. Использовать sanitized quarantine record: source topic/partition/offset, opaque fingerprint и safe code.
+2. Исправить schema/configuration cause, затем выполнить explicit replay через ту же validation/idempotency границу.
+3. Не копировать restricted payload, candidate identity, amount или recovery URL в incident labels и команды.
+
+### `ProcessDependencyNotReady`
+
+1. По label `dependency` определить Temporal, broker/topic metadata, consumer loop либо конкретный owner RPC channel.
+2. Сверить безопасную карту `GET /readyz`; она не содержит endpoints, credentials или entity ids.
+3. Восстановить dependency. Не обходить readiness и не переключать consumer group/offset вручную.
 
 ## Проверка перед production
 

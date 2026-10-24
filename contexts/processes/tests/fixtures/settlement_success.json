@@ -1,0 +1,30 @@
+[
+  {
+    "event_id": "candidate-1",
+    "fingerprint": "candidate-fingerprint-1",
+    "owner_version": 1,
+    "kind": {
+      "CandidateSelected": {
+        "candidate": {
+          "auction_id": "auction-1",
+          "candidate_id": "candidate-1",
+          "round": 1,
+          "amount": { "minor_units": 500, "currency_code": "USD" },
+          "auction_version": 1
+        }
+      }
+    }
+  },
+  {
+    "event_id": "payment-2",
+    "fingerprint": "payment-fingerprint-2",
+    "owner_version": 2,
+    "kind": {
+      "PaymentChanged": {
+        "attempt_id": "attempt-1",
+        "round": 1,
+        "attempt_version": 2
+      }
+    }
+  }
+]

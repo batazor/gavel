@@ -14,7 +14,7 @@ Catalog при этом должен владеть связью фотогра�
 
 ## Решение
 
-Catalog использует object storage через **S3-compatible interface**. MinIO — первый adapter для локальной разработки и kind, но не часть доменной модели и не обязательный production provider.
+Catalog использует object storage через **S3-compatible interface**. Production runtime использует S3 SigV4 adapter; kind включает отдельный ephemeral in-process adapter тем же application port. Pinned `s3s-fs` используется как disposable S3 boundary dependency интеграционных тестов, но не является workload локального MVP, частью доменной модели или production provider.
 
 - Бинарные объекты хранятся в S3-compatible storage под непрозрачными server-generated keys.
 - `catalog-db` хранит `image_id`, владельца, object key, ожидаемые MIME type/size/checksum, состояние `PENDING | READY | ATTACHED`, порядок и alt-текст. Credentials, presigned URL и публичный URL в доменном состоянии не сохраняются.
@@ -25,15 +25,15 @@ Catalog использует object storage через **S3-compatible interface
 - На один лот допускается от 1 до 20 изображений. Разрешённые форматы, максимальный размер, проверка декодирования и удаление опасных metadata задаются политикой Catalog, а не возможностями конкретного provider.
 - Чтение идёт по URL, сформированному delivery adapter. Object key и внутренний endpoint provider наружу не раскрываются.
 
-Интерфейс object-storage модуля остаётся узким: создать presigned PUT, получить metadata объекта и удалить объект. Особенности MinIO/AWS S3/Ceph RGW скрыты за adapter.
+Интерфейс object-storage модуля остаётся узким: создать upload capability, получить metadata объекта и удалить объект. Особенности local adapter/s3s-fs/AWS S3/Ceph RGW скрыты за adapter.
 
 Первый adapter подписывает S3 SigV4 сам и переиспользует один HTTP connection pool. Presigned PUT подписывает `content-type` и `x-amz-checksum-sha256`, возвращает обязательный `content-length`, ограничивает срок семью днями и никогда не включает secret key в URL или ошибки. `HEAD` запрашивает checksum mode, а cleanup считает успешными delete и already-missing object.
 
 ## Последствия
 
-- Бинарный upload не проходит через Router или catalog-service; они управляют только намерением и состоянием загрузки.
-- Смена MinIO на AWS S3, Ceph RGW или другой S3-compatible provider не меняет GraphQL schema и доменную модель.
-- Production implementation должна отдельно обеспечить durability, encryption, lifecycle rules, observability и availability; одиночный MinIO pod с одним volume не удовлетворяет SLO 99,95%.
+- В production бинарный upload не проходит через Router или catalog-service; они управляют только намерением и состоянием загрузки. В kind одноразовый local-only upload capability завершается в Catalog, чтобы не поднимать тяжёлый storage workload.
+- Смена test double или production provider на AWS S3, Ceph RGW либо другое S3-compatible storage не меняет GraphQL schema и доменную модель.
+- `s3s-fs` остаётся только integration-test dependency: production implementation должна отдельно обеспечить durability, encryption, lifecycle rules, observability и availability.
 - Публичные URL объектов считаются производными delivery-данными и могут позже указывать на CDN без миграции домена.
 
 ## Референсы
@@ -41,5 +41,6 @@ Catalog использует object storage через **S3-compatible interface
 - [Catalog](../README.md)
 - [Загрузка изображения](../use-cases/upload-lot-image/README.md)
 - [Catalog subgraph SDL](../graphql/schema.graphql)
+- [Сравнение локальных S3 implementations](../../../docs/local-s3-implementations.md)
 - [ADR-0013 — Workload and capacity model](../../../docs/adr/0013-workload-and-capacity-model.md)
 - [ADR-0014 — Availability, replication and sharding](../../../docs/adr/0014-availability-replication-and-sharding.md)

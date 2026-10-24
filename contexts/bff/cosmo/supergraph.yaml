@@ -1,26 +1,14 @@
 version: 1
 subgraphs:
   - name: catalog
-    routing_url: http://catalog-service.catalog.svc.cluster.local:4000/graphql
+    routing_url: http://gavel-catalog-gavel-catalog:8080/graphql
     schema:
       file: ../../catalog/graphql/schema.graphql
   - name: auction
-    routing_url: http://auction-service.auction.svc.cluster.local:4000/graphql
+    routing_url: http://gavel-auction-gavel-auction:8080/graphql
     schema:
       file: ../../auction/graphql/schema.graphql
-  - name: analytics
-    routing_url: http://analytics-service.analytics.svc.cluster.local:4000/graphql
-    schema:
-      file: ../../analytics/graphql/schema.graphql
   - name: payments
-    routing_url: http://payments-service.payments.svc.cluster.local:4000/graphql
+    routing_url: http://gavel-payments-gavel-payments:8080/graphql
     schema:
       file: ../../payments/graphql/schema.graphql
-  - name: processes
-    routing_url: http://process-worker.processes.svc.cluster.local:4000/graphql
-    schema:
-      file: ../../processes/graphql/schema.graphql
-  - name: realtime
-    routing_url: http://realtime-subgraph.bff.svc.cluster.local:4000/graphql
-    schema:
-      file: ../graphql/realtime.graphql

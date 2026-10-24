@@ -1,0 +1,6 @@
+deploymentProfile: production
+localAuth:
+  enabled: true
+  issuer: http://local-jwt:8080/default
+  audience: gavel-web
+  jwksUri: http://local-jwt:8080/default/jwks

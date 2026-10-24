@@ -243,18 +243,22 @@ async fn lot_listed_to_confirmed_winner_is_atomic_idempotent_and_cache_safe() {
             .unwrap();
     assert_eq!(stream_count_after_close_replay, stream_count_after_close);
 
-    let advanced = lifecycle
-        .forfeit(
-            &process_context(key("forfeit")),
-            ForfeitSettlementCandidateInput {
-                auction_id: auction_id.clone(),
-                candidate_id: user_one.clone(),
-                settlement_round: 1,
-                occurred_at: Timestamp::from_millis(ends_at + 1_000),
-            },
-        )
-        .await
-        .expect("leading candidate forfeiture must advance settlement");
+    let forfeit_context = process_context(key("forfeit"));
+    let forfeit_input = ForfeitSettlementCandidateInput {
+        auction_id: auction_id.clone(),
+        candidate_id: user_one.clone(),
+        settlement_round: 1,
+        occurred_at: Timestamp::from_millis(ends_at + 1_000),
+    };
+    let (left_advanced, right_advanced) = tokio::join!(
+        lifecycle.forfeit(&forfeit_context, forfeit_input.clone()),
+        lifecycle.forfeit(&forfeit_context, forfeit_input),
+    );
+    let advanced = left_advanced.expect("leading candidate forfeiture must advance settlement");
+    assert_eq!(
+        right_advanced.expect("concurrent duplicate must replay"),
+        advanced
+    );
     assert!(matches!(
         advanced,
         LifecycleResult::SettlementAdvanced {
@@ -345,6 +349,41 @@ async fn lot_listed_to_confirmed_winner_is_atomic_idempotent_and_cache_safe() {
         }
     }
     assert!(latest_price_version > 0);
+
+    let process_outbox = sqlx::query(
+        "SELECT event_type, payload FROM auction_process_outbox WHERE aggregate_id = $1 \
+         ORDER BY aggregate_version, occurred_at, event_id",
+    )
+    .bind(&auction_id)
+    .fetch_all(&harness.pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        process_outbox.len(),
+        3,
+        "close, concurrent forfeiture replay and confirm must emit one restricted fact each"
+    );
+    let process_types = process_outbox
+        .into_iter()
+        .map(|row| {
+            let event_type: String = row.try_get("event_type").unwrap();
+            let payload: Vec<u8> = row.try_get("payload").unwrap();
+            let envelope = gavel_auction::rpc::AuctionProcessEvent::decode(payload.as_slice())
+                .expect("restricted process envelope must decode");
+            assert_eq!(envelope.aggregate_id, auction_id);
+            assert_eq!(envelope.schema_version, 1);
+            assert!(!String::from_utf8_lossy(&payload).contains("maximum"));
+            event_type
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        process_types,
+        vec![
+            "SettlementCandidateSelected",
+            "SettlementCandidateSelected",
+            "WinnerConfirmed"
+        ]
+    );
     let cached = harness.cache.get(&auction_id).await.unwrap().unwrap();
     assert_eq!(cached.version, latest_price_version);
     assert_eq!(cached.amount_minor, 210);

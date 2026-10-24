@@ -1,0 +1,12 @@
+version: "1"
+headers:
+  all:
+    request:
+      - op: propagate
+        named: X-Gavel-User-Id
+      - op: propagate
+        named: X-Gavel-Principal
+      - op: propagate
+        named: X-Correlation-Id
+      - op: propagate
+        named: X-Causation-Id

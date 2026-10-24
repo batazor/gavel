@@ -3,6 +3,7 @@
 pub mod adapters;
 pub mod application;
 pub mod bootstrap;
+pub mod local_bootstrap;
 pub mod telemetry;
 
 #[allow(clippy::result_large_err)]

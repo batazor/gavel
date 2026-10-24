@@ -363,6 +363,19 @@ mod tests {
             self.calls.fetch_add(1, Ordering::SeqCst);
             Ok(self.values.lock().unwrap().get(auction_id).cloned())
         }
+
+        async fn auction_by_lot_id(
+            &self,
+            lot_id: &str,
+        ) -> Result<Option<AuctionProjection>, PortError> {
+            Ok(self
+                .values
+                .lock()
+                .unwrap()
+                .values()
+                .find(|projection| projection.view.lot_id == lot_id)
+                .cloned())
+        }
     }
 
     fn projection(auction_id: &str, version: u64) -> AuctionProjection {

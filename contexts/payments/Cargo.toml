@@ -18,8 +18,8 @@ base64.workspace = true
 chrono = { workspace = true, features = ["serde"] }
 gavel-authz-prost = { package = "gavel_authz_community_neoeinstein-prost", version = "=0.4.0-00000000000000-16e6b397db2f.1", registry = "buf" }
 gavel-authz-tonic = { package = "gavel_authz_community_neoeinstein-tonic", version = "=0.4.1-00000000000000-16e6b397db2f.1", registry = "buf" }
-gavel-payments-prost = { package = "gavel_payments_community_neoeinstein-prost", version = "=0.4.0-20261022143347-ab5508e1a7a7.1", registry = "buf" }
-gavel-payments-tonic = { package = "gavel_payments_community_neoeinstein-tonic", version = "=0.4.1-20261022143347-ab5508e1a7a7.1", registry = "buf" }
+gavel-payments-prost = { package = "gavel_payments_community_neoeinstein-prost", version = "=0.4.0-00000000000000-ee7ab816c2f0.1", registry = "buf" }
+gavel-payments-tonic = { package = "gavel_payments_community_neoeinstein-tonic", version = "=0.4.1-00000000000000-ee7ab816c2f0.1", registry = "buf" }
 hmac.workspace = true
 metrics.workspace = true
 metrics-exporter-prometheus.workspace = true

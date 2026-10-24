@@ -1,0 +1,14 @@
+{
+  "eventId": "payment-instrument-event-1",
+  "aggregateId": "instrument-1",
+  "eventType": "PaymentInstrumentReady",
+  "schemaVersion": 1,
+  "aggregateVersion": 2,
+  "occurredAtMillis": 1792713600000,
+  "correlationId": "payment-instrument-event-1",
+  "causationId": "payment-instrument-event-1",
+  "payload": {
+    "instrumentId": "instrument-1",
+    "userId": "bidder-1"
+  }
+}

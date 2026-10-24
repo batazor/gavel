@@ -13,6 +13,7 @@ use gavel_catalog::{
         },
         outbound::{
             authz::AuthzGrpcAdapter,
+            local_storage::LocalObjectStorage,
             postgres::PostgresCatalogStore,
             postgres_reader::PostgresPublicReader,
             s3::{S3Config, S3ObjectStorage},
@@ -20,13 +21,16 @@ use gavel_catalog::{
     },
     application::{
         ApplicationError, CatalogReader, CleanupWorker, Clock, CompleteLotImageUpload,
-        CompleteUploadInput, GrantReconciliationWorker, IdGenerator, ListLot, ListLotInput,
-        LotMutationResult, LotPage, LotQuery, PublicLot, RequestLotImageUpload, RequestUploadInput,
-        UpdateLot, UpdateLotInput, UploadCompletedResult, UploadIntentResult, WithdrawLot,
-        WithdrawLotInput,
+        CompleteUploadInput, DeleteObjectRequest, GrantReconciliationWorker, HeadObjectRequest,
+        IdGenerator, ListLot, ListLotInput, LotMutationResult, LotPage, LotQuery, ObjectStorage,
+        PortError, PresignPutRequest, PresignedPut, PublicLot, RequestLotImageUpload,
+        RequestUploadInput, UpdateLot, UpdateLotInput, UploadCompletedResult, UploadIntentResult,
+        WithdrawLot, WithdrawLotInput,
     },
-    bootstrap::{BackgroundWorker, RuntimeConfig, RuntimeState, serve, unix_millis},
-    domain::{ImageId, LotId},
+    bootstrap::{
+        BackgroundWorker, RuntimeConfig, RuntimeState, serve_with_local_storage, unix_millis,
+    },
+    domain::{ActualObjectMetadata, ImageId, LotId},
     telemetry::{CatalogTelemetry, Operation, Outcome, record, set_backlogs},
 };
 use sqlx::{PgPool, postgres::PgPoolOptions};
@@ -58,11 +62,59 @@ impl IdGenerator for UuidIds {
     }
 }
 
+enum RuntimeObjectStorage {
+    S3(S3ObjectStorage),
+    Local(LocalObjectStorage),
+}
+
+impl RuntimeObjectStorage {
+    async fn ready(&self, timeout: Duration) -> Result<(), PortError> {
+        match self {
+            Self::S3(storage) => storage.ready(timeout).await,
+            Self::Local(storage) => storage.ready().await,
+        }
+    }
+
+    fn local(&self) -> Option<Arc<LocalObjectStorage>> {
+        match self {
+            Self::S3(_) => None,
+            Self::Local(storage) => Some(Arc::new(storage.clone())),
+        }
+    }
+}
+
+#[async_trait]
+impl ObjectStorage for RuntimeObjectStorage {
+    async fn presign_put(&self, request: PresignPutRequest) -> Result<PresignedPut, PortError> {
+        match self {
+            Self::S3(storage) => storage.presign_put(request).await,
+            Self::Local(storage) => storage.presign_put(request).await,
+        }
+    }
+
+    async fn head_object(
+        &self,
+        request: HeadObjectRequest,
+    ) -> Result<ActualObjectMetadata, PortError> {
+        match self {
+            Self::S3(storage) => storage.head_object(request).await,
+            Self::Local(storage) => storage.head_object(request).await,
+        }
+    }
+
+    async fn delete_object(&self, request: DeleteObjectRequest) -> Result<(), PortError> {
+        match self {
+            Self::S3(storage) => storage.delete_object(request).await,
+            Self::Local(storage) => storage.delete_object(request).await,
+        }
+    }
+}
+
 struct CatalogApplication {
     store: Arc<PostgresCatalogStore>,
     reader: Arc<PostgresPublicReader>,
     authz: Arc<AuthzGrpcAdapter>,
-    storage: Arc<S3ObjectStorage>,
+    storage: Arc<RuntimeObjectStorage>,
     clock: Arc<SystemClock>,
     ids: Arc<UuidIds>,
     telemetry: Arc<CatalogTelemetry>,
@@ -206,7 +258,7 @@ impl CatalogGrpcApi for CatalogApplication {
 
 struct CleanupRuntime {
     store: Arc<PostgresCatalogStore>,
-    storage: Arc<S3ObjectStorage>,
+    storage: Arc<RuntimeObjectStorage>,
     telemetry: Arc<CatalogTelemetry>,
     interval: Duration,
     lease_millis: u64,
@@ -341,25 +393,50 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.image_delivery_base_url.clone(),
     ));
     let authz = Arc::new(
-        AuthzGrpcAdapter::connect(&config.authz_url, config.dependency_timeout)
-            .await
-            .map_err(|_| std::io::Error::other("Authz connection failed"))?,
+        AuthzGrpcAdapter::connect_authenticated(
+            &config.authz_url,
+            config.dependency_timeout,
+            &std::env::var("CATALOG_AUTHZ_CALLER_SPIFFE_ID")?,
+        )
+        .await
+        .map_err(|_| std::io::Error::other("Authz connection failed"))?,
     );
     authz
         .ready()
         .await
         .map_err(|_| std::io::Error::other("Authz is not ready"))?;
     let storage = Arc::new(
-        S3ObjectStorage::new(S3Config {
-            endpoint: config.s3_endpoint.clone(),
-            region: config.s3_region.clone(),
-            bucket: config.s3_bucket.clone(),
-            access_key: config.s3_access_key.clone(),
-            secret_key: config.s3_secret_key.clone(),
-            session_token: None,
-            path_style: config.s3_path_style,
-        })
-        .map_err(std::io::Error::other)?,
+        match std::env::var("CATALOG_OBJECT_STORAGE_MODE").as_deref() {
+            Ok("local") => {
+                if std::env::var("CATALOG_ENABLE_LOCAL_OBJECT_STORAGE").as_deref() != Ok("true") {
+                    return Err(std::io::Error::other(
+                        "local object storage requires explicit development enablement",
+                    )
+                    .into());
+                }
+                let upload_base_url = std::env::var("CATALOG_LOCAL_STORAGE_UPLOAD_BASE_URL")?
+                    .parse()
+                    .map_err(|_| std::io::Error::other("local object storage URL is invalid"))?;
+                RuntimeObjectStorage::Local(
+                    LocalObjectStorage::new(upload_base_url).map_err(std::io::Error::other)?,
+                )
+            }
+            Ok("s3") | Err(_) => RuntimeObjectStorage::S3(
+                S3ObjectStorage::new(S3Config {
+                    endpoint: config.s3_endpoint.clone(),
+                    region: config.s3_region.clone(),
+                    bucket: config.s3_bucket.clone(),
+                    access_key: config.s3_access_key.clone(),
+                    secret_key: config.s3_secret_key.clone(),
+                    session_token: None,
+                    path_style: config.s3_path_style,
+                })
+                .map_err(std::io::Error::other)?,
+            ),
+            Ok(_) => {
+                return Err(std::io::Error::other("unsupported object storage mode").into());
+            }
+        },
     );
     storage
         .ready(config.dependency_timeout)
@@ -393,7 +470,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let grpc = TcpListener::bind(config.grpc_addr).await?;
     let shutdown = CancellationToken::new();
     install_shutdown(shutdown.clone());
-    serve(
+    let local_storage = storage.local();
+    serve_with_local_storage(
         http,
         grpc,
         schema(Arc::clone(&app) as Arc<dyn CatalogGraphqlApi>),
@@ -428,6 +506,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ],
         Arc::new(RuntimeState::default()),
         config.trusted_proxies,
+        local_storage,
         shutdown,
     )
     .await?;

@@ -9,9 +9,13 @@ service:
   port: 8080
 
 config:
+  runtimeProfile: production
+  providerAdapter: stripe
   authzEndpoint: http://gavel-authz.gavel.svc.cluster.local:9090
+  authzCallerSpiffeId: spiffe://cluster.local/ns/gavel/sa/gavel-payments
   providerEndpoint: https://api.stripe.com/
   processesSpiffeId: spiffe://cluster.local/ns/gavel/sa/gavel-processes
+  sandboxDefaultOutcome: success
 
 externalSecret:
   name: gavel-payments-runtime
@@ -19,6 +23,7 @@ externalSecret:
   providerSecretKey: provider-secret
   callbackSecretKey: callback-secret
   fingerprintSecretKey: fingerprint-secret
+  sandboxControlTokenKey: sandbox-control-token
 
 rpc:
   enabled: true
@@ -29,6 +34,7 @@ rpc:
     - gavel-processes
   allowedHttpPrincipals:
     - cluster.local/ns/gavel/sa/gavel-bff
+  sandboxControlPrincipals: []
 
 podDisruptionBudget:
   minAvailable: 2

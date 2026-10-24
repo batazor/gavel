@@ -1,0 +1,22 @@
+mutation PlaceBid($input: PlaceBidInput!, $idempotencyKey: String!) {
+  placeBid(input: $input, idempotencyKey: $idempotencyKey) {
+    acceptedVersion
+    outbid
+    auction {
+      id
+      status
+      endsAt
+      currentPrice {
+        amount
+        currency
+        version
+      }
+      viewer {
+        isLeader
+        isSettlementCandidate
+        isWinner
+        canBid
+      }
+    }
+  }
+}

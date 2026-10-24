@@ -1,5 +1,9 @@
 *
 !Cargo.toml
 !Cargo.lock
+!.cargo/
+!.cargo/**
 !contexts/
 !contexts/**
+**/target
+**/target/**

@@ -52,6 +52,40 @@ fn public_event_descriptor_cannot_represent_private_fields() {
 }
 
 #[test]
+fn restricted_process_contract_is_separate_from_public_events() {
+    let descriptor = FileDescriptorSet::decode(gavel_auction::AUCTION_DESCRIPTOR_SET)
+        .expect("generated Auction descriptor set must decode");
+    let process_file = descriptor
+        .file
+        .iter()
+        .find(|file| file.name.as_deref() == Some("gavel/auction/v1/auction_process_events.proto"))
+        .expect("restricted process event descriptor must be generated");
+
+    let process_fields = process_file
+        .message_type
+        .iter()
+        .flat_map(|message| message.field.iter())
+        .filter_map(|field| field.name.as_deref())
+        .collect::<Vec<_>>();
+    let selected = process_file
+        .message_type
+        .iter()
+        .find(|message| message.name.as_deref() == Some("ProcessSettlementCandidateSelected"))
+        .expect("selected candidate payload must exist");
+    let selected_fields = selected
+        .field
+        .iter()
+        .filter_map(|field| field.name.as_deref())
+        .collect::<Vec<_>>();
+
+    assert!(process_fields.contains(&"aggregate_version"));
+    assert!(process_fields.contains(&"schema_version"));
+    assert!(selected_fields.contains(&"candidate_id"));
+    assert!(selected_fields.contains(&"settlement_round"));
+    assert!(selected_fields.contains(&"amount"));
+}
+
+#[test]
 fn public_event_fixture_contains_only_safe_shape() {
     let fixture = include_str!("fixtures/public_events_v1.json").to_ascii_lowercase();
 

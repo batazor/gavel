@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+  repository: gavel-auction
+  tag: local
+  pullPolicy: IfNotPresent
+
+rpc:
+  allowedPrincipals:
+    - cluster.local/ns/gavel-mvp/sa/gavel-processes-gavel-processes
+  allowedApplications:
+    - gavel-processes
+
+runtime:
+  processesSpiffeId: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-processes
+
+authz:
+  url: http://gavel-authz-gavel-authz:9090
+  callerSpiffeId: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-auction
+
+redis:
+  url: redis://redis:6379/

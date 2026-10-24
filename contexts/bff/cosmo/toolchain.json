@@ -1,0 +1,6 @@
+{
+  "wgcVersion": "0.133.0",
+  "routerImage": "ghcr.io/wundergraph/cosmo/router:0.361.0-nonroot",
+  "executionConfigPath": "/etc/cosmo/execution-config.json",
+  "listenAddress": "0.0.0.0:8080"
+}

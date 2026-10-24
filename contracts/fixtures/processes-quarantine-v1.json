@@ -1,0 +1,20 @@
+{
+  "recordId": "quarantine-1",
+  "schemaVersion": 1,
+  "occurredAt": "2026-10-23T00:05:01Z",
+  "source": {
+    "topic": "gavel.auction.processes.v1",
+    "partition": 0,
+    "offset": 42,
+    "eventId": "evt-auction-restricted-1",
+    "partitionKeyHash": "sha256:example"
+  },
+  "failure": {
+    "category": "UNSUPPORTED_SCHEMA_VERSION",
+    "safeCode": "schema_version_not_supported"
+  },
+  "replay": {
+    "status": "PENDING",
+    "attempts": 0
+  }
+}

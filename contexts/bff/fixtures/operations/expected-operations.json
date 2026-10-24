@@ -1,0 +1,22 @@
+{
+  "operations": [
+    {
+      "file": "lot-workspace.graphql",
+      "name": "LotWorkspace",
+      "type": "query"
+    },
+    {
+      "file": "place-bid.graphql",
+      "name": "PlaceBid",
+      "type": "mutation"
+    }
+  ],
+  "forbiddenTokens": [
+    "maximumAmount",
+    "candidateId",
+    "sellerId",
+    "providerRef",
+    "storageKey",
+    "recoveryUrl"
+  ]
+}

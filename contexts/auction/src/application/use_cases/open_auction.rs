@@ -110,7 +110,7 @@ fn prepare_open(event: &LotListed) -> Result<PreparedCommand, ApplicationError> 
         updated_at: event.listed_at,
     };
     let reconciliation = [
-        ("platform", "platform", "platform"),
+        ("platform", "platform", "gavel"),
         ("lot", "lot", event.lot_id.as_str()),
     ]
     .into_iter()

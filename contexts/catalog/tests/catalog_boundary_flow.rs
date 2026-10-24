@@ -221,7 +221,7 @@ async fn real_boundaries_upload_complete_list_query_and_cleanup() {
         context: context("list-boundary", now),
         lot_id: "boundary-lot-1".to_owned(),
         title: "Boundary lot".to_owned(),
-        description: Some("Real PostgreSQL and MinIO".to_owned()),
+        description: Some("Real PostgreSQL and s3s-fs".to_owned()),
         images: vec![ImageAttachmentInput {
             image_id: attached.image_id.clone(),
             alt: "attached image".to_owned(),

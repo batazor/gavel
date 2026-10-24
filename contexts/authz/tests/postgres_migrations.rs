@@ -43,6 +43,17 @@ async fn migrations_are_repeatable_constrained_and_privacy_safe() {
     .await
     .expect("valid pending receipt must be accepted");
 
+    pool.execute(
+        "INSERT INTO authz_command_receipts \
+         (caller_scope, idempotency_key, request_fingerprint, operation, status, \
+          lease_token, lease_expires_at) \
+         VALUES ('bootstrap', 'bootstrap-1', decode(repeat('02', 32), 'hex'), \
+          'register_principal', 'PENDING', \
+          '00000000-0000-7000-8000-000000000004', clock_timestamp() + interval '30 seconds')",
+    )
+    .await
+    .expect("authenticated bootstrap receipt must be accepted");
+
     let invalid_statements = [
         "INSERT INTO authz_command_receipts \
          (caller_scope, idempotency_key, request_fingerprint, operation, status, lease_token, lease_expires_at) \

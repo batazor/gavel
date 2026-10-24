@@ -38,6 +38,14 @@ groups:
         expr: histogram_quantile(0.99, sum by (le, rpc_service, rpc_method) (rate(gavel_rpc_client_duration_seconds_bucket{service="processes"}[5m])))
       - record: gavel:processes:rpc_client_failure_ratio:rate5m
         expr: sum(rate(gavel_rpc_client_requests_total{service="processes",grpc_code!="OK"}[5m])) / clamp_min(sum(rate(gavel_rpc_client_requests_total{service="processes"}[5m])), 0.000001)
+      - record: gavel:process_activity_failure:rate5m
+        expr: sum by (activity_type, outcome) (rate(gavel_process_activity_total{outcome=~"retryable_failure|invariant_failure"}[5m]))
+      - record: gavel:process_signal_gap:increase15m
+        expr: sum by (event_type) (increase(gavel_process_signal_total{disposition="gap"}[15m]))
+      - record: gavel:process_ingress_failure:rate5m
+        expr: sum by (owner, route, outcome) (rate(gavel_process_ingress_delivery_total{outcome=~"failed|commit_failed"}[5m]))
+      - record: gavel:process_ingress_quarantine:increase15m
+        expr: sum by (owner, route) (increase(gavel_process_ingress_delivery_total{outcome="quarantined"}[15m]))
 
   - name: gavel.processes.alerts
     rules:
@@ -238,3 +246,73 @@ groups:
           description: Inspect rpc_service, rpc_method and grpc_code, then correlate the Temporal activity trace.
           dashboard_uid: gavel-processes-temporal
           runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md
+
+      - alert: ProcessRuntimeNotReady
+        expr: max(gavel_process_worker_ready) < 1
+        for: 2m
+        labels: {severity: page, team: platform, service: processes, slo: availability}
+        annotations:
+          summary: Processes runtime has no ready worker
+          description: Health endpoint may be live, but a broker, Temporal, owner RPC, consumer or worker dependency is not ready.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#processworkerunavailable
+
+      - alert: ProcessActivityFailuresHigh
+        expr: sum(gavel:process_activity_failure:rate5m) > 0.1
+        for: 10m
+        labels: {severity: warning, team: platform, service: processes, slo: owner_effects}
+        annotations:
+          summary: Process activities are failing after retries
+          description: Inspect bounded activity outcome metrics and the Temporal failure chain.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#processactivityfailureshigh
+
+      - alert: ProcessSignalGapDetected
+        expr: gavel:process_signal_gap:increase15m > 0
+        for: 1m
+        labels: {severity: warning, team: platform, service: processes, slo: event_delivery}
+        annotations:
+          summary: A version gap was observed in process signals
+          description: Restore the missing owner event from the restricted outbox path.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#processsignalgapdetected
+
+      - alert: ProcessUnexpectedTerminalOutcome
+        expr: sum by (workflow_type) (increase(gavel_process_workflow_terminal_total{outcome="unexpected_failure"}[15m])) > 0
+        for: 1m
+        labels: {severity: page, team: platform, service: processes, slo: workflow_success}
+        annotations:
+          summary: A process workflow ended unexpectedly
+          description: Preserve history and run the replay gate before retrying owner effects.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#workflowfailureratiohigh
+
+      - alert: ProcessIngressDeliveryFailures
+        expr: sum(gavel:process_ingress_failure:rate5m) > 0.05
+        for: 5m
+        labels: {severity: warning, team: platform, service: processes, slo: event_delivery}
+        annotations:
+          summary: Processes ingress cannot durably acknowledge broker records
+          description: Inspect bounded owner, route and outcome labels; do not log or inspect restricted payloads outside the approved replay boundary.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#processingressdeliveryfailures
+
+      - alert: ProcessQuarantineGrowing
+        expr: sum(gavel:process_ingress_quarantine:increase15m) > 0
+        for: 1m
+        labels: {severity: warning, team: platform, service: processes, slo: event_delivery}
+        annotations:
+          summary: Processes quarantined one or more owner records
+          description: Use only sanitized source coordinates and the explicit replay command after fixing the contract or route.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#processquarantinegrowing
+
+      - alert: ProcessDependencyNotReady
+        expr: min by (dependency) (gavel_process_dependency_ready) < 1
+        for: 2m
+        labels: {severity: warning, team: platform, service: processes, slo: availability}
+        annotations:
+          summary: A required Processes dependency is not ready
+          description: Dependency {{ $labels.dependency }} has failed its bounded readiness probe.
+          dashboard_uid: gavel-processes-temporal
+          runbook_url: https://github.com/batazor/gavel/blob/main/contexts/processes/observability/README.md#processdependencynotready

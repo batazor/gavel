@@ -22,6 +22,7 @@ struct StoreState {
     command_results: HashMap<(String, String), (String, CommandResult)>,
     projections: HashMap<String, AuctionProjection>,
     outbox: Vec<PublicEvent>,
+    process_outbox: Vec<AuctionEvent>,
     reconciliation: HashMap<String, ReconciliationOperation>,
     fail_next_commit: bool,
     conflict_commits_remaining: usize,
@@ -62,6 +63,14 @@ impl InMemoryAuctionStore {
             .lock()
             .expect("store lock poisoned")
             .outbox
+            .clone()
+    }
+
+    pub fn process_outbox(&self) -> Vec<AuctionEvent> {
+        self.state
+            .lock()
+            .expect("store lock poisoned")
+            .process_outbox
             .clone()
     }
 
@@ -152,12 +161,27 @@ impl AuctionUnitOfWork for InMemoryAuctionStore {
             return Err(CommitError::InvalidRequest);
         }
 
+        let process_events = request
+            .private_events
+            .iter()
+            .filter(|event| {
+                matches!(
+                    event,
+                    AuctionEvent::SettlementCandidateSelected { .. }
+                        | AuctionEvent::Unsold
+                        | AuctionEvent::WinnerConfirmed { .. }
+                        | AuctionEvent::Cancelled
+                )
+            })
+            .cloned()
+            .collect::<Vec<_>>();
         state
             .streams
             .entry(request.auction_id.clone())
             .or_default()
             .extend(request.private_events);
         state.outbox.extend(request.public_events);
+        state.process_outbox.extend(process_events);
         if let Some(projection) = request.projection {
             state
                 .projections
@@ -190,6 +214,20 @@ impl AuctionProjectionReader for InMemoryAuctionStore {
             .map_err(|_| PortError::Internal)?
             .projections
             .get(auction_id)
+            .cloned())
+    }
+
+    async fn auction_by_lot_id(
+        &self,
+        lot_id: &str,
+    ) -> Result<Option<AuctionProjection>, PortError> {
+        Ok(self
+            .state
+            .lock()
+            .map_err(|_| PortError::Internal)?
+            .projections
+            .values()
+            .find(|projection| projection.view.lot_id == lot_id)
             .cloned())
     }
 }
@@ -509,6 +547,7 @@ mod tests {
         assert_eq!(store.commit(request).await, Err(CommitError::Unavailable));
         assert!(store.stream("auction-1").is_empty());
         assert!(store.outbox().is_empty());
+        assert!(store.process_outbox().is_empty());
         assert!(store.command_result(&identity).is_none());
         assert!(store.auction("auction-1").await.unwrap().is_none());
         assert!(store.pending(10).await.unwrap().is_empty());

@@ -25,6 +25,7 @@ import {
   type RecoveryState,
 } from '@gavel/ui';
 import { useLotWorkspace } from './graphql/useLotWorkspace';
+import { LocalIdentitySwitcher } from './auth/LocalIdentitySwitcher';
 
 const sectionPaths: Record<OpsSection, string> = {
   overview: '/admin',
@@ -81,11 +82,11 @@ export function App() {
     page = <AdminOverviewPage onNavigate={navigateSection} onOpenMonitor={() => navigate('/admin/monitor')} onOpenInbox={() => navigate('/admin/inbox')} onOpenObservability={() => navigate('/admin/observability')} onOpenSettlement={() => navigate('/admin/settlements')} onOpenCustomer={() => navigate('/admin/customers/USR-0834')} onOpenLot={() => navigate('/admin/lots/GV-2841')} />;
   }
 
-  return <div className="min-h-dvh bg-ground">{page}</div>;
+  return <div className="min-h-dvh bg-ground">{page}<LocalIdentitySwitcher /></div>;
 }
 
 function LotWorkspace({ lotId, onNavigate, onBack }: { lotId: string; onNavigate: (section: OpsSection) => void; onBack: () => void }) {
-  const { data, error, loading, retry, placeBid, bidPending } = useLotWorkspace(lotId);
+  const { data, error, loading, retry, placeBid, bidPending, bidError, refreshError } = useLotWorkspace(lotId);
   const title = data?.title ?? 'Lot';
   const subtitle = loading ? `${lotId} · loading the federated snapshot` : data ? `${lotId} · auction ${data.auction.status.toLowerCase()} · version ${data.auction.version} · ${data.source === 'bff' ? 'federated GraphQL' : 'local demo snapshot'}` : lotId;
   return (
@@ -107,11 +108,21 @@ function LotWorkspace({ lotId, onNavigate, onBack }: { lotId: string; onNavigate
             <StatusBadge tone={data.source === 'bff' ? 'success' : 'neutral'}>{data.source === 'bff' ? 'Live data' : 'Demo data'}</StatusBadge>
             <span>{data.bids.length} public bids in this window · ends {data.auction.endsAt}</span>
           </div>
-          <LiveBidPanel currency={data.auction.currency} currentPrice={data.auction.currentPrice} minimumBid={data.auction.minimumBid} endsAt={data.auction.endsAt} bids={data.bids} initialMaximum={data.auction.minimumBid + 2_000} status={data.auction.viewerStatus} onPlaceBid={placeBid} className={bidPending ? 'opacity-90' : undefined} />
+          {(refreshError || bidError) && <p role="alert" className="mb-4 text-sm text-negative">{bidError?.message ?? `Live refresh paused: ${refreshError?.message}`}</p>}
+          <LiveBidPanel currency={data.auction.currency} currentPrice={data.auction.currentPrice} minimumBid={data.auction.minimumBid} endsAt={data.auction.endsAt} bids={data.bids} initialMaximum={data.auction.minimumBid + 2_000} status={data.auction.viewerStatus} onPlaceBid={placeBid} biddingDisabled={!data.auction.canBid || data.auction.status !== 'OPEN'} biddingDisabledReason={terminalBidReason(data.auction.status, data.auction.isWinner, data.auction.isSettlementCandidate)} className={bidPending ? 'opacity-90' : undefined} />
         </>
       )}
     </OpsPageShell>
   );
+}
+
+export function terminalBidReason(status: 'SCHEDULED' | 'OPEN' | 'SETTLING' | 'SOLD' | 'UNSOLD' | 'CANCELLED', isWinner: boolean, isSettlementCandidate: boolean) {
+  if (status === 'SCHEDULED') return 'Bidding opens when the auction starts.';
+  if (status === 'SETTLING') return isSettlementCandidate ? 'You are the settlement candidate. Complete payment to finish.' : 'Bidding is closed while settlement is in progress.';
+  if (status === 'SOLD') return isWinner ? 'Sold to you. The result is final.' : 'This auction has been sold.';
+  if (status === 'UNSOLD') return 'This auction ended without a winner.';
+  if (status === 'CANCELLED') return 'This auction was cancelled.';
+  return 'Your current identity is not eligible to bid.';
 }
 
 function SettlementsPage({ onNavigate }: { onNavigate: (section: OpsSection) => void }) {

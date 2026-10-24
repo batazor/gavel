@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 2
 
 image:
   repository: ghcr.io/batazor/gavel-processes
@@ -8,10 +8,55 @@ image:
 service:
   port: 8080
 
+temporal:
+  endpoint: http://temporal-frontend.temporal.svc:7233
+  namespace: gavel
+  lifecycleTaskQueue: auction-lifecycle-v1
+  settlementTaskQueue: settle-auction-v1
+  apiKeySecretRef:
+    name: gavel-processes-temporal
+    key: api-key
+
+owners:
+  auctionEndpoint: http://gavel-auction:50051
+  paymentsEndpoint: http://gavel-payments:50051
+  notifyEndpoint: http://gavel-notify:50051
+  auctionPrincipalId: processes
+  workloadSpiffeId: spiffe://cluster.local/ns/gavel/sa/gavel-processes
+
+redpanda:
+  brokers: redpanda.gavel-mvp.svc.cluster.local:9092
+  groupId: gavel-processes-v1
+  clientId: gavel-processes
+  securityProtocol: SASL_PLAINTEXT
+  sasl:
+    enabled: true
+    secretRef:
+      name: gavel-redpanda-processes
+      usernameKey: username
+      passwordKey: password
+  quarantineTimeoutMs: 3000
+  retry:
+    attempts: 4
+    initialMs: 100
+    maxMs: 2000
+
+shutdown:
+  seconds: 20
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+topologySpreadConstraints:
+  enabled: true
+  maxSkew: 1
+  topologyKey: topology.kubernetes.io/zone
+
 resources:
   requests:
-    cpu: 50m
-    memory: 64Mi
+    cpu: 100m
+    memory: 128Mi
   limits:
     cpu: 500m
     memory: 256Mi

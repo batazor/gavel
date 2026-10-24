@@ -64,3 +64,16 @@ migrations:
 spicedbSchema:
   enabled: true
   image: ghcr.io/authzed/zed:v0.36.0
+  endpointKey: endpoint
+
+bootstrap:
+  enabled: false
+  localOnly: false
+  spiffeId: spiffe://cluster.local/ns/gavel/sa/gavel-authz-bootstrap
+  meshPrincipal: cluster.local/ns/gavel/sa/gavel-authz-bootstrap
+  issuer: ""
+  sellerSubject: ""
+  bidderOneSubject: ""
+  bidderTwoSubject: ""
+  timeoutMs: 5000
+  connectAttempts: 30

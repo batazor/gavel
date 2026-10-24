@@ -15,12 +15,23 @@ spec:
       labels:
         {{- include "gavel.labels" . | nindent 8 }}
     spec:
+      terminationGracePeriodSeconds: {{ add .Values.shutdown.seconds 10 }}
       serviceAccountName: {{ include "gavel.fullname" . }}
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
+      {{- if .Values.topologySpreadConstraints.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: {{ .Values.topologySpreadConstraints.maxSkew }}
+          topologyKey: {{ .Values.topologySpreadConstraints.topologyKey }}
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ include "gavel.name" . }}
+              app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- end }}
       containers:
         - name: {{ include "gavel.name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -28,6 +39,60 @@ spec:
           env:
             - name: PORT
               value: {{ .Values.service.port | quote }}
+            - name: TEMPORAL_ENDPOINT
+              value: {{ required "temporal.endpoint is required" .Values.temporal.endpoint | quote }}
+            - name: TEMPORAL_NAMESPACE
+              value: {{ required "temporal.namespace is required" .Values.temporal.namespace | quote }}
+            - name: TEMPORAL_LIFECYCLE_TASK_QUEUE
+              value: {{ required "temporal.lifecycleTaskQueue is required" .Values.temporal.lifecycleTaskQueue | quote }}
+            - name: TEMPORAL_SETTLEMENT_TASK_QUEUE
+              value: {{ required "temporal.settlementTaskQueue is required" .Values.temporal.settlementTaskQueue | quote }}
+            - name: TEMPORAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "temporal.apiKeySecretRef.name is required" .Values.temporal.apiKeySecretRef.name }}
+                  key: {{ required "temporal.apiKeySecretRef.key is required" .Values.temporal.apiKeySecretRef.key }}
+                  optional: true
+            - name: AUCTION_GRPC_ENDPOINT
+              value: {{ required "owners.auctionEndpoint is required" .Values.owners.auctionEndpoint | quote }}
+            - name: PAYMENTS_GRPC_ENDPOINT
+              value: {{ required "owners.paymentsEndpoint is required" .Values.owners.paymentsEndpoint | quote }}
+            - name: NOTIFY_GRPC_ENDPOINT
+              value: {{ required "owners.notifyEndpoint is required" .Values.owners.notifyEndpoint | quote }}
+            - name: AUCTION_PRINCIPAL_ID
+              value: {{ required "owners.auctionPrincipalId is required" .Values.owners.auctionPrincipalId | quote }}
+            - name: PROCESSES_SPIFFE_ID
+              value: {{ required "owners.workloadSpiffeId is required" .Values.owners.workloadSpiffeId | quote }}
+            - name: REDPANDA_BROKERS
+              value: {{ required "redpanda.brokers is required" .Values.redpanda.brokers | quote }}
+            - name: REDPANDA_GROUP_ID
+              value: {{ required "redpanda.groupId is required" .Values.redpanda.groupId | quote }}
+            - name: REDPANDA_CLIENT_ID
+              value: {{ required "redpanda.clientId is required" .Values.redpanda.clientId | quote }}
+            - name: REDPANDA_SECURITY_PROTOCOL
+              value: {{ required "redpanda.securityProtocol is required" .Values.redpanda.securityProtocol | quote }}
+            {{ if .Values.redpanda.sasl.enabled }}
+            - name: REDPANDA_SASL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "redpanda.sasl.secretRef.name is required" .Values.redpanda.sasl.secretRef.name }}
+                  key: {{ required "redpanda.sasl.secretRef.usernameKey is required" .Values.redpanda.sasl.secretRef.usernameKey }}
+            - name: REDPANDA_SASL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "redpanda.sasl.secretRef.name is required" .Values.redpanda.sasl.secretRef.name }}
+                  key: {{ required "redpanda.sasl.secretRef.passwordKey is required" .Values.redpanda.sasl.secretRef.passwordKey }}
+            {{ end }}
+            - name: QUARANTINE_TIMEOUT_MS
+              value: {{ .Values.redpanda.quarantineTimeoutMs | quote }}
+            - name: BROKER_RETRY_ATTEMPTS
+              value: {{ .Values.redpanda.retry.attempts | quote }}
+            - name: BROKER_RETRY_INITIAL_MS
+              value: {{ .Values.redpanda.retry.initialMs | quote }}
+            - name: BROKER_RETRY_MAX_MS
+              value: {{ .Values.redpanda.retry.maxMs | quote }}
+            - name: GRACEFUL_SHUTDOWN_SECONDS
+              value: {{ .Values.shutdown.seconds | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -36,14 +101,18 @@ spec:
             httpGet:
               path: /readyz
               port: http
-            initialDelaySeconds: 1
+            initialDelaySeconds: 3
             periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /healthz
               port: http
             initialDelaySeconds: 3
             periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:

@@ -37,6 +37,14 @@ spec:
                   key: {{ .Values.externalSecrets.database.key | quote }}
             - name: CATALOG_AUTHZ_URL
               value: {{ .Values.runtime.authzUrl | quote }}
+            - name: CATALOG_AUTHZ_CALLER_SPIFFE_ID
+              value: {{ .Values.runtime.authzCallerSpiffeId | quote }}
+            - name: CATALOG_OBJECT_STORAGE_MODE
+              value: {{ .Values.runtime.objectStorageMode | quote }}
+            - name: CATALOG_ENABLE_LOCAL_OBJECT_STORAGE
+              value: {{ .Values.runtime.enableLocalObjectStorage | quote }}
+            - name: CATALOG_LOCAL_STORAGE_UPLOAD_BASE_URL
+              value: {{ .Values.runtime.localStorageUploadBaseUrl | quote }}
             - name: CATALOG_S3_ENDPOINT
               valueFrom:
                 secretKeyRef:

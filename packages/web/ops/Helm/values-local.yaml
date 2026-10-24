@@ -1,0 +1,7 @@
+replicaCount: 1
+image:
+  repository: gavel-web
+  tag: local
+  pullPolicy: IfNotPresent
+ingress:
+  enabled: false

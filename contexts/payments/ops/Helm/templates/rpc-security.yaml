@@ -22,6 +22,16 @@ spec:
         - operation:
             ports: [{{ .Values.service.port | quote }}]
             paths: ["/payment-provider-callbacks/stripe", "/healthz", "/readyz", "/metrics"]
+    {{- if eq .Values.config.providerAdapter "sandbox" }}
+    - from:
+        - source:
+            principals:
+              {{- toYaml .Values.rpc.sandboxControlPrincipals | nindent 14 }}
+      to:
+        - operation:
+            ports: [{{ .Values.service.port | quote }}]
+            paths: ["/local/sandbox/*"]
+    {{- end }}
     - from:
         - source:
             principals:

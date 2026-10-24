@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-jwt-config
+  labels: {app.kubernetes.io/name: local-jwt, app.kubernetes.io/part-of: gavel-mvp}
+data:
+  json-config: |-
+    {
+      "interactiveLogin": false,
+      "httpServer": "NettyWrapper",
+      "tokenCallbacks": [
+        {
+          "issuerId": "default",
+          "tokenExpiry": 300,
+          "requestMappings": [
+            {
+              "requestParam": "client_id",
+              "match": "gavel-local-seller",
+              "claims": {"sub": "seller-local", "aud": ["gavel-web"], "principal_id": "seller-local", "gavel_actor": "seller"}
+            },
+            {
+              "requestParam": "client_id",
+              "match": "gavel-local-bidder-one",
+              "claims": {"sub": "bidder-one-local", "aud": ["gavel-web"], "principal_id": "bidder-one-local", "gavel_actor": "bidder-one"}
+            },
+            {
+              "requestParam": "client_id",
+              "match": "gavel-local-bidder-two",
+              "claims": {"sub": "bidder-two-local", "aud": ["gavel-web"], "principal_id": "bidder-two-local", "gavel_actor": "bidder-two"}
+            },
+            {
+              "requestParam": "client_id",
+              "match": "gavel-local-wrong-audience",
+              "claims": {"sub": "negative-test", "aud": ["not-gavel-web"]}
+            }
+          ]
+        },
+        {
+          "issuerId": "foreign",
+          "tokenExpiry": 300,
+          "requestMappings": [
+            {
+              "requestParam": "client_id",
+              "match": "gavel-local-foreign-issuer",
+              "claims": {"sub": "negative-test", "aud": ["gavel-web"]}
+            }
+          ]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-jwt
+  labels: {app.kubernetes.io/name: local-jwt, app.kubernetes.io/part-of: gavel-mvp}
+spec:
+  selector: {app.kubernetes.io/name: local-jwt}
+  ports:
+    - {name: http, port: 8080, targetPort: http}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-jwt
+  labels: {app.kubernetes.io/name: local-jwt, app.kubernetes.io/part-of: gavel-mvp}
+  annotations:
+    gavel.dev/development-only: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: local-jwt}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: local-jwt
+        app.kubernetes.io/part-of: gavel-mvp
+        gavel.dev/development-only: "true"
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: local-jwt
+          image: ghcr.io/navikt/mock-oauth2-server:2.2.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - {name: SERVER_PORT, value: "8080"}
+            - {name: LOG_LEVEL, value: WARN}
+            - name: JSON_CONFIG
+              valueFrom: {configMapKeyRef: {name: local-jwt-config, key: json-config}}
+          ports:
+            - {name: http, containerPort: 8080}
+          readinessProbe:
+            httpGet: {path: /default/.well-known/openid-configuration, port: http}
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 25m, memory: 96Mi}
+            limits: {cpu: 500m, memory: 384Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}

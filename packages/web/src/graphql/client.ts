@@ -1,3 +1,5 @@
+import { localAccessToken } from '../auth/localIdentity';
+
 type GraphQLError = {
   message: string;
   extensions?: { code?: string };
@@ -37,13 +39,18 @@ export async function executeGraphQL<TData, TVariables extends Record<string, un
   variables: TVariables,
   signal?: AbortSignal,
 ): Promise<TData> {
+  const accessToken = localAccessToken();
   let response: Response;
   try {
     response = await fetch(endpoint, {
       method: 'POST',
       credentials: 'include',
       signal,
-      headers: { 'content-type': 'application/json', accept: 'application/graphql-response+json, application/json' },
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/graphql-response+json, application/json',
+        ...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}),
+      },
       body: JSON.stringify({ operationName, query, variables }),
     });
   } catch (error) {
@@ -71,13 +78,18 @@ export async function subscribeGraphQL<TData, TVariables extends Record<string, 
   onData: (data: TData) => void,
   signal: AbortSignal,
 ): Promise<void> {
+  const accessToken = localAccessToken();
   let response: Response;
   try {
     response = await fetch(endpoint, {
       method: 'POST',
       credentials: 'include',
       signal,
-      headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+      headers: {
+        'content-type': 'application/json',
+        accept: 'text/event-stream',
+        ...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}),
+      },
       body: JSON.stringify({ operationName, query, variables }),
     });
   } catch (error) {

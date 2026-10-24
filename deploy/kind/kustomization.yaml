@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: gavel-mvp
+resources:
+  - platform/namespace.yaml
+  - platform/postgresql.yaml
+  - platform/temporal.yaml
+  - platform/redpanda.yaml
+  - platform/kafka-connect.yaml
+  - platform/spicedb.yaml
+  - platform/mailpit.yaml
+  - platform/redis.yaml
+  - auth/local-jwt.yaml
+  - bootstrap/postgres-databases.yaml
+  - bootstrap/temporal-namespace.yaml

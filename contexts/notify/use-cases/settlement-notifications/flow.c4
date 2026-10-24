@@ -8,12 +8,11 @@ views {
 
     gavel.processes.activities -> gavel.notify.service.api 'SendNotification(notification_id, recipient, template, data)'
     gavel.notify.service.api -> gavel.notify.service.notification 'create or return existing'
-    gavel.notify.service.notification -> gavel.notify.service.template 'render versioned template'
+    gavel.notify.service.notification -> gavel.notify.service.template 'render candidate, candidate-failed, recovery or winner v1'
     gavel.notify.service.notification -> gavel.notify.service.channelAdapter 'deliver with retry'
     gavel.notify.service.channelAdapter -> emailProvider 'send transactional email'
-    gavel.notify.service.notification -> gavel.notify.service.repository 'save terminal status'
-    gavel.notify.service.repository -> gavel.notify.db 'notification + outbox, one transaction'
-    gavel.cdc -> gavel.notify.db 'capture outbox from WAL'
-    gavel.cdc -> gavel.broker 'NotificationSent | NotificationFailed'
+    gavel.notify.service.notification -> gavel.notify.service.repository 'save attempt and SENT | FAILED'
+    gavel.notify.service.repository -> gavel.notify.db 'notification + audit + outbox, one transaction'
+    gavel.processes.activities -> gavel.notify.service.api 'exact replay returns stored result'
   }
 }

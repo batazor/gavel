@@ -46,6 +46,12 @@ pub struct RuntimeConfig {
     pub authz_url: String,
     pub fingerprint_key: [u8; 32],
     pub dependency_timeout: Duration,
+    pub redpanda_brokers: String,
+    pub redpanda_group_id: String,
+    pub redpanda_client_id: String,
+    pub redpanda_security_protocol: String,
+    pub redpanda_sasl_username: Option<String>,
+    pub redpanda_sasl_password: Option<String>,
 }
 
 impl RuntimeConfig {
@@ -65,6 +71,13 @@ impl RuntimeConfig {
             authz_url: required("AUTHZ_URL")?,
             fingerprint_key: decode_key(&required("COMMAND_FINGERPRINT_KEY_HEX")?)?,
             dependency_timeout: Duration::from_millis(timeout_millis),
+            redpanda_brokers: required("REDPANDA_BROKERS")?,
+            redpanda_group_id: required("REDPANDA_GROUP_ID")?,
+            redpanda_client_id: required("REDPANDA_CLIENT_ID")?,
+            redpanda_security_protocol: env::var("REDPANDA_SECURITY_PROTOCOL")
+                .unwrap_or_else(|_| "SASL_PLAINTEXT".to_owned()),
+            redpanda_sasl_username: optional("REDPANDA_SASL_USERNAME"),
+            redpanda_sasl_password: optional("REDPANDA_SASL_PASSWORD"),
         })
     }
 }
@@ -328,6 +341,10 @@ fn required(name: &'static str) -> Result<String, ConfigError> {
         .ok_or(ConfigError::Missing(name))
 }
 
+fn optional(name: &'static str) -> Option<String> {
+    env::var(name).ok().filter(|value| !value.trim().is_empty())
+}
+
 fn socket_addr(name: &'static str, default_port: u16) -> Result<SocketAddr, ConfigError> {
     env::var(name)
         .unwrap_or_else(|_| {
@@ -369,6 +386,12 @@ mod tests {
     #[async_trait]
     impl AuctionGraphqlApi for EmptyApi {
         async fn auction(&self, _: &str) -> Result<Option<AuctionView>, ApplicationError> {
+            Ok(None)
+        }
+        async fn auction_by_lot_id(
+            &self,
+            _: &str,
+        ) -> Result<Option<AuctionView>, ApplicationError> {
             Ok(None)
         }
         async fn place_bid(

@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package gavel.auction.v1;
+
+import "gavel/auction/v1/auction_service.proto";
+import "google/protobuf/timestamp.proto";
+
+// AuctionProcessEvent is a restricted integration contract consumed only by
+// trusted process workers. It is deliberately separate from AuctionPublicEvent
+// because settlement candidate identity and amount are not public delivery data.
+message AuctionProcessEvent {
+  string event_id = 1;
+  string aggregate_id = 2;
+  uint64 aggregate_version = 3;
+  uint32 schema_version = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+  string correlation_id = 6;
+  string causation_id = 7;
+
+  oneof payload {
+    ProcessSettlementCandidateSelected settlement_candidate_selected = 10;
+    ProcessAuctionUnsold auction_unsold = 11;
+    ProcessWinnerConfirmed winner_confirmed = 12;
+    ProcessAuctionCancelled auction_cancelled = 13;
+  }
+}
+
+message ProcessSettlementCandidateSelected {
+  string candidate_id = 1;
+  uint32 settlement_round = 2;
+  Money amount = 3;
+}
+
+message ProcessAuctionUnsold {}
+
+message ProcessWinnerConfirmed {
+  string candidate_id = 1;
+  string payment_id = 2;
+}
+
+message ProcessAuctionCancelled {}

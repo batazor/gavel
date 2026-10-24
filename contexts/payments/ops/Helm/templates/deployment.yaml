@@ -40,16 +40,31 @@ spec:
               value: "0.0.0.0:{{ .Values.rpc.port }}"
             - name: AUTHZ_ENDPOINT
               value: {{ .Values.config.authzEndpoint | quote }}
+            - name: AUTHZ_CALLER_SPIFFE_ID
+              value: {{ .Values.config.authzCallerSpiffeId | quote }}
+            - name: PAYMENTS_RUNTIME_PROFILE
+              value: {{ .Values.config.runtimeProfile | quote }}
+            - name: PAYMENT_PROVIDER_ADAPTER
+              value: {{ .Values.config.providerAdapter | quote }}
+            {{- if eq .Values.config.providerAdapter "stripe" }}
             - name: PAYMENT_PROVIDER_ENDPOINT
               value: {{ .Values.config.providerEndpoint | quote }}
+            {{- else if eq .Values.config.providerAdapter "sandbox" }}
+            - name: PAYMENT_SANDBOX_DEFAULT_OUTCOME
+              value: {{ .Values.config.sandboxDefaultOutcome | quote }}
+            - name: PAYMENT_SANDBOX_CONTROL_TOKEN
+              valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.sandboxControlTokenKey | quote }}}}
+            {{- end }}
             - name: PROCESSES_SPIFFE_ID
               value: {{ .Values.config.processesSpiffeId | quote }}
             - name: DATABASE_URL
               valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.databaseUrlKey | quote }}}}
+            {{- if eq .Values.config.providerAdapter "stripe" }}
             - name: PAYMENT_PROVIDER_SECRET
               valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.providerSecretKey | quote }}}}
             - name: PAYMENT_CALLBACK_SECRET
               valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.callbackSecretKey | quote }}}}
+            {{- end }}
             - name: PAYMENT_FINGERPRINT_SECRET
               valueFrom: {secretKeyRef: {name: {{ .Values.externalSecret.name | quote }}, key: {{ .Values.externalSecret.fingerprintSecretKey | quote }}}}
           ports:

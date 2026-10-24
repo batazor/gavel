@@ -9,9 +9,10 @@
 
 ## Interface
 
-- [Federation subgraph SDL](graphql/schema.graphql) — владеет `Auction`, authoritative current price и bid mutations; публикуется только через Cosmo Router.
+- [Federation subgraph SDL](graphql/schema.graphql) — executable runtime владеет `Auction`, authoritative current price и bid mutations, а extension `Lot.auction` разрешает через owner-backed проекцию по `lot_id`; публикуется только через Cosmo Router.
 - [gRPC contract](proto/gavel/auction/v1/auction_service.proto) — внутренние команды Processes: close, cancel, forfeiture и confirm winner; правила — в [init ADR](adr/0001-init.md).
 - [Public event contract](proto/gavel/auction/v1/auction_events.proto) — versioned безопасные события для Redpanda; секретные максимумы, `user_id` и внутренние storage keys в контракт не входят.
+- [Restricted process-event contract](proto/gavel/auction/v1/auction_process_events.proto) — отдельный versioned поток только для trusted Processes workload; содержит текущего settlement candidate и amount, но никогда не публикуется realtime/analytics consumers.
 
 ## Язык
 
@@ -85,7 +86,7 @@ ends_at = min(hard_deadline, max(scheduled_end, last_bid_at + inactivity))
 ## Интеграции
 
 - Вход: команды от BFF (`PlaceBid`, `RescheduleAuction`) и от process worker (`CloseAuction`, `CancelAuction`, `ForfeitSettlementCandidate`, `ConfirmWinner`). Открытие — по `LotListed` из Catalog; готовность участника — по `PaymentInstrumentReady`/`PaymentInstrumentRevoked` из Payments.
-- Выход: outbox → Debezium/Kafka Connect → `auction.events` (Redpanda). Подписчики: BFF Realtime subgraph, process worker, ClickHouse.
+- Выход: public outbox → `gavel.auction.public.v1` для Realtime/ClickHouse; отдельный restricted process outbox → ACL-protected `gavel.auction.processes.v1` только для Processes. Обе записи атомарны с private stream, но контракты и consumer ACL не смешиваются; canonical metadata и partition key описаны в корневом `contracts/event-topics.json`.
 - Хранилище: `auction-db` (Postgres): authoritative журнал, outbox и проекции. Redis хранит только восстанавливаемый L2-cache публичной текущей цены; L1 живёт в памяти реплики.
 - `PlaceBid` и другие команды никогда не читают price cache. Root query `currentPrice` использует version-aware L1 → Redis → PostgreSQL fallback.
 
@@ -104,6 +105,7 @@ ends_at = min(hard_deadline, max(scheduled_end, last_bid_at + inactivity))
 - [Чистый event-sourced доменный слой](src/domain/) — агрегат, команды, приватные события, безопасные публичные события и value objects без инфраструктурных зависимостей
 - [Application layer](src/application/) — единый command executor с idempotency fingerprint/result, bounded optimistic retry, Authz/payment checks и post-commit reconciliation
 - [Adapters](src/adapters/) — GraphQL/gRPC/event consumers, PostgreSQL unit of work и projections, Redis L2 и Authz gRPC client
+- GraphQL adapter выводит `bid_id` детерминированно из verified principal, `auction_id` и idempotency key. Серверное время не входит в canonical fingerprint, поэтому точный retry возвращает сохранённый результат и не создаёт вторую ставку.
 - [Runtime](src/bootstrap.rs) — HTTP `/healthz`, `/readyz`, `/metrics`, `/graphql`, отдельный internal gRPC listener, supervised workers и graceful shutdown
 - Миграции запускаются отдельной командой `gavel-auction migrate`; runtime не применяет schema changes при старте. Секреты передаются через external secret references Helm chart.
 - `make -C contexts/auction check`, `database-integration`, `cache-integration`, `integration-check` и `observability-check` — локальные quality gates

@@ -22,16 +22,20 @@ helm upgrade --install payments contexts/payments/ops/Helm \
   --namespace payments --create-namespace
 ```
 
+Локальный профиль принадлежит сервису и хранится в `values-local.yaml`: он включает только guarded `sandbox` adapter и берёт control token из существующего Secret. Production values сохраняют Stripe и не монтируют local control route. Render assertions находятся в `tests/assert-render.sh` и запускаются единым gate 7.3.
+
 The chart owns the Deployment, Service, ServiceMonitor, PrometheusRule and Grafana dashboard for this project. Dashboard UID: `gavel-payments`.
 
-## Bootstrap endpoints
+## Runtime endpoints
 
-- `GET /` — hello-world response;
 - `GET /healthz` — liveness;
 - `GET /readyz` — readiness;
 - `GET /metrics` — Prometheus bootstrap metrics.
+- `POST /graphql` — owner GraphQL boundary;
+- `:9090` — trusted Processes gRPC;
+- `/local/sandbox/*` — только в local profile и только с control token.
 
-The bootstrap binary proves the build/deployment path only. Domain, GraphQL and integration interfaces remain defined by the project ADR and replace this shallow HTTP implementation incrementally.
+Перед rollout chart запускает отдельный idempotent migration Job. Runtime не применяет схему сам; database/provider/fingerprint/sandbox-control secrets приходят только через `secretKeyRef`.
 
 ## gRPC telemetry contract
 

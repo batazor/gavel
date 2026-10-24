@@ -1,0 +1,12 @@
+*
+!package.json
+!package-lock.json
+!packages/
+!packages/ui/
+!packages/ui/**
+!packages/web/
+!packages/web/**
+packages/web/node_modules
+packages/web/node_modules/**
+packages/web/dist
+packages/web/dist/**

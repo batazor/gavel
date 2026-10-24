@@ -179,7 +179,6 @@ struct ListLotFingerprint<'a> {
     start_price: &'a super::MoneyInput,
     bid_step_minor: u64,
     closing_policy: &'a super::ClosingPolicyInput,
-    occurred_at_millis: u64,
 }
 
 impl<'a> From<&'a ListLotInput> for ListLotFingerprint<'a> {
@@ -192,7 +191,6 @@ impl<'a> From<&'a ListLotInput> for ListLotFingerprint<'a> {
             start_price: &input.start_price,
             bid_step_minor: input.bid_step_minor,
             closing_policy: &input.closing_policy,
-            occurred_at_millis: input.occurred_at_millis,
         }
     }
 }

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use gavel_authz_prost::gavel::authz::v1 as rpc;
 use gavel_authz_tonic::gavel::authz::v1::tonic::authz_service_client::AuthzServiceClient;
 use rpc::write_relationships_response;
-use tonic_bsr::{Request, transport::Channel};
+use tonic_bsr::{Request, metadata::MetadataValue, transport::Channel};
 
 use crate::{
     application::{
@@ -14,6 +14,7 @@ use crate::{
 #[derive(Clone)]
 pub struct AuthzGrpc {
     client: AuthzServiceClient<Channel>,
+    workload_identity: Option<MetadataValue<tonic_bsr::metadata::Ascii>>,
 }
 
 impl AuthzGrpc {
@@ -25,7 +26,31 @@ impl AuthzGrpc {
             .map_err(|_| PortError::Unavailable)?;
         Ok(Self {
             client: AuthzServiceClient::new(channel),
+            workload_identity: None,
         })
+    }
+
+    pub async fn connect_authenticated(
+        endpoint: impl AsRef<str>,
+        identity: &str,
+    ) -> Result<Self, PortError> {
+        let channel = tonic_bsr::transport::Endpoint::from_shared(endpoint.as_ref().to_owned())
+            .map_err(|_| PortError::Internal)?
+            .connect()
+            .await
+            .map_err(|_| PortError::Unavailable)?;
+        Ok(Self {
+            client: AuthzServiceClient::new(channel),
+            workload_identity: Some(identity.parse().map_err(|_| PortError::Internal)?),
+        })
+    }
+
+    fn authenticate<T>(&self, request: &mut Request<T>) {
+        if let Some(identity) = &self.workload_identity {
+            request
+                .metadata_mut()
+                .insert("x-gavel-spiffe-id", identity.clone());
+        }
     }
 
     async fn check_rpc(
@@ -92,6 +117,7 @@ impl AuthzGrpc {
             consistency_token: request.consistency_token.unwrap_or_default(),
         });
         rpc_request.set_timeout(std::time::Duration::from_millis(request.timeout_millis));
+        self.authenticate(&mut rpc_request);
         let response = self
             .client
             .clone()
@@ -118,6 +144,7 @@ impl AuthzGrpc {
             deletions,
         });
         request.set_timeout(std::time::Duration::from_millis(timeout_millis));
+        self.authenticate(&mut request);
         match self
             .client
             .clone()

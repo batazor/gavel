@@ -1,0 +1,24 @@
+[
+  {
+    "event_id": "candidate-2",
+    "fingerprint": "candidate-fingerprint-2",
+    "owner_version": 3,
+    "kind": {
+      "CandidateSelected": {
+        "candidate": {
+          "auction_id": "auction-1",
+          "candidate_id": "candidate-2",
+          "round": 2,
+          "amount": { "minor_units": 700, "currency_code": "USD" },
+          "auction_version": 3
+        }
+      }
+    }
+  },
+  {
+    "event_id": "unsold-4",
+    "fingerprint": "unsold-fingerprint-4",
+    "owner_version": 4,
+    "kind": { "AuctionTerminal": { "outcome": "Unsold" } }
+  }
+]

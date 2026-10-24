@@ -14,24 +14,25 @@ sequenceDiagram
     participant Process as SettleAuction
     participant Notify
     participant DB as notify-db
-    participant Email as Email provider
-    participant CDC as Debezium
-    participant Broker as Redpanda
+    participant Email as SMTP / Mailpit
+    participant Operator as MVP smoke
 
     Process->>Process: Build deterministic notification_id<br/>settlement:{auction}:{round}:{kind}
-    Process->>Notify: SendNotification<br/>(recipient, template, minimal data)
-    Notify->>DB: Save logical notification + delivery plan
-    Notify->>Email: Rendered transactional email
+    Process->>Notify: SendNotification<br/>(id, recipient, template v1, safe data)
+    Notify->>DB: Claim id + canonical fingerprint<br/>state=PENDING
+    Notify->>Email: Rendered transactional email<br/>(bounded timeout)
     alt Temporary provider error
         Email-->>Notify: Retryable failure
-        Notify->>Email: Retry with backoff
+        Notify->>DB: Append safe attempt outcome
+        Notify->>Email: Retry with bounded backoff
     else Provider accepted
         Email-->>Notify: Provider reference
     end
-    Notify->>DB: Commit Sent or Failed + public outbox
+    Notify->>DB: Commit SENT or FAILED<br/>+ terminal outbox
     Notify-->>Process: Idempotent notification status
-    CDC->>DB: Capture outbox from WAL
-    CDC->>Broker: NotificationSent or NotificationFailed
+    Operator->>Notify: GetNotification(notification_id)
+    Notify->>DB: Read safe delivery projection
+    Notify-->>Operator: recipient, template/version,<br/>status, attempt count, version
 ```
 
-Повтор команды возвращает состояние исходного уведомления и не создаёт второе письмо.
+Точный повтор команды возвращает сохранённый terminal result и не создаёт второе письмо. Notify поддерживает отдельные версии `settlement_candidate.v1`, `settlement_candidate_failed.v1`, `payment_recovery_required.v1` и `winner_confirmed.v1`; решение отправить candidate-failed принимает только Processes после authoritative settlement outcome. Повтор `notification_id` с изменённым recipient, template, version, data либо idempotency key возвращает typed `IDEMPOTENCY_CONFLICT`. Operator read никогда не возвращает template data, recovery URL, provider reference или SMTP body.

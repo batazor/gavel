@@ -20,6 +20,15 @@ spec:
       to:
         - operation:
             ports: [{{ .Values.rpc.port | quote }}]
+            paths: ["/gavel.notify.v1.NotifyService/SendNotification"]
+    - from:
+        - source:
+            principals:
+              {{- toYaml .Values.rpc.operatorPrincipals | nindent 14 }}
+      to:
+        - operation:
+            ports: [{{ .Values.rpc.port | quote }}]
+            paths: ["/gavel.notify.v1.NotifyOperatorService/GetNotification"]
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

@@ -25,6 +25,7 @@ fn domain_and_application_do_not_import_framework_adapters() {
                 "tonic::",
                 "async_graphql::",
                 "Stripe",
+                "Sandbox",
             ] {
                 assert!(
                     !source.contains(forbidden),

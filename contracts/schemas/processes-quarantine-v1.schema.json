@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gavel:processes:quarantine:v1",
+  "title": "Gavel Processes Quarantine Record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["recordId", "schemaVersion", "occurredAt", "source", "failure", "replay"],
+  "properties": {
+    "recordId": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topic", "partition", "offset", "eventId", "partitionKeyHash"],
+      "properties": {
+        "topic": { "type": "string", "minLength": 1 },
+        "partition": { "type": "integer", "minimum": 0 },
+        "offset": { "type": "integer", "minimum": 0 },
+        "eventId": { "type": "string", "minLength": 1 },
+        "partitionKeyHash": { "type": "string", "minLength": 1 }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "safeCode"],
+      "properties": {
+        "category": {
+          "enum": ["INVALID_ENVELOPE", "UNSUPPORTED_SCHEMA_VERSION", "PERMANENT_ROUTING_FAILURE"]
+        },
+        "safeCode": { "type": "string", "minLength": 1 }
+      }
+    },
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "attempts"],
+      "properties": {
+        "status": { "enum": ["PENDING", "REPLAYED", "DISCARDED"] },
+        "attempts": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

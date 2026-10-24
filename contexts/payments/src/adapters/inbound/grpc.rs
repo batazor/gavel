@@ -4,11 +4,11 @@ use tonic_bsr::{Request, Response, Status};
 
 use crate::{
     application::{
-        ApplicationError, AttemptPaymentCommand, ExpirePaymentCommand, PaymentApplication,
-        PaymentAttemptView,
+        ApplicationError, AttemptPaymentCommand, ExpirePaymentCommand, GetSettlementAttemptQuery,
+        PaymentApplication, PaymentAttemptView, SettlementAttemptData, SettlementAttemptView,
     },
     rpc::{
-        self, attempt_payment_response, expire_payment_response,
+        self, attempt_payment_response, expire_payment_response, get_settlement_attempt_response,
         payments_service_server::PaymentsService,
     },
 };
@@ -16,6 +16,22 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct AuthenticatedWorkload {
     pub spiffe_id: String,
+}
+
+#[allow(clippy::result_large_err)]
+pub fn authenticate_workload(mut request: Request<()>) -> Result<Request<()>, Status> {
+    let spiffe_id = request
+        .metadata()
+        .get("x-gavel-spiffe-id")
+        .and_then(|value| value.to_str().ok())
+        .map(str::trim)
+        .filter(|value| value.starts_with("spiffe://") && value.len() <= 256)
+        .ok_or_else(|| Status::unauthenticated("authenticated workload identity is required"))?
+        .to_owned();
+    request
+        .extensions_mut()
+        .insert(AuthenticatedWorkload { spiffe_id });
+    Ok(request)
 }
 
 pub struct GrpcPayments {
@@ -91,6 +107,32 @@ impl PaymentsService for GrpcPayments {
         }))
     }
 
+    async fn get_settlement_attempt(
+        &self,
+        request: Request<rpc::GetSettlementAttemptRequest>,
+    ) -> Result<Response<rpc::GetSettlementAttemptResponse>, Status> {
+        let workload_id = self.authenticate(&request)?;
+        let input = request.into_inner();
+        let outcome = self
+            .application
+            .get_settlement_attempt(GetSettlementAttemptQuery {
+                workload_id,
+                attempt_id: input.payment_attempt_id,
+                expected_auction_id: input.expected_auction_id,
+                expected_settlement_round: input.expected_settlement_round,
+                consistency_token: non_empty(input.consistency_token),
+            })
+            .await;
+        Ok(Response::new(rpc::GetSettlementAttemptResponse {
+            outcome: Some(match outcome {
+                Ok(view) => {
+                    get_settlement_attempt_response::Outcome::Result(to_settlement_rpc(view))
+                }
+                Err(error) => get_settlement_attempt_response::Outcome::Rejection(rejection(error)),
+            }),
+        }))
+    }
+
     async fn expire_payment(
         &self,
         request: Request<rpc::ExpirePaymentRequest>,
@@ -125,7 +167,16 @@ impl PaymentsService for GrpcPayments {
 }
 
 fn to_rpc_result(value: PaymentAttemptView) -> rpc::PaymentAttemptResult {
-    let status = match value.status {
+    rpc::PaymentAttemptResult {
+        payment_attempt_id: value.id,
+        status: to_rpc_status(value.status) as i32,
+        recovery_url: value.recovery_url.unwrap_or_default(),
+        version: value.version,
+        checked_at_token: value.checked_at_token,
+    }
+}
+fn to_rpc_status(status: crate::domain::PaymentAttemptState) -> rpc::PaymentAttemptStatus {
+    match status {
         crate::domain::PaymentAttemptState::Pending => rpc::PaymentAttemptStatus::Unspecified,
         crate::domain::PaymentAttemptState::Processing => rpc::PaymentAttemptStatus::Processing,
         crate::domain::PaymentAttemptState::RecoveryRequired => {
@@ -133,13 +184,31 @@ fn to_rpc_result(value: PaymentAttemptView) -> rpc::PaymentAttemptResult {
         }
         crate::domain::PaymentAttemptState::Succeeded => rpc::PaymentAttemptStatus::Succeeded,
         crate::domain::PaymentAttemptState::Expired => rpc::PaymentAttemptStatus::Expired,
+    }
+}
+fn to_settlement_rpc(value: SettlementAttemptView) -> rpc::SettlementAttemptResult {
+    let state_data = match value.state_data {
+        SettlementAttemptData::None => None,
+        SettlementAttemptData::RecoveryRequired { recovery_url } => {
+            Some(rpc::settlement_attempt_result::StateData::RecoveryRequired(
+                rpc::SettlementRecoveryData { recovery_url },
+            ))
+        }
+        SettlementAttemptData::Succeeded { payment_id } => {
+            Some(rpc::settlement_attempt_result::StateData::Succeeded(
+                rpc::SettlementSuccessData { payment_id },
+            ))
+        }
     };
-    rpc::PaymentAttemptResult {
-        payment_attempt_id: value.id,
-        status: status as i32,
-        recovery_url: value.recovery_url.unwrap_or_default(),
+    rpc::SettlementAttemptResult {
+        payment_attempt_id: value.payment_attempt_id,
+        auction_id: value.auction_id,
+        settlement_round: value.settlement_round,
+        candidate_id: value.candidate_id,
+        status: to_rpc_status(value.status) as i32,
         version: value.version,
         checked_at_token: value.checked_at_token,
+        state_data,
     }
 }
 fn rejection(error: ApplicationError) -> rpc::DomainRejection {

@@ -1,4 +1,14 @@
 *
-!Cargo.toml
-!src/
-!src/**
+!contexts/
+!contexts/bff/
+!contexts/bff/cosmo/
+!contexts/bff/cosmo/supergraph.yaml
+!contexts/catalog/
+!contexts/catalog/graphql/
+!contexts/catalog/graphql/schema.graphql
+!contexts/auction/
+!contexts/auction/graphql/
+!contexts/auction/graphql/schema.graphql
+!contexts/payments/
+!contexts/payments/graphql/
+!contexts/payments/graphql/schema.graphql

@@ -1,0 +1,20 @@
+{
+  "subgraphs": [
+    {
+      "name": "catalog",
+      "routingUrl": "http://gavel-catalog-gavel-catalog:8080/graphql",
+      "schemaFile": "../../catalog/graphql/schema.graphql"
+    },
+    {
+      "name": "auction",
+      "routingUrl": "http://gavel-auction-gavel-auction:8080/graphql",
+      "schemaFile": "../../auction/graphql/schema.graphql"
+    },
+    {
+      "name": "payments",
+      "routingUrl": "http://gavel-payments-gavel-payments:8080/graphql",
+      "schemaFile": "../../payments/graphql/schema.graphql"
+    }
+  ],
+  "deferredSubgraphs": ["analytics", "processes", "realtime"]
+}

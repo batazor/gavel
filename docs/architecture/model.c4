@@ -42,9 +42,8 @@ model {
     description 'Аукцион. Лоты, ставки, завершение торгов, определение победителя.'
 
     web = webapp 'Web UI' {
-      technology 'Astro'
-      description 'SSR + островки интерактивности. Queries, mutations и live updates через federated GraphQL.'
-      icon tech:astro
+      technology 'React, Vite'
+      description 'Статический SPA. MVP queries/mutations и version-aware polling идут только через federated GraphQL; demo mode отделён явно.'
     }
 
     bff = container 'Cosmo Router' {
@@ -231,7 +230,7 @@ model {
 
       media = container 'Media object storage' {
         technology 'S3-compatible API'
-        description 'Бинарные изображения под server-generated keys. MinIO — adapter для local/kind; production provider сменный и обязан соответствовать durability/availability SLO.'
+        description 'Бинарные изображения под server-generated keys. Production provider сменный и обязан соответствовать durability/availability SLO; kind использует отдельный ephemeral in-process adapter.'
       }
     }
 
@@ -416,7 +415,7 @@ model {
 
   gavel.web -> idp 'логин по OAuth, получает JWT'
 
-  gavel.web -> gavel.bff.graphql 'логический GraphQL interface через Cloudflare; optional Bearer JWT' {
+  gavel.web -> gavel.bff.graphql 'логический GraphQL interface через Cloudflare; MVP query/mutation + version-aware polling; optional Bearer JWT' {
     technology 'HTTPS'
   }
 

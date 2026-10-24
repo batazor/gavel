@@ -8,8 +8,8 @@ views {
 
     gavel.cdc -> gavel.broker 'AuctionOpened(policy: scheduled_end 18:00, inactivity 1h, hard_deadline 23:00) from outbox'
     gavel.broker -> gavel.processes.subscriber 'AuctionOpened'
-    gavel.processes.subscriber -> gavel.processes.lifecycle 'start AuctionLifecycle(auction_id, ends_at = 18:00)' {
-      notes 'Durable timer. Worker может упасть, таймер переживёт'
+    gavel.processes.subscriber -> gavel.processes.lifecycle 'signal-with-start AuctionLifecycle on auction-lifecycle-v1; owner_event' {
+      notes 'Стабильный workflow ID, USE_EXISTING. Durable timer переживает restart worker'
     }
     gavel.bff.graphql -> gavel.auction.service.api 'PlaceBid в 17:45'
     gavel.auction.service.api -> gavel.auction.service.aggregate 'ставка принята' {
@@ -17,7 +17,7 @@ views {
     }
     gavel.cdc -> gavel.broker 'BidRecorded, PriceChanged, DeadlineExtended(18:45) from outbox'
     gavel.broker -> gavel.processes.subscriber 'DeadlineExtended'
-    gavel.processes.subscriber -> gavel.processes.lifecycle 'signal DeadlineChanged(18:45)' {
+    gavel.processes.subscriber -> gavel.processes.lifecycle 'owner_event DeadlineExtended(18:45)' {
       notes 'Таймер сброшен на 18:45'
     }
     gavel.broker -> gavel.realtime.subscription 'DeadlineExtended'
@@ -37,11 +37,12 @@ views {
     }
     gavel.auction.service.aggregate -> gavel.auction.service.events 'AuctionClosed, SettlementCandidateSelected'
     gavel.auction.service.events -> gavel.auction.service.eventstore 'append, expected version = N'
-    gavel.auction.service.eventstore -> gavel.auction.db 'events + projection + safe outbox + command result, одна транзакция' {
+    gavel.auction.service.eventstore -> gavel.auction.db 'events + projection + public outbox + restricted process outbox + command result, одна транзакция' {
       notes 'OCC conflict → bounded retry; exhaustion/dependency failure → retryable gRPC status; too early → typed rejection'
     }
-    gavel.cdc -> gavel.broker 'AuctionClosed, SettlementCandidateSelected from outbox'
-    gavel.broker -> gavel.realtime.subscription 'AuctionClosed'
+    gavel.cdc -> gavel.broker 'Public AuctionClosed → gavel.auction.public.v1; restricted SettlementCandidateSelected → gavel.auction.processes.v1'
+    gavel.broker -> gavel.realtime.subscription 'AuctionClosed from public topic'
+    gavel.broker -> gavel.processes.subscriber 'SettlementCandidateSelected from ACL-protected process topic'
     gavel.bff.graphql -> gavel.web 'subscription: closed, payment pending'
   }
 }

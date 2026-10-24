@@ -6,10 +6,13 @@ views {
     description 'Temporal оркестрирует попытку, двухчасовое recovery и следующий раунд; Payments скрывает конкретного провайдера.'
     autoLayout TopBottom
 
-    gavel.cdc -> gavel.auction.db 'capture auction outbox from WAL'
-    gavel.cdc -> gavel.broker 'SettlementCandidateSelected(auction, user, amount, round)'
-    gavel.processes.subscriber -> gavel.broker 'subscribe SettlementCandidateSelected'
-    gavel.processes.subscriber -> gavel.processes.settle 'start / continue SettleAuction'
+    gavel.cdc -> gavel.auction.db 'capture restricted auction_process_outbox from WAL'
+    gavel.cdc -> gavel.broker 'SettlementCandidateSelected(auction, candidate, amount, round) → ACL-protected process topic'
+    gavel.broker -> gavel.processes.subscriber 'restricted SettlementCandidateSelected'
+    gavel.processes.subscriber -> gavel.processes.settle 'signal-with-start SettleAuction on settle-auction-v1; owner_event'
+    gavel.processes.subscriber -> gavel.broker 'durable acceptance → manual offset commit' {
+      notes 'Transient Temporal failure leaves offset uncommitted; invalid record is committed only after sanitized quarantine publish'
+    }
     gavel.processes.settle -> gavel.processes.activities 'NotifyCandidate'
     gavel.processes.activities -> gavel.notify.service.api 'gRPC SendNotification(candidate selected)'
     gavel.processes.settle -> gavel.processes.activities 'AttemptPayment'
@@ -26,7 +29,10 @@ views {
 
     gavel.cdc -> gavel.payments.db 'capture payments outbox from WAL'
     gavel.cdc -> gavel.broker 'PaymentSucceeded | PaymentRecoveryRequired | PaymentExpired'
-    gavel.processes.subscriber -> gavel.broker 'signal SettleAuction'
+    gavel.broker -> gavel.processes.subscriber 'payments attempt event from restricted topic'
+    gavel.processes.subscriber -> gavel.processes.settle 'owner_event(PaymentChanged version)'
+    gavel.processes.settle -> gavel.processes.activities 'GetSettlementAttempt before transition'
+    gavel.processes.activities -> gavel.payments.service.api 'authoritative read(expected auction + round)'
     gavel.processes.settle -> gavel.processes.activities 'PaymentRecoveryRequired: send recovery email'
     gavel.processes.activities -> gavel.notify.service.api 'gRPC SendNotification(recovery URL)'
     gavel.notify.service.channelAdapter -> emailProvider 'send recovery email'
@@ -40,8 +46,12 @@ views {
     gavel.processes.settle -> gavel.processes.activities 'после PaymentExpired: ForfeitSettlementCandidate'
     gavel.processes.activities -> gavel.auction.service.api 'gRPC ForfeitCandidate(user, round)'
     gavel.auction.service.api -> gavel.auction.service.aggregate 'exclude + recalculate'
+    gavel.processes.settle -> gavel.processes.activities 'после authoritative forfeiture: NotifyCandidateFailed'
+    gavel.processes.activities -> gavel.notify.service.api 'gRPC SendNotification(candidate failed, auction_id)'
     gavel.auction.service.aggregate -> gavel.auction.service.events 'SettlementCandidateSelected(next, new_amount) | AuctionUnsold' {
       notes 'Settlement amount пересчитана без максимума выбывшего; closing price не меняется'
     }
+    gavel.processes.settle -> gavel.processes.activities 'WinnerConfirmed: NotifyWinner'
+    gavel.processes.activities -> gavel.notify.service.api 'gRPC SendNotification(winner confirmed)'
   }
 }

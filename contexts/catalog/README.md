@@ -11,6 +11,7 @@
 
 - [Federation subgraph SDL](graphql/schema.graphql) — владеет `Lot`, catalog queries и mutations; публикуется только через Cosmo Router.
 - [gRPC contract](proto/gavel/catalog/v1/catalog_service.proto) — внутренняя идемпотентная команда снятия лота от Processes; правила — в [init ADR](adr/0001-init.md).
+- GraphQL `listLot` выводит стабильный `lot_id` из verified principal и idempotency key; server timestamp не меняет canonical intent точного повтора.
 
 ## Язык
 | Термин | Значение |
@@ -47,7 +48,7 @@
 
 - [Tokio runtime](src/main.rs) поднимает HTTP `/graphql`, `/healthz`, `/readyz`, `/metrics` и внутренний gRPC `WithdrawLot`; readiness включается только после подключения PostgreSQL, Authz и S3-compatible storage.
 - Runtime супервизирует lease-based media cleanup, Authz-grant reconciliation и обновление backlog gauges; аварийное завершение worker делает pod unready и завершает процесс.
-- `make database-check`, `make storage-check` и `make integration-check` запускают pinned disposable PostgreSQL/MinIO и реальный boundary flow.
+- `make database-check`, `make storage-check` и `make integration-check` запускают pinned disposable PostgreSQL/s3s-fs и реальный boundary flow.
 - [Docker image, Helm chart, Prometheus rules и Grafana dashboard](ops/Helm/README.md)
 
 Метрики и structured logs используют только bounded `operation/outcome`. Principal/lot/image ids, object keys, presigned URLs, checksums, HMAC material, causal tokens и credentials редактируются и запрещены в labels.

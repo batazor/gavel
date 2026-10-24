@@ -2,7 +2,7 @@
 name = "gavel-processes"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.92"
 license = "MIT OR Apache-2.0"
 
 [[bin]]
@@ -10,10 +10,42 @@ name = "gavel-processes"
 path = "src/main.rs"
 
 [dependencies]
+async-trait.workspace = true
+axum.workspace = true
+chrono.workspace = true
+futures = "=0.3.31"
 gavel-auction = { path = "../auction" }
 gavel-catalog = { path = "../catalog" }
 gavel-notify = { path = "../notify" }
 gavel-payments = { path = "../payments" }
-gavel-payments-prost = { package = "gavel_payments_community_neoeinstein-prost", version = "=0.4.0-20261022143347-ab5508e1a7a7.1", registry = "buf" }
-gavel-payments-tonic = { package = "gavel_payments_community_neoeinstein-tonic", version = "=0.4.1-20261022143347-ab5508e1a7a7.1", registry = "buf" }
+gavel-payments-prost = { package = "gavel_payments_community_neoeinstein-prost", version = "=0.4.0-00000000000000-ee7ab816c2f0.1", registry = "buf" }
+gavel-payments-tonic = { package = "gavel_payments_community_neoeinstein-tonic", version = "=0.4.1-00000000000000-ee7ab816c2f0.1", registry = "buf" }
+metrics.workspace = true
+metrics-exporter-prometheus.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+rdkafka = { version = "=0.38.0", features = ["cmake-build", "sasl"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true
+temporalio-client = { workspace = true, features = ["vendored-protox"] }
+temporalio-common = { workspace = true, features = ["vendored-protox"] }
+temporalio-macros.workspace = true
+temporalio-sdk = { workspace = true, features = ["envconfig", "experimental", "otel", "prometheus"] }
+temporalio-workflow = "=1.1.0"
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tokio-util = { workspace = true, features = ["rt"] }
 tonic.workspace = true
+tonic-bsr = { package = "tonic", version = "=0.12.3" }
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt", "json"] }
+url.workspace = true
+
+[dev-dependencies]
+prost-wkt-types = "=0.7.2"
+temporalio-sdk = { workspace = true, features = ["testing"] }
+temporalio-sdk-core = { version = "=0.10.0", features = ["tls-ring"] }
+tokio = { workspace = true, features = ["macros", "net", "rt-multi-thread", "sync"] }
+tokio-stream = { workspace = true, features = ["net"] }
+tonic-temporal = { package = "tonic", version = "=0.14.6" }

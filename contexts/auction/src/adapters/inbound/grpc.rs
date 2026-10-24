@@ -26,6 +26,7 @@ pub const PRINCIPAL_TYPE_HEADER: &str = "x-gavel-principal-type";
 pub const PRINCIPAL_ID_HEADER: &str = "x-gavel-principal-id";
 pub const CORRELATION_ID_HEADER: &str = "x-correlation-id";
 pub const CAUSATION_ID_HEADER: &str = "x-causation-id";
+pub const WORKLOAD_SPIFFE_ID_HEADER: &str = "x-gavel-spiffe-id";
 
 #[async_trait]
 pub trait AuctionGrpcApi: Send + Sync {
@@ -137,11 +138,28 @@ impl Clock for SystemClock {
 pub struct AuctionGrpcService {
     api: Arc<dyn AuctionGrpcApi>,
     clock: Arc<dyn Clock>,
+    allowed_workload_spiffe_id: Option<String>,
 }
 
 impl AuctionGrpcService {
     pub fn new(api: Arc<dyn AuctionGrpcApi>, clock: Arc<dyn Clock>) -> Self {
-        Self { api, clock }
+        Self {
+            api,
+            clock,
+            allowed_workload_spiffe_id: None,
+        }
+    }
+
+    pub fn new_authenticated(
+        api: Arc<dyn AuctionGrpcApi>,
+        clock: Arc<dyn Clock>,
+        allowed_workload_spiffe_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            api,
+            clock,
+            allowed_workload_spiffe_id: Some(allowed_workload_spiffe_id.into()),
+        }
     }
 }
 
@@ -156,7 +174,7 @@ impl AuctionService for AuctionGrpcService {
         &self,
         request: Request<CloseAuctionRequest>,
     ) -> Result<Response<CloseAuctionResponse>, Status> {
-        let trusted = trusted_context(&request)?;
+        let trusted = trusted_context(&request, self.allowed_workload_spiffe_id.as_deref())?;
         let input = request.into_inner();
         validate_required(&input.auction_id, "auction_id")?;
         let now = input
@@ -200,7 +218,7 @@ impl AuctionService for AuctionGrpcService {
         &self,
         request: Request<CancelAuctionRequest>,
     ) -> Result<Response<CancelAuctionResponse>, Status> {
-        let trusted = trusted_context(&request)?;
+        let trusted = trusted_context(&request, self.allowed_workload_spiffe_id.as_deref())?;
         let input = request.into_inner();
         validate_required(&input.auction_id, "auction_id")?;
         let result = with_deadline(
@@ -231,7 +249,7 @@ impl AuctionService for AuctionGrpcService {
         &self,
         request: Request<ForfeitSettlementCandidateRequest>,
     ) -> Result<Response<ForfeitSettlementCandidateResponse>, Status> {
-        let trusted = trusted_context(&request)?;
+        let trusted = trusted_context(&request, self.allowed_workload_spiffe_id.as_deref())?;
         let input = request.into_inner();
         validate_required(&input.auction_id, "auction_id")?;
         validate_required(&input.candidate_id, "candidate_id")?;
@@ -273,7 +291,7 @@ impl AuctionService for AuctionGrpcService {
         &self,
         request: Request<ConfirmWinnerRequest>,
     ) -> Result<Response<ConfirmWinnerResponse>, Status> {
-        let trusted = trusted_context(&request)?;
+        let trusted = trusted_context(&request, self.allowed_workload_spiffe_id.as_deref())?;
         let input = request.into_inner();
         validate_required(&input.auction_id, "auction_id")?;
         validate_required(&input.candidate_id, "candidate_id")?;
@@ -318,8 +336,17 @@ async fn with_deadline<T>(
     }
 }
 
-fn trusted_context<T: IdempotencyKey>(request: &Request<T>) -> Result<TrustedCallContext, Status> {
+fn trusted_context<T: IdempotencyKey>(
+    request: &Request<T>,
+    allowed_workload_spiffe_id: Option<&str>,
+) -> Result<TrustedCallContext, Status> {
     let metadata = request.metadata();
+    if let Some(expected) = allowed_workload_spiffe_id {
+        let actual = metadata_value(metadata, WORKLOAD_SPIFFE_ID_HEADER)?;
+        if actual != expected {
+            return Err(Status::permission_denied("workload is not authorized"));
+        }
+    }
     let principal_type = metadata_value(metadata, PRINCIPAL_TYPE_HEADER)?;
     if principal_type != "service_account" {
         return Err(Status::permission_denied(

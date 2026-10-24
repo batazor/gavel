@@ -1,0 +1,4 @@
+image:
+  repository: gavel-authz
+  tag: local
+  pullPolicy: IfNotPresent

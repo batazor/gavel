@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repository: gavel-catalog
+  tag: local
+  pullPolicy: IfNotPresent
+
+rpc:
+  allowedPrincipals:
+    - cluster.local/ns/gavel-mvp/sa/gavel-processes-gavel-processes
+  allowedApplications:
+    - gavel-processes
+
+runtime:
+  authzUrl: http://gavel-authz-gavel-authz:9090
+  authzCallerSpiffeId: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-catalog
+  objectStorageMode: local
+  enableLocalObjectStorage: true
+  localStorageUploadBaseUrl: http://gavel-catalog-gavel-catalog:8080/local/object-storage
+  uploadTtlMs: "86400000"
+  imageDeliveryBaseUrl: http://localhost:8080/images

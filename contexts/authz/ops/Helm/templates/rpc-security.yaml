@@ -20,6 +20,15 @@ spec:
       to:
         - operation:
             ports: [{{ .Values.service.grpcPort | quote }}]
+    {{- if .Values.bootstrap.enabled }}
+    - from:
+        - source:
+            principals:
+              - {{ .Values.bootstrap.meshPrincipal | quote }}
+      to:
+        - operation:
+            ports: [{{ .Values.service.grpcPort | quote }}]
+    {{- end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -42,4 +51,12 @@ spec:
         {{- end }}
       ports:
         - port: {{ .Values.service.grpcPort }}
+    {{- if .Values.bootstrap.enabled }}
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: gavel-authz-bootstrap
+      ports:
+        - port: {{ .Values.service.grpcPort }}
+    {{- end }}
 {{- end }}

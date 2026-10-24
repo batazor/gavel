@@ -1,0 +1,4 @@
+# Cluster-specific overrides are intentionally small. The service-owned local
+# profile lives in contexts/payments/ops/Helm/values-local.yaml.
+image:
+  tag: local

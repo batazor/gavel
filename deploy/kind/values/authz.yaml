@@ -1,0 +1,37 @@
+replicaCount: 1
+externalSecrets:
+  database: {name: gavel-authz-database, key: url}
+  spicedb: {name: gavel-authz-spicedb, endpointKey: endpoint, credentialKey: credential}
+  hmac: {name: gavel-authz-hmac, principalKey: principal, fingerprintKey: fingerprint}
+spicedbSchema: {endpointKey: zed-endpoint}
+
+runtime:
+  spiffePrefix: spiffe://cluster.local/ns/gavel-mvp/sa/
+  trustedProxyCidrs: 10.244.0.0/16
+
+rpc:
+  allowedPrincipals:
+    - cluster.local/ns/gavel-mvp/sa/gavel-auction-gavel-auction
+    - cluster.local/ns/gavel-mvp/sa/gavel-catalog-gavel-catalog
+    - cluster.local/ns/gavel-mvp/sa/gavel-payments-gavel-payments
+    - cluster.local/ns/gavel-mvp/sa/gavel-notify-gavel-notify
+    - cluster.local/ns/gavel-mvp/sa/gavel-bff-gavel-bff
+    - cluster.local/ns/gavel-mvp/sa/gavel-processes-gavel-processes
+  allowedApplications:
+    - gavel-auction
+    - gavel-catalog
+    - gavel-payments
+    - gavel-notify
+    - gavel-bff
+    - gavel-processes
+
+bootstrap:
+  enabled: true
+  localOnly: true
+  spiffeId: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-authz-bootstrap
+  meshPrincipal: cluster.local/ns/gavel-mvp/sa/gavel-authz-bootstrap
+  issuer: http://127.0.0.1:8080/default
+  sellerSubject: seller-local
+  bidderOneSubject: bidder-one-local
+  bidderTwoSubject: bidder-two-local
+  timeoutMs: 2000

@@ -5,13 +5,17 @@ use gavel_auction::{
         inbound::{
             graphql::{AuctionGraphqlApi, AuctionGraphqlApplication, schema},
             grpc::{AuctionGrpcApi, AuctionGrpcApplication, AuctionGrpcService, SystemClock},
+            redpanda::{
+                AuctionOwnerEventHandler, OwnerEventWorker, RedpandaConfig, RedpandaOwnerBroker,
+            },
         },
         outbound::{
             authz::AuthzGrpcAdapter, postgres::PostgresAuctionStore, redis::RedisPriceCache,
         },
     },
     bootstrap::{
-        ReconciliationBackgroundWorker, RuntimeConfig, RuntimeState, StandbyWorker, serve,
+        BackgroundWorker, ReconciliationBackgroundWorker, RuntimeConfig, RuntimeState,
+        StandbyWorker, serve,
     },
 };
 use sqlx::postgres::PgPoolOptions;
@@ -39,8 +43,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .connect(&config.database_url)
         .await?;
     let store = Arc::new(PostgresAuctionStore::new(pool));
-    let authz =
-        Arc::new(AuthzGrpcAdapter::connect(&config.authz_url, config.dependency_timeout).await?);
+    let authz = Arc::new(
+        AuthzGrpcAdapter::connect_authenticated(
+            &config.authz_url,
+            config.dependency_timeout,
+            &std::env::var("AUTHZ_CALLER_SPIFFE_ID")?,
+        )
+        .await?,
+    );
     let _redis = RedisPriceCache::connect(
         &config.redis_url,
         "gavel:auction:price:",
@@ -63,8 +73,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         3,
         config.fingerprint_key,
     ));
-    let grpc_service =
-        AuctionGrpcService::new(grpc_api as Arc<dyn AuctionGrpcApi>, Arc::new(SystemClock));
+    let grpc_service = AuctionGrpcService::new_authenticated(
+        grpc_api as Arc<dyn AuctionGrpcApi>,
+        Arc::new(SystemClock),
+        std::env::var("PROCESSES_SPIFFE_ID")?,
+    );
+    let owner_broker = RedpandaOwnerBroker::connect(&RedpandaConfig {
+        brokers: config.redpanda_brokers.clone(),
+        group_id: config.redpanda_group_id.clone(),
+        client_id: config.redpanda_client_id.clone(),
+        security_protocol: config.redpanda_security_protocol.clone(),
+        sasl_username: config.redpanda_sasl_username.clone(),
+        sasl_password: config.redpanda_sasl_password.clone(),
+    })?;
+    let owner_handler = Arc::new(AuctionOwnerEventHandler::new(
+        Arc::clone(&store),
+        3,
+        config.fingerprint_key,
+    ));
+    let workers: Vec<Arc<dyn BackgroundWorker>> = vec![
+        Arc::new(OwnerEventWorker::new(owner_broker, owner_handler)),
+        Arc::new(StandbyWorker::new("price-projector")),
+        Arc::new(ReconciliationBackgroundWorker::new(
+            Arc::clone(&store),
+            authz,
+            Duration::from_secs(1),
+            100,
+        )),
+    ];
     let http_listener = TcpListener::bind(config.http_addr).await?;
     let grpc_listener = TcpListener::bind(config.grpc_addr).await?;
     let shutdown = CancellationToken::new();
@@ -89,17 +125,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         grpc_listener,
         schema(graphql_api as Arc<dyn AuctionGraphqlApi>),
         grpc_service,
-        vec![
-            Arc::new(StandbyWorker::new("catalog-consumer")),
-            Arc::new(StandbyWorker::new("payments-consumer")),
-            Arc::new(StandbyWorker::new("price-projector")),
-            Arc::new(ReconciliationBackgroundWorker::new(
-                Arc::clone(&store),
-                authz,
-                Duration::from_secs(1),
-                100,
-            )),
-        ],
+        workers,
         Arc::new(RuntimeState::default()),
         shutdown,
     )

@@ -1,0 +1,27 @@
+image:
+  repository: gavel-notify
+  tag: local
+  pullPolicy: IfNotPresent
+
+rpc:
+  allowedPrincipals:
+    - cluster.local/ns/gavel-mvp/sa/gavel-processes-gavel-processes
+  allowedApplications:
+    - gavel-processes
+    - gavel-mvp-smoke
+  operatorPrincipals:
+    - cluster.local/ns/gavel-mvp/sa/gavel-mvp-smoke
+
+config:
+  smtpAddress: mailpit.gavel-mvp.svc.cluster.local:1025
+  smtpFrom: no-reply@gavel.local
+  processesSpiffeId: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-processes
+  operatorPrincipal: spiffe://cluster.local/ns/gavel-mvp/sa/gavel-mvp-smoke
+
+externalSecret:
+  name: gavel-notify-database
+  databaseUrlKey: url
+  localOperatorTokenKey: local-operator-token
+
+localOperator:
+  enabled: true

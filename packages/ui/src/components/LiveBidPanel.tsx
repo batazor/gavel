@@ -20,6 +20,8 @@ export interface LiveBidPanelProps {
   initialMaximum?: number;
   status?: 'leading' | 'outbid' | 'watching';
   onPlaceBid?: (maximum: number) => void | Promise<void>;
+  biddingDisabled?: boolean;
+  biddingDisabledReason?: string;
   className?: string;
 }
 
@@ -29,7 +31,7 @@ const aliasHue = (alias: string) => [...alias].reduce((sum, ch) => sum + ch.char
   The bidder's panel: the one question is "am I leading, and what does the next bid cost?".
   The current price is the main data element and carries the one hue; the rest is ink on paper.
 */
-export function LiveBidPanel({ currency = 'EUR', closingRules = ['A bid in the last 5 minutes extends the auction by 2 minutes.', 'No extension past the hard deadline of 15:00 UTC.', 'The winner pays within 2 hours or the lot passes to the next bidder.'], currentPrice, minimumBid, endsAt, bids, totalBids, initialMaximum = minimumBid, status = 'watching', onPlaceBid, className }: LiveBidPanelProps) {
+export function LiveBidPanel({ currency = 'EUR', closingRules = ['A bid in the last 5 minutes extends the auction by 2 minutes.', 'No extension past the hard deadline of 15:00 UTC.', 'The winner pays within 2 hours or the lot passes to the next bidder.'], currentPrice, minimumBid, endsAt, bids, totalBids, initialMaximum = minimumBid, status = 'watching', onPlaceBid, biddingDisabled = false, biddingDisabledReason, className }: LiveBidPanelProps) {
   const [maximum, setMaximum] = useState(initialMaximum);
   const [submitted, setSubmitted] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -45,7 +47,7 @@ export function LiveBidPanel({ currency = 'EUR', closingRules = ['A bid in the l
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (maximum < minimumBid || submitting) return;
+    if (maximum < minimumBid || submitting || biddingDisabled) return;
     setSubmitting(true);
     setSubmissionError(null);
     try {
@@ -83,12 +85,12 @@ export function LiveBidPanel({ currency = 'EUR', closingRules = ['A bid in the l
           <form onSubmit={submit} className="mt-4">
             <label htmlFor="bid-maximum" className="text-sm font-medium text-ink">Your maximum, €</label>
             <div className="mt-2 flex gap-2">
-              <input id="bid-maximum" type="number" min={minimumBid} step={100} value={maximum} onChange={(event) => setMaximum(Number(event.target.value))} className="h-10 min-w-0 flex-1 rounded-lg border border-control bg-surface px-3 text-base text-ink outline-none tabular-nums focus:border-ink" />
-              <Button type="submit" size="lg" disabled={maximum < minimumBid || submitting} className="h-10">{submitting ? 'Placing…' : 'Place bid'}</Button>
+              <input id="bid-maximum" type="number" min={minimumBid} step={100} value={maximum} disabled={biddingDisabled} onChange={(event) => setMaximum(Number(event.target.value))} className="h-10 min-w-0 flex-1 rounded-lg border border-control bg-surface px-3 text-base text-ink outline-none tabular-nums focus:border-ink disabled:cursor-not-allowed disabled:bg-raised disabled:text-muted" />
+              <Button type="submit" size="lg" disabled={biddingDisabled || maximum < minimumBid || submitting} className="h-10">{submitting ? 'Placing…' : 'Place bid'}</Button>
             </div>
-            <p className="mt-2 text-xs text-muted">Minimum {money(minimumBid)}. Only the resulting public price is shown to others.</p>
+            <p className="mt-2 text-xs text-muted">{biddingDisabled ? biddingDisabledReason ?? 'Bidding is unavailable.' : `Minimum ${money(minimumBid)}. Only the resulting public price is shown to others.`}</p>
             <div className="mt-3 flex gap-2">
-              {quickBids.map((value) => <button type="button" key={value} onClick={() => setMaximum(value)} aria-pressed={maximum === value} className={cn('h-8 flex-1 rounded-lg border text-sm tabular-nums', maximum === value ? 'border-ink bg-active text-ink' : 'border-control bg-surface text-ink hover:bg-raised')}>{money(value)}</button>)}
+              {quickBids.map((value) => <button type="button" key={value} disabled={biddingDisabled} onClick={() => setMaximum(value)} aria-pressed={maximum === value} className={cn('h-8 flex-1 rounded-lg border text-sm tabular-nums disabled:cursor-not-allowed disabled:text-muted', maximum === value ? 'border-ink bg-active text-ink' : 'border-control bg-surface text-ink hover:bg-raised')}>{money(value)}</button>)}
             </div>
           </form>
 

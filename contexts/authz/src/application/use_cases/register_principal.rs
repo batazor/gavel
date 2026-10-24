@@ -273,6 +273,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn bootstrap_registration_is_idempotent_but_not_privileged_in_result() {
+        let policy = policy(None);
+        let use_case = RegisterPrincipalUseCase::new(
+            Arc::clone(&policy),
+            Arc::new(MemoryStore::default()),
+            [7; 32],
+            [9; 32],
+        );
+        let first = use_case
+            .execute(input(WorkloadIdentity::Bootstrap))
+            .await
+            .unwrap();
+        let replay = use_case
+            .execute(input(WorkloadIdentity::Bootstrap))
+            .await
+            .unwrap();
+        assert_eq!(first, replay);
+        assert_eq!(policy.writes.load(Ordering::SeqCst), 1);
+        assert!(first.principal_id.starts_with("u1_"));
+    }
+
+    #[tokio::test]
     async fn dependency_failure_is_retryable_and_not_completed() {
         let policy = policy(Some(PolicyEngineError::Timeout));
         let store = Arc::new(MemoryStore::default());

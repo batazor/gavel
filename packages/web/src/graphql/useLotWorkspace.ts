@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getLotWorkspace, placeBid as submitPlaceBid, subscribeAuctionUpdates, type LotWorkspaceModel } from './lotWorkspace';
+import { getLotWorkspace, isTerminalAuction, newerWorkspace, placeBid as submitPlaceBid, type LotWorkspaceModel, type PlaceBidError } from './lotWorkspace';
 
 export function useLotWorkspace(lotId: string) {
   const [data, setData] = useState<LotWorkspaceModel | null>(null);
@@ -7,7 +7,8 @@ export function useLotWorkspace(lotId: string) {
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState(0);
   const [bidPending, setBidPending] = useState(false);
-  const [bidError, setBidError] = useState<Error | null>(null);
+  const [bidError, setBidError] = useState<PlaceBidError | Error | null>(null);
+  const [refreshError, setRefreshError] = useState<Error | null>(null);
   const versionRef = useRef(0);
 
   useEffect(() => {
@@ -28,45 +29,25 @@ export function useLotWorkspace(lotId: string) {
 
   const auctionId = data?.auction.id;
   const source = data?.source;
+  const status = data?.auction.status;
   useEffect(() => {
-    if (!auctionId || source !== 'bff') return;
+    if (!auctionId || source !== 'bff' || !status || isTerminalAuction(status)) return;
     const controller = new AbortController();
-    let reconnect: number | undefined;
-
-    const connect = () => {
-      subscribeAuctionUpdates(auctionId, versionRef.current, (update) => {
-        setData((current) => {
-          if (!current || update.auctionId !== current.auction.id || update.version <= current.auction.version) return current;
-          versionRef.current = update.version;
-          const status = update.kind === 'CANCELLED' ? 'CANCELLED' : update.kind === 'PAID' ? 'SOLD' : update.kind === 'CLOSED' ? 'SETTLING' : current.auction.status;
-          const currentPrice = update.currentPrice ?? current.auction.currentPrice;
-          return {
-            ...current,
-            auction: {
-              ...current.auction,
-              status,
-              version: update.version,
-              currentPrice,
-              currency: update.currency ?? current.auction.currency,
-              endsAt: update.endsAt ?? current.auction.endsAt,
-              minimumBid: update.currentPrice === null ? current.auction.minimumBid : currentPrice + 200,
-            },
-          };
-        });
-      }, controller.signal).then(() => {
-        if (!controller.signal.aborted) reconnect = window.setTimeout(connect, 1_000);
+    let timer = window.setInterval(() => {
+      getLotWorkspace(lotId, controller.signal).then((incoming) => {
+        versionRef.current = Math.max(versionRef.current, incoming.auction.version);
+        setData((current) => newerWorkspace(current, incoming));
+        setRefreshError(null);
       }).catch((reason: unknown) => {
         if (controller.signal.aborted || (reason instanceof DOMException && reason.name === 'AbortError')) return;
-        reconnect = window.setTimeout(connect, 1_500);
+        setRefreshError(reason instanceof Error ? reason : new Error('The auction refresh failed.'));
       });
-    };
-
-    connect();
+    }, 1_500);
     return () => {
       controller.abort();
-      if (reconnect !== undefined) window.clearTimeout(reconnect);
+      window.clearInterval(timer);
     };
-  }, [auctionId, source]);
+  }, [auctionId, lotId, source, status]);
 
   const placeBid = useCallback(async (maximumAmount: number) => {
     if (!data) throw new Error('Lot workspace is not loaded.');
@@ -99,5 +80,5 @@ export function useLotWorkspace(lotId: string) {
   }, [data]);
 
   const retry = useCallback(() => setAttempt((current) => current + 1), []);
-  return { data, error, loading, retry, placeBid, bidPending, bidError };
+  return { data, error, loading, retry, placeBid, bidPending, bidError, refreshError };
 }

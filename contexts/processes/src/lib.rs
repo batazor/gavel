@@ -1,13 +1,16 @@
-//! Process-layer contracts and policies.
+//! Process-layer contracts, deterministic DTOs and integration boundaries.
 
+pub mod activities;
+pub mod adapters;
+pub mod bootstrap;
+pub mod ingress;
 pub mod rpc_policy;
+pub mod telemetry;
+pub mod workflows;
 
 /// Owner-generated clients used by Temporal activities.
 pub mod clients {
-    pub use gavel_auction::rpc::auction_service_client::AuctionServiceClient;
-    pub use gavel_catalog::rpc::catalog_service_client::CatalogServiceClient;
-    pub use gavel_notify::rpc::notify_service_client::NotifyServiceClient;
-    pub use gavel_payments_tonic::gavel::payments::v1::tonic::payments_service_client::PaymentsServiceClient;
+    pub use crate::adapters::owner_clients::*;
 }
 
 /// Payment messages come from the same immutable BSR module commit as the client.

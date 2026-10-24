@@ -1,0 +1,28 @@
+query LotWorkspace($lotId: ID!) {
+  lot(id: $lotId) {
+    id
+    title
+    description
+    images {
+      id
+      url
+      alt
+    }
+    auction {
+      id
+      status
+      endsAt
+      currentPrice {
+        amount
+        currency
+        version
+      }
+      viewer {
+        isLeader
+        isSettlementCandidate
+        isWinner
+        canBid
+      }
+    }
+  }
+}

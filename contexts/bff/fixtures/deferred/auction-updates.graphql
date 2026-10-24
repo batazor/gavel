@@ -1,0 +1,12 @@
+# Realtime delivery is intentionally outside the local MVP readiness gate.
+# Keep the future client contract visible without composing its subgraph now.
+subscription AuctionUpdates($auctionId: ID!, $afterVersion: Int) {
+  auctionUpdates(auctionId: $auctionId, afterVersion: $afterVersion) {
+    auctionId
+    version
+    kind
+    currentPrice
+    currency
+    endsAt
+  }
+}

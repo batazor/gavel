@@ -1,9 +1,11 @@
 {
   "eventId": "payments-event-expired-1",
+  "aggregateId": "attempt-1",
   "eventType": "PaymentExpired",
   "schemaVersion": 1,
   "aggregateVersion": 4,
   "occurredAtMillis": 1700000002000,
   "correlationId": "payments-correlation-2",
+  "causationId": "expire-payment-1",
   "payload": { "paymentAttemptId": "attempt-1", "auctionId": "auction-1", "settlementRound": 1 }
 }

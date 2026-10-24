@@ -8,7 +8,7 @@ impl WorkloadPolicy {
         &self,
         caller: WorkloadIdentity,
     ) -> Result<(), ApplicationError> {
-        if matches!(caller, WorkloadIdentity::Bff) {
+        if matches!(caller, WorkloadIdentity::Bff | WorkloadIdentity::Bootstrap) {
             Ok(())
         } else {
             Err(ApplicationError::Forbidden)
@@ -23,6 +23,13 @@ impl WorkloadPolicy {
         let resource_type = relationship.resource.resource_type.as_str();
         let relation = relationship.relation.as_str();
         let allowed = match caller {
+            WorkloadIdentity::Bootstrap => {
+                resource_type == "platform"
+                    && relationship.resource.resource_id == "gavel"
+                    && relation == "process_worker"
+                    && relationship.subject.principal_type == "service_account"
+                    && relationship.subject.principal_id == "processes"
+            }
             WorkloadIdentity::Bff => resource_type == "operation" && relation == "owner",
             WorkloadIdentity::Catalog => {
                 resource_type == "lot" && matches!(relation, "platform" | "seller")
@@ -104,6 +111,7 @@ mod tests {
             (WorkloadIdentity::Payments, "notification", "recipient"),
             (WorkloadIdentity::Notify, "operation", "owner"),
             (WorkloadIdentity::Processes, "auction", "platform"),
+            (WorkloadIdentity::Bootstrap, "platform", "member"),
         ];
         let policy = WorkloadPolicy;
         for (caller, resource_type, relation) in cases {
@@ -133,5 +141,34 @@ mod tests {
             policy.authorize_principal_registration(WorkloadIdentity::Bff),
             Ok(())
         );
+        assert_eq!(
+            policy.authorize_principal_registration(WorkloadIdentity::Bootstrap),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn bootstrap_can_only_provision_the_fixed_processes_grant() {
+        let policy = WorkloadPolicy;
+        let mut allowed = relationship("platform", "process_worker");
+        allowed.resource.resource_id = "gavel".to_owned();
+        allowed.subject.principal_type = "service_account".to_owned();
+        allowed.subject.principal_id = "processes".to_owned();
+        assert_eq!(
+            policy.authorize_relationship(WorkloadIdentity::Bootstrap, &allowed),
+            Ok(())
+        );
+        for mutate in [
+            |value: &mut Relationship| value.resource.resource_id = "other".to_owned(),
+            |value: &mut Relationship| value.subject.principal_id = "unknown".to_owned(),
+            |value: &mut Relationship| value.relation = "administrator".to_owned(),
+        ] {
+            let mut denied = allowed.clone();
+            mutate(&mut denied);
+            assert_eq!(
+                policy.authorize_relationship(WorkloadIdentity::Bootstrap, &denied),
+                Err(ApplicationError::Forbidden)
+            );
+        }
     }
 }

@@ -52,22 +52,29 @@ sequenceDiagram
     Authz-->>Auction: Allowed
     Auction->>Aggregate: Validate now >= ends_at
     Aggregate-->>Auction: AuctionClosed + SettlementCandidateSelected
-    Auction->>DB: Atomic commit: events + projection<br/>safe outbox + command result, expected version N
-    Auction->>Broker: Terminal events from outbox
-    Broker-->>Realtime: CLOSED
-    Broker-->>Worker: SettlementCandidateSelected
+    Auction->>DB: Atomic commit: events + projection + command result<br/>public outbox + restricted process outbox, expected version N
+    Auction->>Broker: Public AuctionClosed from gavel.auction.public.v1
+    Auction->>Broker: Restricted SettlementCandidateSelected<br/>from gavel.auction.processes.v1
+    Broker-->>Realtime: Public CLOSED
+    Broker-->>Worker: Restricted SettlementCandidateSelected
     Realtime-->>Web: closed, payment pending
     Worker->>Temporal: Start settlement workflow
 ```
 
 ## Альтернативы и ошибки
-- Дедлайн сдвинулся, пока команда летела → typed gRPC rejection `too_early`; workflow перечитывает `ends_at` и ставит таймер заново.
+- Дедлайн сдвинулся, пока команда летела → typed gRPC rejection `too_early`; workflow ждёт следующий authoritative `owner_event` (`DeadlineExtended`/`AuctionRescheduled`) и заменяет durable timer.
 - Повтор того же `CloseAuction` с тем же idempotency key → сохранённый typed success без новых событий. Повтор после уже закрытого аукциона с новым key → typed terminal/domain outcome без повторного append.
 - Неверная workload identity → `UNAUTHENTICATED`; Authz deny → `PERMISSION_DENIED`; timeout, dependency failure или исчерпанный OCC retry → retryable gRPC status.
 - Ставок не было → `AuctionClosed`, `AuctionUnsold`.
+
+`SettlementCandidateSelected(candidate, amount, round)` никогда не добавляется в публичный `AuctionPublicEvent`: он записывается в отдельный `auction_process_outbox` и доставляется только Processes по ACL-protected `gavel.auction.processes.v1`. Публичный `gavel.auction.public.v1` содержит только безопасный terminal статус.
 
 ## Важно про кандидата
 Первым settlement candidate становится **лидер**, а не «сделавший последнюю ставку». Последняя ставка могла лишь поднять цену лидера. Winner появится только после успешной оплаты; при forfeiture Auction пересчитает следующего кандидата.
 
 ## Инварианты
 5, 6, 7 из README контекста. Для политики с `inactivity`: в закрытом аукционе нет ставок в последнем окне.
+
+## Runtime contract
+
+Workflow type `AuctionLifecycle` работает на `auction-lifecycle-v1`. Ingress использует стабильный workflow ID и `signal-with-start` с `USE_EXISTING`; signal называется `owner_event`. Query `lifecycle_state` и search attributes содержат только phase/deadline/confirmation без auction или user ID. Activity `close_auction` имеет стабильный idempotency key и переживает restart worker-а.

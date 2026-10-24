@@ -31,6 +31,7 @@ sequenceDiagram
     Bidder->>Web: Задать секретный максимум
     Web->>Router: placeBid(input, idempotencyKey)
     Router->>Auction: PlaceBid(user, maximum)
+    Auction->>Auction: Derive stable bid_id<br/>from verified user + auction + key
     Auction->>DB: Lookup idempotency key + fingerprint
     alt Уже committed тот же request
         DB-->>Auction: Stored PlaceBidResult
@@ -60,7 +61,7 @@ sequenceDiagram
 - `max ≤ текущей цены` → GraphQL `DOMAIN_REJECTED`, reason `maximum_not_above_current_price`.
 - Торги закрыты → `DOMAIN_REJECTED`, reason `not_open`/`bidding_ended`.
 - Конфликт версии (параллельная ставка) → сервис повторяет команду на актуальном состоянии; клиенту возвращается результат пересчёта, не ошибка.
-- Повтор с тем же `Idempotency-Key` → тот же ответ, без второго события.
+- Повтор с тем же `Idempotency-Key` → тот же детерминированный `bid_id` и сохранённый ответ, без второго события; новое серверное время не меняет canonical fingerprint.
 - Тот же key с другим request → `IDEMPOTENCY_CONFLICT`; исчерпан bounded retry → retryable `CONTENTION`.
 - Понижение своего максимума → `DOMAIN_REJECTED`, reason `maximum_not_raised`.
 - Нет готового способа оплаты → `PAYMENT_METHOD_REQUIRED`; Authz deny → `FORBIDDEN`; timeout/transport Authz → retryable `DEPENDENCY_UNAVAILABLE`.
@@ -69,7 +70,7 @@ sequenceDiagram
 1–4 из [README контекста](../../README.md). Ключевое для Lean: `apply(state, MaxBidPlaced)` сохраняет «цена не убывает» и «лидер держит наибольший максимум».
 
 ## События
-`MaxBidPlaced` (приватное); `BidRecorded` (публичное для каждой принятой ставки); `PriceChanged` и `DeadlineExtended` (публичные при соответствующем изменении).
+`MaxBidPlaced` (приватное); `BidRecorded` (публичное для каждой принятой ставки); `PriceChanged` и `DeadlineExtended` (публичные при соответствующем изменении). Публичные envelopes уходят только в `gavel.auction.public.v1`; settlement identity — только в restricted `gavel.auction.processes.v1`.
 
 ## Открытые вопросы
 - Сериализация команд по `auction_id` внутри сервиса (актор) для горячих лотов — после нагрузочных тестов.
