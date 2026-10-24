@@ -15,12 +15,13 @@ Provider-neutral bounded context доставки пользовательски
 - **Notification API** — trusted gRPC-команда `SendNotification` только от Processes и read-only `GetNotification` для доверенного smoke/operator workload.
 - **Notification aggregate** — состояния `PENDING → SENT | FAILED`, canonical fingerprint, exact replay и typed conflict при повторном id с другим payload.
 - **PostgreSQL repository** — notification, bounded delivery attempts, terminal result и безопасный transactional outbox принадлежат Notify.
-- **Template renderer** — owner-controlled ссылки `settlement_candidate.v1`, `settlement_candidate_failed.v1`, `payment_recovery_required.v1`, `winner_confirmed.v1`.
+- **Template renderer** — owner-controlled ссылки `settlement_candidate.v1`, `settlement_candidate_failed.v1`, `payment_recovery_required.v1`, `winner_confirmed.v1`, `bidder_outbid.v1`.
 - **SMTP adapter** — Mailpit-compatible доставка с ограниченными retry; адрес восстановления остаётся только в теле письма и не попадает в telemetry.
 
 ## Юзкейсы
 
 - [settlement-notifications](use-cases/settlement-notifications/README.md) — кандидат, восстановление оплаты и подтверждённый победитель
+- [outbid-notification](use-cases/outbid-notification/README.md) — уведомление участника после authoritative потери лидерства
 
 ## Operations
 

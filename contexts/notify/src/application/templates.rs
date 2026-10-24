@@ -4,9 +4,9 @@ use crate::{
 };
 
 #[derive(Clone, Copy, Default)]
-pub struct SettlementTemplates;
+pub struct NotificationTemplates;
 
-impl SettlementTemplates {
+impl NotificationTemplates {
     pub fn render(&self, command: &NotificationCommand) -> Result<RenderedEmail, TemplateError> {
         command.validate().map_err(|_| TemplateError::InvalidData)?;
         let auction_id = required(command, "auction_id")?;
@@ -38,6 +38,10 @@ impl SettlementTemplates {
             Template::WinnerConfirmedV1 => (
                 "Покупка подтверждена",
                 format!("Оплата по аукциону {auction_id} подтверждена. Вы стали победителем."),
+            ),
+            Template::BidderOutbidV1 => (
+                "Ваша ставка перебита",
+                format!("В аукционе {auction_id} появилась более высокая ставка."),
             ),
         };
         Ok(RenderedEmail {
@@ -82,7 +86,7 @@ mod tests {
 
     #[test]
     fn renders_winner_v1() {
-        let email = SettlementTemplates
+        let email = NotificationTemplates
             .render(&input(
                 Template::WinnerConfirmedV1,
                 BTreeMap::from([("auction_id".into(), "a-1".into())]),
@@ -94,7 +98,7 @@ mod tests {
 
     #[test]
     fn renders_recovery_url_only_in_body() {
-        let email = SettlementTemplates
+        let email = NotificationTemplates
             .render(&input(
                 Template::PaymentRecoveryRequiredV1,
                 BTreeMap::from([
@@ -116,7 +120,7 @@ mod tests {
 
     #[test]
     fn all_settlement_templates_require_auction_id() {
-        let error = SettlementTemplates
+        let error = NotificationTemplates
             .render(&input(Template::WinnerConfirmedV1, BTreeMap::new()))
             .unwrap_err();
         assert_eq!(error, TemplateError::MissingData);
@@ -124,7 +128,7 @@ mod tests {
 
     #[test]
     fn renders_candidate_failure_without_private_payment_data() {
-        let email = SettlementTemplates
+        let email = NotificationTemplates
             .render(&input(
                 Template::SettlementCandidateFailedV1,
                 BTreeMap::from([("auction_id".into(), "a-1".into())]),
@@ -133,5 +137,34 @@ mod tests {
         assert!(email.body.contains("a-1"));
         assert!(!email.body.contains("provider"));
         assert!(!email.body.contains("recovery"));
+    }
+
+    #[test]
+    fn renders_outbid_without_competing_identity_or_maximum() {
+        let email = NotificationTemplates
+            .render(&input(
+                Template::BidderOutbidV1,
+                BTreeMap::from([("auction_id".into(), "a-1".into())]),
+            ))
+            .unwrap();
+        assert!(email.body.contains("a-1"));
+        assert!(!email.body.to_ascii_lowercase().contains("maximum"));
+        assert!(!email.body.to_ascii_lowercase().contains("leader"));
+    }
+
+    #[test]
+    fn outbid_rejects_every_extra_data_field() {
+        for key in ["maximum", "leader_id", "unexpected"] {
+            let error = NotificationTemplates
+                .render(&input(
+                    Template::BidderOutbidV1,
+                    BTreeMap::from([
+                        ("auction_id".into(), "a-1".into()),
+                        (key.into(), "private".into()),
+                    ]),
+                ))
+                .unwrap_err();
+            assert_eq!(error, TemplateError::InvalidData);
+        }
     }
 }

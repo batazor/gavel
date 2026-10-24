@@ -12,7 +12,7 @@ use gavel_processes::{
         ConsumerLoop, RetryPolicy as BrokerRetryPolicy, TemporalGateway, VersionedSignalIngress,
     },
     telemetry::{WorkerReadiness, WorkflowCompletionMetrics},
-    workflows::{AuctionLifecycleWorkflow, SettleAuctionWorkflow},
+    workflows::{AuctionLifecycleWorkflow, NotifyOutbidWorkflow, SettleAuctionWorkflow},
 };
 use metrics_exporter_prometheus::{PrometheusBuilder, PrometheusHandle};
 use temporalio_client::{
@@ -149,6 +149,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build();
     let settlement_options = WorkerOptions::new(config.settlement_task_queue.clone())
         .register_workflow::<SettleAuctionWorkflow>()?
+        .register_workflow::<NotifyOutbidWorkflow>()?
         .register_activities(SettlementTemporalActivities::new(
             owners.clone(),
             owners.clone(),

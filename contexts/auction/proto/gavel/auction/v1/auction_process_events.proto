@@ -22,6 +22,7 @@ message AuctionProcessEvent {
     ProcessAuctionUnsold auction_unsold = 11;
     ProcessWinnerConfirmed winner_confirmed = 12;
     ProcessAuctionCancelled auction_cancelled = 13;
+    ProcessBidderOutbid bidder_outbid = 14;
   }
 }
 
@@ -39,3 +40,8 @@ message ProcessWinnerConfirmed {
 }
 
 message ProcessAuctionCancelled {}
+
+message ProcessBidderOutbid {
+  string recipient_id = 1;
+  string bid_id = 2;
+}

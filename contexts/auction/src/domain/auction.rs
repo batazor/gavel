@@ -73,6 +73,10 @@ pub enum AuctionEvent {
         placed_at: Timestamp,
         first_bid_sequence: u64,
     },
+    BidderOutbid {
+        bidder_id: BidderId,
+        bid_id: BidId,
+    },
     DeadlineExtended {
         ends_at: Timestamp,
     },
@@ -532,6 +536,7 @@ impl Auction {
                 );
                 self.current_price = Some(self.calculate_price(self.active_bids())?.1);
             }
+            AuctionEvent::BidderOutbid { .. } => {}
             AuctionEvent::DeadlineExtended { ends_at } => self.ends_at = Some(ends_at),
             AuctionEvent::Rescheduled {
                 scheduled_end,
@@ -648,6 +653,7 @@ impl Auction {
             return Err(AuctionError::MaximumNotRaised);
         }
 
+        let previous_leader = self.leader().cloned();
         let (alias, first_bid_sequence) = self.bids.get(&bidder_id).map_or_else(
             || {
                 (
@@ -667,7 +673,8 @@ impl Auction {
                 last_placed_at: placed_at,
             },
         );
-        let (_, resulting_price) = self.calculate_price(prospective_bids.iter())?;
+        let (next_leader, resulting_price) = self.calculate_price(prospective_bids.iter())?;
+        let next_leader = next_leader.clone();
         let new_ends_at = self
             .closing_policy
             .as_ref()
@@ -676,12 +683,21 @@ impl Auction {
 
         let mut events = vec![AuctionEvent::MaximumBidPlaced {
             bid_id: bid_id.clone(),
-            bidder_id,
+            bidder_id: bidder_id.clone(),
             bidder_alias: alias.clone(),
             maximum,
             placed_at,
             first_bid_sequence,
         }];
+        let outbid_bidder = previous_leader
+            .filter(|previous| previous != &next_leader)
+            .or_else(|| (next_leader != bidder_id).then_some(bidder_id));
+        if let Some(bidder_id) = outbid_bidder {
+            events.push(AuctionEvent::BidderOutbid {
+                bidder_id,
+                bid_id: bid_id.clone(),
+            });
+        }
         if new_ends_at > ends_at {
             events.push(AuctionEvent::DeadlineExtended {
                 ends_at: new_ends_at,
@@ -1131,6 +1147,97 @@ mod tests {
 
         assert_eq!(auction.leader(), Some(&BidderId::from("alice")));
         assert_eq!(auction.current_price(), Some(&money(160)));
+    }
+
+    #[test]
+    fn outbid_fact_targets_previous_leader_when_lead_changes() {
+        let auction = bid(scheduled_auction(), "bid-1", "alice", 200, 2_000);
+        let (_, decision) = execute(
+            auction,
+            AuctionCommand::PlaceBid {
+                bid_id: "bid-2".into(),
+                bidder_id: "bob".into(),
+                maximum: money(300),
+                placed_at: ts(3_000),
+                payment_instrument_ready: true,
+            },
+        )
+        .unwrap();
+
+        assert!(matches!(
+            decision.events.as_slice(),
+            [
+                AuctionEvent::MaximumBidPlaced { .. },
+                AuctionEvent::BidderOutbid { bidder_id, bid_id }
+            ] if bidder_id == &BidderId::from("alice") && bid_id == &BidId::from("bid-2")
+        ));
+    }
+
+    #[test]
+    fn outbid_fact_targets_challenger_when_proxy_maximum_holds() {
+        let auction = bid(scheduled_auction(), "bid-1", "alice", 300, 2_000);
+        let (_, decision) = execute(
+            auction,
+            AuctionCommand::PlaceBid {
+                bid_id: "bid-2".into(),
+                bidder_id: "bob".into(),
+                maximum: money(200),
+                placed_at: ts(3_000),
+                payment_instrument_ready: true,
+            },
+        )
+        .unwrap();
+
+        assert!(matches!(
+            decision.events.as_slice(),
+            [
+                AuctionEvent::MaximumBidPlaced { .. },
+                AuctionEvent::BidderOutbid { bidder_id, bid_id }
+            ] if bidder_id == &BidderId::from("bob") && bid_id == &BidId::from("bid-2")
+        ));
+    }
+
+    #[test]
+    fn leader_raising_own_maximum_creates_no_outbid_fact() {
+        let auction = bid(scheduled_auction(), "bid-1", "alice", 200, 2_000);
+        let (_, decision) = execute(
+            auction,
+            AuctionCommand::PlaceBid {
+                bid_id: "bid-2".into(),
+                bidder_id: "alice".into(),
+                maximum: money(300),
+                placed_at: ts(3_000),
+                payment_instrument_ready: true,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(decision.events.len(), 1);
+        assert!(matches!(
+            decision.events[0],
+            AuctionEvent::MaximumBidPlaced { .. }
+        ));
+    }
+
+    #[test]
+    fn bidder_outbid_replay_is_a_no_op_except_for_stream_version() {
+        let mut auction = bid(scheduled_auction(), "bid-1", "alice", 200, 2_000);
+        let before_price = auction.current_price().cloned();
+        let before_leader = auction.leader().cloned();
+        let before_bids = auction.bids.clone();
+        let before_version = auction.version();
+
+        auction
+            .apply(AuctionEvent::BidderOutbid {
+                bidder_id: BidderId::from("bob"),
+                bid_id: BidId::from("bid-2"),
+            })
+            .unwrap();
+
+        assert_eq!(auction.version(), before_version + 1);
+        assert_eq!(auction.current_price(), before_price.as_ref());
+        assert_eq!(auction.leader(), before_leader.as_ref());
+        assert_eq!(auction.bids, before_bids);
     }
 
     #[test]

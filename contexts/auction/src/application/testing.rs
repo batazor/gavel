@@ -167,7 +167,8 @@ impl AuctionUnitOfWork for InMemoryAuctionStore {
             .filter(|event| {
                 matches!(
                     event,
-                    AuctionEvent::SettlementCandidateSelected { .. }
+                    AuctionEvent::BidderOutbid { .. }
+                        | AuctionEvent::SettlementCandidateSelected { .. }
                         | AuctionEvent::Unsold
                         | AuctionEvent::WinnerConfirmed { .. }
                         | AuctionEvent::Cancelled

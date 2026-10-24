@@ -1286,6 +1286,7 @@ dependencies = [
 name = "gavel-processes"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "axum 0.8.6",
  "chrono",

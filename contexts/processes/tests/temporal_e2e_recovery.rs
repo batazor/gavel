@@ -9,9 +9,9 @@ use gavel_processes::{
     activities::{
         AttemptPaymentIntent, AuctionActivities, AuctionMutationOutcome, CloseAuctionIntent,
         ConfirmWinnerIntent, ExpirePaymentIntent, ForfeitCandidateIntent,
-        NotificationAcknowledgement, NotifyActivities, NotifyIntent, PaymentsActivities,
-        RecoveryNotificationIntent, SettlementAttemptRead, SettlementAttemptSnapshot,
-        SettlementTemporalActivities,
+        NotificationAcknowledgement, NotifyActivities, NotifyIntent, OutbidNotificationIntent,
+        PaymentsActivities, RecoveryNotificationIntent, SettlementAttemptRead,
+        SettlementAttemptSnapshot, SettlementTemporalActivities,
     },
     workflows::{
         AuctionId, CandidateId, CorrelationContext, Money, PaymentAttemptId, ProcessError,
@@ -206,6 +206,13 @@ impl NotifyActivities for RecoveryOwners {
             notification_id: "redacted-recovery-notification".to_owned(),
             accepted: true,
         })
+    }
+
+    async fn notify_outbid(
+        &self,
+        _: OutbidNotificationIntent,
+    ) -> Result<NotificationAcknowledgement, ProcessError> {
+        unreachable!()
     }
 }
 

@@ -22,6 +22,8 @@
 
 Prometheus exporter добавляет `_total` counters и `_seconds_bucket/_sum/_count` histograms. Не добавлять entity IDs в labels: для конкретного workflow используйте Temporal UI, trace correlation и structured logs.
 
+Для outbid delivery используются только bounded labels `event_type=bidder_outbid`, `activity_type=notify_outbid` и фиксированные outcomes. Recipient, auction/bid/notification ids и отрендеренное тело не являются labels и не пишутся в diagnostic events.
+
 Overdue gauge вычисляет 30-секундный watchdog через Temporal Visibility по Search Attributes `GavelCloseDeadline` и `GavelCloseConfirmed`. Он работает вне детерминированного workflow/replay. При недоступной Visibility метрика не обновляется: `ProcessBusinessMetricsMissing` сообщает о слепой зоне вместо ложного значения `0`.
 
 ## Dashboard

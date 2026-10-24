@@ -21,14 +21,16 @@ Workflow состояние торгов не хранит. Он ждёт тай
 | `AuctionLifecycle` | `AuctionOpened` | Durable-таймер на `ends_at`, сброс по `DeadlineExtended` и `AuctionRescheduled`, по срабатыванию `CloseAuction(now)` | [close-by-deadline](../auction/use-cases/close-by-deadline/README.md) |
 | `WithdrawLot` | Processes subgraph, запрос продавца через Cosmo | `CancelAuction` → `WithdrawLot`, компенсация `ReopenAuction` | [withdraw-lot](../catalog/use-cases/withdraw-lot/README.md) |
 | `SettleAuction` | `SettlementCandidateSelected` | Автоматическая попытка через Payments; при `PaymentRecoveryRequired` — 2ч recovery, затем forfeiture и следующий кандидат до `WinnerConfirmed` или `AuctionUnsold` | [settle-auction](use-cases/settle-auction/README.md) |
+| `NotifyOutbid` | restricted `BidderOutbid` | Короткий workflow на версию Auction отправляет одно идемпотентное уведомление прежнему лидеру или сразу перебитому bidder | [outbid-notification](../notify/use-cases/outbid-notification/README.md) |
 
 ## Компоненты worker
 
 - Worker `AuctionLifecycle` poll-ит task queue `auction-lifecycle-v1`, принимает signal `owner_event`, держит заменяемый durable timer и вызывает `close_auction`.
-- Worker `SettleAuction` poll-ит task queue `settle-auction-v1`, принимает signal `owner_event` и выполняет `attempt_payment`, `get_settlement_attempt`, `expire_payment`, `forfeit_candidate`, `confirm_winner`, `notify` и `notify_recovery`.
+- Worker settlement queue регистрирует `SettleAuction` и короткий `NotifyOutbid`; второй выполняет только `notify_outbid` с ключом `outbid/{auction}:{version}`.
 - Production ingress читает public и restricted owner topics из Redpanda стабильной consumer group, валидирует versioned envelopes и доставляет их в Temporal через `signal-with-start`. Offset фиксируется только после принятого сигнала либо durable quarantine/DLQ publish.
 - Activities вызывают только owner-generated [gRPC contracts](../../docs/adr/0018-internal-rpc-with-grpc-and-buf.md) Auction, Payments и Notify.
 - Повторы, перестановка событий и потерянный RPC response безопасны: workflow дедуплицирует owner events, отбрасывает stale version, а activities повторяют тот же owner intent с тем же idempotency key.
+- `BidderOutbid` принимается только из restricted Auction topic. В Temporal history и Notify передаются recipient, bid id и `auction_id`, но maximum и identity нового лидера отсутствуют; public GraphQL SDL и public Auction events не меняются.
 
 ### Delivery и readiness
 

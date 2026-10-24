@@ -13,8 +13,8 @@ use crate::{
         AttemptPaymentIntent, AuctionActivities, AuctionMutationOutcome, CloseAuctionIntent,
         ConfirmWinnerIntent, ExpirePaymentIntent, ForfeitCandidateIntent,
         NotificationAcknowledgement, NotificationKind, NotifyActivities, NotifyIntent,
-        PaymentsActivities, RecoveryNotificationIntent, SettlementAttemptRead,
-        SettlementAttemptSnapshot,
+        OutbidNotificationIntent, PaymentsActivities, RecoveryNotificationIntent,
+        SettlementAttemptRead, SettlementAttemptSnapshot,
     },
     rpc_policy::{self, ActivityPolicy, FailureClass, Intent, IntentKey},
     workflows::{CandidateId, PaymentAttemptId, ProcessError, SettlementAttemptStatus},
@@ -495,6 +495,51 @@ impl NotifyActivities for OwnerRpcActivities {
         };
         self.send_notification(&notification, Some(recovery_url))
             .await
+    }
+
+    async fn notify_outbid(
+        &self,
+        intent: OutbidNotificationIntent,
+    ) -> Result<NotificationAcknowledgement, ProcessError> {
+        if intent.aggregate_version == 0 {
+            return Err(ProcessError::InvalidInput);
+        }
+        let notification_id = format!(
+            "outbid/{}:{}",
+            intent.auction_id.as_str(),
+            intent.aggregate_version
+        );
+        let message = notify::SendNotificationRequest {
+            notification_id: notification_id.clone(),
+            recipient_id: intent.recipient_id.as_str().to_owned(),
+            template: notify::NotificationTemplate::BidderOutbid as i32,
+            data: HashMap::from([(
+                "auction_id".to_owned(),
+                intent.auction_id.as_str().to_owned(),
+            )]),
+            idempotency_key: notification_id.clone(),
+            template_version: 1,
+            correlation_id: intent.correlation_id,
+        };
+        let mut client = self.notify.clone();
+        let started = Instant::now();
+        let response = client
+            .send_notification(self.notify_request(message)?)
+            .await;
+        record_rpc("notify", "send_notification", started, &response);
+        let response = response.map_err(map_status)?.into_inner();
+        match response.outcome {
+            Some(notify::send_notification_response::Outcome::Accepted(_)) => {
+                Ok(NotificationAcknowledgement {
+                    notification_id,
+                    accepted: true,
+                })
+            }
+            Some(notify::send_notification_response::Outcome::Rejection(rejection)) => {
+                Err(domain_rejection(rejection.reason))
+            }
+            None => Err(ProcessError::InvariantViolation),
+        }
     }
 }
 
@@ -1134,11 +1179,33 @@ mod tests {
             "settle-auction/auction-1:notify:recovery:1"
         );
 
+        let outbid = OutbidNotificationIntent {
+            auction_id: AuctionId::parse("auction-1").unwrap(),
+            aggregate_version: 9,
+            recipient_id: CandidateId::parse("candidate-2").unwrap(),
+            correlation_id: "correlation-1".to_owned(),
+        };
+        let outbid_acknowledgement = activities.notify_outbid(outbid.clone()).await.unwrap();
+        assert_eq!(
+            outbid_acknowledgement,
+            activities.notify_outbid(outbid).await.unwrap()
+        );
+        assert_eq!(outbid_acknowledgement.notification_id, "outbid/auction-1:9");
+
         let sent = notify_fixture.requests.lock().unwrap();
-        assert_eq!(sent.len(), 2);
+        assert_eq!(sent.len(), 4);
         assert_eq!(sent[0].notification_id, sent[1].notification_id);
         assert_eq!(sent[0].data["auction_id"], "auction-1");
         assert!(sent[0].data["recovery_url"].contains("secret-token"));
+        assert_eq!(sent[2].notification_id, sent[3].notification_id);
+        assert_eq!(sent[2].idempotency_key, "outbid/auction-1:9");
+        assert_eq!(sent[2].recipient_id, "candidate-2");
+        assert_eq!(
+            sent[2].template,
+            notify::NotificationTemplate::BidderOutbid as i32
+        );
+        assert_eq!(sent[2].data.len(), 1);
+        assert_eq!(sent[2].data["auction_id"], "auction-1");
         for safe_fixture in [
             format!("history={acknowledgement:?}"),
             format!("log notification_id={}", acknowledgement.notification_id),

@@ -1,0 +1,21 @@
+// Архитектурный dynamic view; пошаговый сценарий находится в README Mermaid block.
+views {
+
+  dynamic view flow_outbid_notification {
+    title 'Уведомление «вас перебили»'
+    description 'Auction фиксирует restricted факт; Processes durable оркестрирует; Notify доставляет один idempotent email.'
+    autoLayout TopBottom
+
+    gavel.auction.service.events -> gavel.auction.service.eventstore 'append BidderOutbid with private stream'
+    gavel.auction.service.eventstore -> gavel.auction.db 'restricted outbox, same transaction'
+    gavel.cdc -> gavel.auction.db 'capture restricted outbox'
+    gavel.cdc -> gavel.broker 'BidderOutbid → gavel.auction.processes.v1'
+    gavel.broker -> gavel.processes.activities 'signal NotifyOutbid workflow'
+    gavel.processes.activities -> gavel.notify.service.api 'SendNotification(bidder_outbid.v1)'
+    gavel.notify.service.api -> gavel.notify.service.notification 'claim deterministic notification id'
+    gavel.notify.service.notification -> gavel.notify.service.template 'render auction_id only'
+    gavel.notify.service.notification -> gavel.notify.service.channelAdapter 'bounded delivery retry'
+    gavel.notify.service.channelAdapter -> emailProvider 'send transactional email'
+    gavel.notify.service.notification -> gavel.notify.service.repository 'save attempt and SENT | FAILED'
+  }
+}

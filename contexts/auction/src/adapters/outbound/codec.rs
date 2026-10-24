@@ -113,6 +113,10 @@ enum WireEvent {
         placed_at_millis: u64,
         first_bid_sequence: u64,
     },
+    BidderOutbid {
+        bidder_id: String,
+        bid_id: String,
+    },
     DeadlineExtended {
         ends_at_millis: u64,
     },
@@ -145,6 +149,7 @@ impl WireEvent {
         match self {
             Self::Opened { .. } => "AuctionOpened",
             Self::MaximumBidPlaced { .. } => "MaxBidPlaced",
+            Self::BidderOutbid { .. } => "BidderOutbid",
             Self::DeadlineExtended { .. } => "DeadlineExtended",
             Self::Rescheduled { .. } => "AuctionRescheduled",
             Self::Closed { .. } => "AuctionClosed",
@@ -193,6 +198,10 @@ impl From<&AuctionEvent> for WireEvent {
                 maximum: maximum.into(),
                 placed_at_millis: placed_at.as_millis(),
                 first_bid_sequence: *first_bid_sequence,
+            },
+            AuctionEvent::BidderOutbid { bidder_id, bid_id } => Self::BidderOutbid {
+                bidder_id: bidder_id.to_string(),
+                bid_id: bid_id.to_string(),
             },
             AuctionEvent::DeadlineExtended { ends_at } => Self::DeadlineExtended {
                 ends_at_millis: ends_at.as_millis(),
@@ -273,6 +282,10 @@ impl TryFrom<WireEvent> for AuctionEvent {
                 maximum: maximum.try_into()?,
                 placed_at: Timestamp::from_millis(placed_at_millis),
                 first_bid_sequence,
+            },
+            WireEvent::BidderOutbid { bidder_id, bid_id } => Self::BidderOutbid {
+                bidder_id: BidderId::from(bidder_id),
+                bid_id: BidId::from(bid_id),
             },
             WireEvent::DeadlineExtended { ends_at_millis } => Self::DeadlineExtended {
                 ends_at: Timestamp::from_millis(ends_at_millis),
@@ -587,6 +600,10 @@ mod tests {
                 maximum: money(300),
                 placed_at: Timestamp::from_millis(200),
                 first_bid_sequence: 1,
+            },
+            AuctionEvent::BidderOutbid {
+                bidder_id: BidderId::from("user-1"),
+                bid_id: BidId::from("bid-2"),
             },
             AuctionEvent::DeadlineExtended {
                 ends_at: Timestamp::from_millis(1_100),

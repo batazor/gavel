@@ -126,19 +126,9 @@ impl NotifyService for GrpcNotify {
     ) -> Result<Response<rpc::SendNotificationResponse>, Status> {
         self.processes(&request)?;
         let input = request.into_inner();
-        if input.template_version != 1 {
-            return Ok(Response::new(rejected(ApplicationError::InvalidCommand)));
-        }
-        let template = match rpc::NotificationTemplate::try_from(input.template) {
-            Ok(rpc::NotificationTemplate::SettlementCandidate) => Template::SettlementCandidateV1,
-            Ok(rpc::NotificationTemplate::PaymentRecoveryRequired) => {
-                Template::PaymentRecoveryRequiredV1
-            }
-            Ok(rpc::NotificationTemplate::WinnerConfirmed) => Template::WinnerConfirmedV1,
-            Ok(rpc::NotificationTemplate::SettlementCandidateFailed) => {
-                Template::SettlementCandidateFailedV1
-            }
-            _ => return Ok(Response::new(rejected(ApplicationError::InvalidCommand))),
+        let template = match domain_template(input.template, input.template_version) {
+            Ok(template) => template,
+            Err(error) => return Ok(Response::new(rejected(error))),
         };
         let result = self
             .application
@@ -265,7 +255,26 @@ fn rpc_template(reference: &str) -> rpc::NotificationTemplate {
         "payment_recovery_required.v1" => rpc::NotificationTemplate::PaymentRecoveryRequired,
         "winner_confirmed.v1" => rpc::NotificationTemplate::WinnerConfirmed,
         "settlement_candidate_failed.v1" => rpc::NotificationTemplate::SettlementCandidateFailed,
+        "bidder_outbid.v1" => rpc::NotificationTemplate::BidderOutbid,
         _ => rpc::NotificationTemplate::Unspecified,
+    }
+}
+
+fn domain_template(value: i32, version: u32) -> Result<Template, ApplicationError> {
+    if version != 1 {
+        return Err(ApplicationError::InvalidCommand);
+    }
+    match rpc::NotificationTemplate::try_from(value) {
+        Ok(rpc::NotificationTemplate::SettlementCandidate) => Ok(Template::SettlementCandidateV1),
+        Ok(rpc::NotificationTemplate::PaymentRecoveryRequired) => {
+            Ok(Template::PaymentRecoveryRequiredV1)
+        }
+        Ok(rpc::NotificationTemplate::WinnerConfirmed) => Ok(Template::WinnerConfirmedV1),
+        Ok(rpc::NotificationTemplate::SettlementCandidateFailed) => {
+            Ok(Template::SettlementCandidateFailedV1)
+        }
+        Ok(rpc::NotificationTemplate::BidderOutbid) => Ok(Template::BidderOutbidV1),
+        _ => Err(ApplicationError::InvalidCommand),
     }
 }
 fn parse_grpc_timeout(value: &str) -> Option<Duration> {
@@ -323,5 +332,25 @@ mod tests {
         });
         assert!(authorize_operator(&request, "spiffe://smoke").is_ok());
         assert!(authorize_processes(&request, "spiffe://processes").is_err());
+    }
+
+    #[test]
+    fn outbid_template_maps_at_v1_and_unknown_values_fail_closed() {
+        assert_eq!(
+            domain_template(rpc::NotificationTemplate::BidderOutbid as i32, 1),
+            Ok(Template::BidderOutbidV1)
+        );
+        assert_eq!(
+            domain_template(99, 1),
+            Err(ApplicationError::InvalidCommand)
+        );
+        assert_eq!(
+            domain_template(rpc::NotificationTemplate::BidderOutbid as i32, 2),
+            Err(ApplicationError::InvalidCommand)
+        );
+        assert_eq!(
+            rpc_template("bidder_outbid.v1"),
+            rpc::NotificationTemplate::BidderOutbid
+        );
     }
 }

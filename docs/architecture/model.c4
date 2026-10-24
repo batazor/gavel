@@ -293,7 +293,7 @@ model {
           description 'Pending → Sent | Failed; дедупликация, retry policy и audit доставки'
         }
         template = component 'Template renderer' {
-          description 'Версионированные шаблоны candidate/recovery/winner без settlement-логики'
+          description 'Версионированные шаблоны candidate/recovery/winner/outbid без settlement-логики и без maximum/identity нового лидера'
         }
         channelAdapter = component 'Email channel adapter' {
           description 'Скрывает API конкретного email provider'
@@ -347,7 +347,7 @@ model {
       }
 
       subscriber = component 'Event subscriber' {
-        description 'AuctionOpened → AuctionLifecycle; SettlementCandidateSelected → SettleAuction; PaymentSucceeded/RecoveryRequired/Expired → signal'
+        description 'AuctionOpened → AuctionLifecycle; SettlementCandidateSelected → SettleAuction; restricted BidderOutbid → NotifyOutbid; PaymentSucceeded/RecoveryRequired/Expired → signal'
       }
       lifecycle = component 'AuctionLifecycle workflow' {
         description 'Durable-таймер на текущий ends_at. По сигналу сбрасывает таймер. По срабатыванию → CloseAuction(now). Решений о продлении не принимает.'
@@ -357,6 +357,9 @@ model {
       }
       settle = component 'SettleAuction saga' {
         description 'Уведомление и автоматическая попытка через Payments; при RecoveryRequired — 2ч timer; затем forfeiture и следующий кандидат до WinnerConfirmed или AuctionUnsold.'
+      }
+      outbid = component 'NotifyOutbid workflow' {
+        description 'Короткий workflow notify-outbid/{auction}:{version}; идемпотентно отправляет bidder_outbid.v1 и не меняет Auction.'
       }
       activities = component 'Activities' {
         description 'Команды в Auction, Catalog, Payments и Notify. Идемпотентны, с retry. Отказ владельца — штатный исход.'
@@ -466,7 +469,7 @@ model {
 
   // Слой процессов
   gavel.processes -> gavel.temporal 'task queues, таймеры, история workflow'
-  gavel.processes.subscriber -> gavel.broker 'subscribe: AuctionOpened, DeadlineExtended, SettlementCandidateSelected, payments.events'
+  gavel.processes.subscriber -> gavel.broker 'subscribe: AuctionOpened, DeadlineExtended, SettlementCandidateSelected, restricted BidderOutbid, payments.events'
   gavel.processes.subscriber -> gavel.processes.lifecycle 'start / signal'
   gavel.processes.lifecycle -> gavel.processes.activities 'CloseAuction(now)'
   gavel.processes.withdraw -> gavel.processes.activities 'CancelAuction, WithdrawLot'
@@ -481,6 +484,8 @@ model {
   // Payments
   gavel.processes.subscriber -> gavel.processes.settle 'start / signal'
   gavel.processes.settle -> gavel.processes.activities 'NotifyCandidate, AttemptPayment, ExpirePayment, ForfeitCandidate, ConfirmWinner'
+  gavel.processes.subscriber -> gavel.processes.outbid 'start once per Auction version'
+  gavel.processes.outbid -> gavel.processes.activities 'NotifyOutbid'
   gavel.processes.activities -> gavel.payments.service.api 'AttemptPayment(auction, round, candidate, amount)' {
     technology 'HTTP, mTLS меша'
   }
@@ -511,7 +516,7 @@ model {
   }
 
   // Notify
-  gavel.processes.activities -> gavel.notify.service.api 'SendNotification(candidate, recovery, winner)' {
+  gavel.processes.activities -> gavel.notify.service.api 'SendNotification(candidate, recovery, winner, outbid)' {
     technology 'HTTP, mTLS меша'
   }
   gavel.processes.activities -> gavel.authz.service.check 'service_account:processes capabilities'

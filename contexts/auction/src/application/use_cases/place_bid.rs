@@ -185,7 +185,7 @@ mod tests {
             LotListed, OpenAuction, PortError, Principal,
             testing::{InMemoryAuctionStore, InMemoryPaymentReadiness, StubAuthorization},
         },
-        domain::{ClosingPolicy, Timestamp},
+        domain::{AuctionEvent, ClosingPolicy, Timestamp},
     };
 
     async fn opened_store() -> Arc<InMemoryAuctionStore> {
@@ -272,6 +272,42 @@ mod tests {
             .unwrap();
         assert!(result.outbid);
         assert_eq!(result.auction.current_price.minor_units, 210);
+    }
+
+    #[tokio::test]
+    async fn repeated_outbid_command_replays_without_duplicate_process_fact() {
+        let store = opened_store().await;
+        let authz = Arc::new(StubAuthorization::allowed());
+        let readiness = Arc::new(InMemoryPaymentReadiness::default());
+        readiness.set("user-1", true);
+        readiness.set("user-2", true);
+        let use_case = PlaceBid::new(Arc::clone(&store), authz, readiness, 3, [2; 32]);
+        use_case
+            .handle(&context("user-1", "bid-key-1"), input("bid-1", 300))
+            .await
+            .unwrap();
+
+        let first = use_case
+            .handle(&context("user-2", "bid-key-2"), input("bid-2", 200))
+            .await
+            .unwrap();
+        let stream_after_first = store.stream("auction-1");
+        let process_after_first = store.process_outbox();
+        let replayed = use_case
+            .handle(&context("user-2", "bid-key-2"), input("bid-2", 200))
+            .await
+            .unwrap();
+
+        assert_eq!(replayed, first);
+        assert_eq!(store.stream("auction-1"), stream_after_first);
+        assert_eq!(store.process_outbox(), process_after_first);
+        assert_eq!(
+            process_after_first
+                .iter()
+                .filter(|event| matches!(event, AuctionEvent::BidderOutbid { .. }))
+                .count(),
+            1
+        );
     }
 
     #[tokio::test]

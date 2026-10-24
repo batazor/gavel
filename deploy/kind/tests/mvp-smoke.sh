@@ -71,6 +71,30 @@ bid_query='mutation SmokeBid($input: PlaceBidInput!, $key: String!) { placeBid(i
 reschedule_query='mutation SmokeClose($input: RescheduleAuctionInput!, $key: String!) { rescheduleAuction(input: $input, idempotencyKey: $key) { id status endsAt } }'
 auction_query='query SmokeAuction($id: ID!) { auction(id: $id) { id status currentPrice { amount version } } }'
 
+wait_for_notification() {
+  local notification_id="$1" notification=''
+  for _ in $(seq 1 60); do
+    notification="$(curl --silent --show-error --get \
+      -H "authorization: Bearer ${notify_operator_token}" \
+      --data-urlencode "notification_id=${notification_id}" \
+      http://127.0.0.1:18085/local/operator/notification || true)"
+    jq -e '.status == "SENT"' >/dev/null 2>&1 <<<"${notification}" && break
+    sleep 1
+  done
+  jq -e --arg id "${notification_id}" \
+    '.notification_id == $id and .status == "SENT" and .attempts == 1' \
+    >/dev/null <<<"${notification}"
+}
+
+assert_notification_missing() {
+  local notification_id="$1" code
+  code="$(curl --silent --output /dev/null --write-out '%{http_code}' --get \
+    -H "authorization: Bearer ${notify_operator_token}" \
+    --data-urlencode "notification_id=${notification_id}" \
+    http://127.0.0.1:18085/local/operator/notification)"
+  [[ "${code}" == "404" ]]
+}
+
 run_scenario() {
   local scenario="$1" round_one_outcome="$2" restart_processes="$3"
   local state="${REPO_ROOT}/.gavel-mvp/seed-${scenario}.json"
@@ -80,10 +104,34 @@ run_scenario() {
   bidder_one_token="$(token_for gavel-local-bidder-one)"
   bidder_two_token="$(token_for gavel-local-bidder-two)"
 
-  graphql http://127.0.0.1:18080 "${bidder_one_token}" "smoke-${scenario}-bid-1" "${bid_query}" \
-    "$(jq -cn --arg id "${auction}" --arg key "smoke-${scenario}-bid-1" '{input:{auctionId:$id,maximumAmount:"15000",currency:"USD"},key:$key}')" >/dev/null
-  graphql http://127.0.0.1:18080 "${bidder_two_token}" "smoke-${scenario}-bid-2" "${bid_query}" \
-    "$(jq -cn --arg id "${auction}" --arg key "smoke-${scenario}-bid-2" '{input:{auctionId:$id,maximumAmount:"20000",currency:"USD"},key:$key}')" >/dev/null
+  local first_bid leader_raise takeover immediate replay leader_raise_after
+  first_bid="$(graphql http://127.0.0.1:18080 "${bidder_one_token}" "smoke-${scenario}-bid-1" "${bid_query}" \
+    "$(jq -cn --arg id "${auction}" --arg key "smoke-${scenario}-bid-1" '{input:{auctionId:$id,maximumAmount:"15000",currency:"USD"},key:$key}')")"
+  leader_raise="$(graphql http://127.0.0.1:18080 "${bidder_one_token}" "smoke-${scenario}-bid-1-raise" "${bid_query}" \
+    "$(jq -cn --arg id "${auction}" --arg key "smoke-${scenario}-bid-1-raise" '{input:{auctionId:$id,maximumAmount:"17000",currency:"USD"},key:$key}')")"
+  takeover="$(graphql http://127.0.0.1:18080 "${bidder_two_token}" "smoke-${scenario}-bid-2" "${bid_query}" \
+    "$(jq -cn --arg id "${auction}" --arg key "smoke-${scenario}-bid-2" '{input:{auctionId:$id,maximumAmount:"20000",currency:"USD"},key:$key}')")"
+  replay="$(graphql http://127.0.0.1:18080 "${bidder_two_token}" "smoke-${scenario}-bid-2-replay" "${bid_query}" \
+    "$(jq -cn --arg id "${auction}" --arg key "smoke-${scenario}-bid-2" '{input:{auctionId:$id,maximumAmount:"20000",currency:"USD"},key:$key}')")"
+  immediate="$(graphql http://127.0.0.1:18080 "${bidder_one_token}" "smoke-${scenario}-bid-3" "${bid_query}" \
+    "$(jq -cn --arg id "${auction}" --arg key "smoke-${scenario}-bid-3" '{input:{auctionId:$id,maximumAmount:"18000",currency:"USD"},key:$key}')")"
+  leader_raise_after="$(graphql http://127.0.0.1:18080 "${bidder_two_token}" "smoke-${scenario}-bid-2-raise" "${bid_query}" \
+    "$(jq -cn --arg id "${auction}" --arg key "smoke-${scenario}-bid-2-raise" '{input:{auctionId:$id,maximumAmount:"25000",currency:"USD"},key:$key}')")"
+
+  local first_version raise_version takeover_version immediate_version final_raise_version
+  first_version="$(jq -er '.data.placeBid.acceptedVersion' <<<"${first_bid}")"
+  raise_version="$(jq -er '.data.placeBid.acceptedVersion' <<<"${leader_raise}")"
+  takeover_version="$(jq -er '.data.placeBid.acceptedVersion' <<<"${takeover}")"
+  immediate_version="$(jq -er '.data.placeBid.acceptedVersion' <<<"${immediate}")"
+  final_raise_version="$(jq -er '.data.placeBid.acceptedVersion' <<<"${leader_raise_after}")"
+  jq -e --argjson expected "${takeover_version}" '.data.placeBid.acceptedVersion == $expected' \
+    >/dev/null <<<"${replay}"
+
+  wait_for_notification "outbid/${auction}:${takeover_version}"
+  wait_for_notification "outbid/${auction}:${immediate_version}"
+  assert_notification_missing "outbid/${auction}:${first_version}"
+  assert_notification_missing "outbid/${auction}:${raise_version}"
+  assert_notification_missing "outbid/${auction}:${final_raise_version}"
 
   curl --silent --show-error --fail-with-body -X PUT \
     -H "authorization: Bearer ${control_token}" -H 'content-type: application/json' \

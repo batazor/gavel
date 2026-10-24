@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 use crate::{
     application::{
         ClaimResult, DeliveryAttempt, DeliveryError, EmailGateway, NotificationRepository,
-        PortError, SettlementTemplates,
+        NotificationTemplates, PortError,
     },
     domain::{Notification, NotificationCommand, NotificationStatus},
 };
@@ -13,7 +13,7 @@ use crate::{
 pub struct NotifyApplication {
     repository: Arc<dyn NotificationRepository>,
     email: Arc<dyn EmailGateway>,
-    templates: SettlementTemplates,
+    templates: NotificationTemplates,
     retry: RetryPolicy,
 }
 
@@ -26,7 +26,7 @@ impl NotifyApplication {
         Self {
             repository,
             email,
-            templates: SettlementTemplates,
+            templates: NotificationTemplates,
             retry,
         }
     }
@@ -302,7 +302,7 @@ mod tests {
         NotificationCommand {
             notification_id: "n-1".into(),
             recipient_id: "user@example.test".into(),
-            template: Template::WinnerConfirmedV1,
+            template: Template::BidderOutbidV1,
             data: BTreeMap::from([("auction_id".into(), "a-1".into())]),
             idempotency_key: "key-1".into(),
         }
@@ -363,5 +363,25 @@ mod tests {
         let view = app.send(command()).await.unwrap();
         assert_eq!(view.status, NotificationStatus::Sent);
         assert_eq!(view.attempts, 2);
+    }
+
+    #[tokio::test]
+    async fn permanent_failure_is_terminal_and_visible_to_operator_read() {
+        let repo = Arc::new(MemoryRepo::default());
+        let mail = Arc::new(ScriptedMailer(Mutex::new(VecDeque::from([Err(
+            DeliveryError::Permanent("rejected"),
+        )]))));
+        let app = NotifyApplication::new(
+            repo,
+            mail,
+            RetryPolicy::new(2, Duration::ZERO, Duration::ZERO).unwrap(),
+        );
+        let sent = app.send(command()).await.unwrap();
+        let read = app.get("n-1").await.unwrap().unwrap();
+        assert_eq!(sent.status, NotificationStatus::Failed);
+        assert_eq!(sent, read);
+        assert_eq!(read.template, "bidder_outbid.v1");
+        assert_eq!(read.attempts, 1);
+        assert_eq!(read.safe_failure.as_deref(), Some("rejected"));
     }
 }

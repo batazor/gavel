@@ -16,6 +16,7 @@ pub enum EventSource {
 enum StreamKey {
     AuctionPublic(AuctionId),
     AuctionRestricted(AuctionId),
+    AuctionOutbid(AuctionId, u64),
     PaymentAttempt(PaymentAttemptId),
 }
 
@@ -84,7 +85,7 @@ impl EventGate {
             });
         }
 
-        let stream = stream_key(source, &event.event)?;
+        let stream = stream_key(source, event)?;
         let latest = self.positions.get(&stream).copied().unwrap_or(0);
         if event.aggregate_version <= latest {
             return Ok(GateDecision::Stale {
@@ -122,7 +123,7 @@ impl EventGate {
             return Ok(GateDecision::Quarantined);
         }
 
-        let stream = stream_key(source, &event.event)?;
+        let stream = stream_key(source, event)?;
         self.seen.insert(event.event_id.clone(), fingerprint);
         if matches!(decision, GateDecision::Accepted | GateDecision::Gap { .. }) {
             self.positions.insert(stream, event.aggregate_version);
@@ -135,7 +136,8 @@ impl EventGate {
     }
 }
 
-fn stream_key(source: EventSource, event: &OwnerEvent) -> Result<StreamKey, ProcessError> {
+fn stream_key(source: EventSource, decoded: &DecodedOwnerEvent) -> Result<StreamKey, ProcessError> {
+    let event = &decoded.event;
     let auction_id = match event {
         OwnerEvent::AuctionOpened { auction_id, .. }
         | OwnerEvent::AuctionObserved { auction_id }
@@ -144,6 +146,7 @@ fn stream_key(source: EventSource, event: &OwnerEvent) -> Result<StreamKey, Proc
         | OwnerEvent::AuctionCancelled { auction_id }
         | OwnerEvent::AuctionUnsold { auction_id }
         | OwnerEvent::WinnerConfirmed { auction_id }
+        | OwnerEvent::BidderOutbid { auction_id, .. }
         | OwnerEvent::SettlementCandidateSelected { auction_id, .. }
         | OwnerEvent::PaymentAttemptStarted { auction_id, .. }
         | OwnerEvent::PaymentRecoveryRequired { auction_id, .. }
@@ -151,6 +154,9 @@ fn stream_key(source: EventSource, event: &OwnerEvent) -> Result<StreamKey, Proc
         | OwnerEvent::PaymentExpired { auction_id, .. } => auction_id.clone(),
     };
     match source {
+        EventSource::AuctionRestricted if matches!(event, OwnerEvent::BidderOutbid { .. }) => Ok(
+            StreamKey::AuctionOutbid(auction_id, decoded.aggregate_version),
+        ),
         EventSource::AuctionPublic if is_auction_public(event) => {
             Ok(StreamKey::AuctionPublic(auction_id))
         }
@@ -184,6 +190,7 @@ fn is_auction_restricted(event: &OwnerEvent) -> bool {
     matches!(
         event,
         OwnerEvent::SettlementCandidateSelected { .. }
+            | OwnerEvent::BidderOutbid { .. }
             | OwnerEvent::AuctionCancelled { .. }
             | OwnerEvent::AuctionUnsold { .. }
             | OwnerEvent::WinnerConfirmed { .. }

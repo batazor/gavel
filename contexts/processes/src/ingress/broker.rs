@@ -145,6 +145,7 @@ const fn event_type(event: &super::OwnerEvent) -> &'static str {
         super::OwnerEvent::AuctionUnsold { .. } => "auction_unsold",
         super::OwnerEvent::WinnerConfirmed { .. } => "winner_confirmed",
         super::OwnerEvent::SettlementCandidateSelected { .. } => "candidate_selected",
+        super::OwnerEvent::BidderOutbid { .. } => "bidder_outbid",
         super::OwnerEvent::PaymentAttemptStarted { .. } => "payment_attempt_started",
         super::OwnerEvent::PaymentRecoveryRequired { .. } => "payment_recovery_required",
         super::OwnerEvent::PaymentSucceeded { .. } => "payment_succeeded",

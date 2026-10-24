@@ -20,8 +20,8 @@ views {
       notes 'Нет готового способа оплаты → PAYMENT_METHOD_REQUIRED'
     }
     gavel.auction.service.api -> gavel.auction.service.aggregate 'load + PlaceBid'
-    gavel.auction.service.aggregate -> gavel.auction.service.events 'MaxBidPlaced + BidRecorded; PriceChanged if needed' {
-      notes 'Проверка: max > текущей цены, аукцион открыт. Pricing policy внутри агрегата пересчитывает лидера и цену'
+    gavel.auction.service.aggregate -> gavel.auction.service.events 'MaxBidPlaced + BidRecorded; PriceChanged and restricted BidderOutbid if needed' {
+      notes 'Auction authoritative определяет outbid recipient; maximum и новый leader не выходят в integration contracts'
     }
     gavel.auction.service.events -> gavel.auction.service.eventstore 'append, expected version = N'
     gavel.auction.service.eventstore -> gavel.auction.db 'events + public projection + safe outbox + command result, одна транзакция' {
@@ -32,6 +32,9 @@ views {
 
     gavel.cdc -> gavel.auction.db 'capture outbox from WAL'
     gavel.cdc -> gavel.broker 'publish BidRecorded + optional PriceChanged to gavel.auction.public.v1'
+    gavel.cdc -> gavel.broker 'publish BidderOutbid to restricted gavel.auction.processes.v1'
+    gavel.broker -> gavel.processes.activities 'durable outbid intent'
+    gavel.processes.activities -> gavel.notify.service.api 'SendNotification(bidder_outbid.v1)'
     gavel.broker -> gavel.realtime.subscription 'PriceChanged'
     gavel.bff.graphql -> gavel.web 'subscription: price, version: N+1' {
       notes 'Все подписчики лота, включая автора ставки'

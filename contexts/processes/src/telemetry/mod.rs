@@ -1,13 +1,16 @@
 //! Bounded-cardinality telemetry for process workers and workflow completion.
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     sync::{Arc, Mutex},
 };
 
 use futures::future::LocalBoxFuture;
 use sha2::{Digest, Sha256};
-use temporalio_common::protos::coresdk::workflow_completion::WorkflowActivationCompletion;
+use temporalio_common::protos::coresdk::{
+    workflow_activation::{WorkflowActivation, workflow_activation_job},
+    workflow_completion::WorkflowActivationCompletion,
+};
 use temporalio_sdk::{
     WorkerRunError,
     interceptors::{Next, RunWorkerInput, WorkerInterceptor},
@@ -110,6 +113,7 @@ fn bounded_signal_type(value: &'static str) -> &'static str {
         | "auction_unsold"
         | "winner_confirmed"
         | "candidate_selected"
+        | "bidder_outbid"
         | "payment_attempt_started"
         | "payment_recovery_required"
         | "payment_succeeded"
@@ -134,6 +138,7 @@ fn bounded_activity_type(value: &'static str) -> &'static str {
         | "confirm_winner"
         | "notify"
         | "notify_recovery"
+        | "notify_outbid"
         | "close_auction" => value,
         _ => "unknown",
     }
@@ -149,7 +154,7 @@ fn bounded_activity_outcome(value: &'static str) -> &'static str {
 
 fn bounded_workflow_type(value: &'static str) -> &'static str {
     match value {
-        "auction_lifecycle" | "settle_auction" => value,
+        "auction_lifecycle" | "settle_auction" | "notify_outbid" => value,
         _ => "unknown",
     }
 }
@@ -233,14 +238,16 @@ impl WorkerInterceptor for WorkerReadiness {
 }
 
 pub struct WorkflowCompletionMetrics {
-    workflow_type: &'static str,
+    fallback_workflow_type: &'static str,
+    workflow_types: Mutex<HashMap<String, &'static str>>,
     observer: CompletionObserver<MetricsTelemetry>,
 }
 
 impl WorkflowCompletionMetrics {
     pub fn new(workflow_type: &'static str) -> Self {
         Self {
-            workflow_type,
+            fallback_workflow_type: workflow_type,
+            workflow_types: Mutex::new(HashMap::new()),
             observer: CompletionObserver::new(MetricsTelemetry),
         }
     }
@@ -248,6 +255,25 @@ impl WorkflowCompletionMetrics {
 
 #[async_trait::async_trait(?Send)]
 impl WorkerInterceptor for WorkflowCompletionMetrics {
+    async fn on_workflow_activation(
+        &self,
+        activation: &WorkflowActivation,
+    ) -> Result<(), anyhow::Error> {
+        let workflow_type = activation.jobs.iter().find_map(|job| match &job.variant {
+            Some(workflow_activation_job::Variant::InitializeWorkflow(initialization)) => {
+                Some(workflow_metric_type(&initialization.workflow_type))
+            }
+            _ => None,
+        });
+        if let Some(workflow_type) = workflow_type {
+            self.workflow_types
+                .lock()
+                .unwrap_or_else(|error| error.into_inner())
+                .insert(activation.run_id.clone(), workflow_type);
+        }
+        Ok(())
+    }
+
     async fn on_workflow_activation_completion(&self, completion: &WorkflowActivationCompletion) {
         let outcome = if completion.has_complete_workflow_execution() {
             Some("success")
@@ -259,9 +285,24 @@ impl WorkerInterceptor for WorkflowCompletionMetrics {
             None
         };
         if let Some(outcome) = outcome {
+            let workflow_type = self
+                .workflow_types
+                .lock()
+                .unwrap_or_else(|error| error.into_inner())
+                .remove(&completion.run_id)
+                .unwrap_or(self.fallback_workflow_type);
             self.observer
-                .observe(&completion.run_id, self.workflow_type, outcome);
+                .observe(&completion.run_id, workflow_type, outcome);
         }
+    }
+}
+
+fn workflow_metric_type(workflow_type: &str) -> &'static str {
+    match workflow_type {
+        "AuctionLifecycleWorkflow" => "auction_lifecycle",
+        "SettleAuctionWorkflow" => "settle_auction",
+        "NotifyOutbidWorkflow" => "notify_outbid",
+        _ => "unknown",
     }
 }
 
@@ -295,12 +336,19 @@ mod tests {
     #[test]
     fn custom_metric_labels_are_bounded_and_unknown_values_are_redacted() {
         assert_eq!(bounded_signal_type("auction_opened"), "auction_opened");
+        assert_eq!(bounded_signal_type("bidder_outbid"), "bidder_outbid");
         assert_eq!(bounded_signal_type("auction/customer-42"), "unknown");
         assert_eq!(bounded_signal_disposition("https://secret"), "unknown");
         assert_eq!(bounded_activity_type("attempt_payment"), "attempt_payment");
+        assert_eq!(bounded_activity_type("notify_outbid"), "notify_outbid");
         assert_eq!(bounded_activity_type("idempotency-key-42"), "unknown");
         assert_eq!(bounded_activity_outcome("1000000"), "unknown");
         assert_eq!(bounded_workflow_type("settle_auction"), "settle_auction");
+        assert_eq!(
+            workflow_metric_type("NotifyOutbidWorkflow"),
+            "notify_outbid"
+        );
+        assert_eq!(workflow_metric_type("customer-workflow-id"), "unknown");
         assert_eq!(bounded_terminal_outcome("provider-reference"), "unknown");
     }
 

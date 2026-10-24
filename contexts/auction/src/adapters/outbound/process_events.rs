@@ -99,6 +99,13 @@ pub fn decode_process_event(
 
 fn process_payload(event: &AuctionEvent) -> Option<(&'static str, ProcessPayload)> {
     match event {
+        AuctionEvent::BidderOutbid { bidder_id, bid_id } => Some((
+            "BidderOutbid",
+            ProcessPayload::BidderOutbid(rpc::ProcessBidderOutbid {
+                recipient_id: bidder_id.to_string(),
+                bid_id: bid_id.to_string(),
+            }),
+        )),
         AuctionEvent::SettlementCandidateSelected {
             bidder_id,
             amount,
@@ -204,6 +211,24 @@ mod tests {
         assert_eq!(selected.candidate_id, "candidate-1");
         assert_eq!(selected.settlement_round, 2);
         assert_eq!(selected.amount.unwrap().minor_units, 1_250);
+    }
+
+    #[test]
+    fn bidder_outbid_round_trips_without_maximum_or_leader_identity() {
+        let encoded = encode(&AuctionEvent::BidderOutbid {
+            bidder_id: BidderId::from("bidder@example.test"),
+            bid_id: crate::domain::BidId::from("bid-2"),
+        });
+        let decoded = decode_process_event(&encoded.payload).unwrap();
+        assert_eq!(encoded.event_type, "BidderOutbid");
+        let Some(ProcessPayload::BidderOutbid(outbid)) = decoded.payload else {
+            panic!("outbid payload expected");
+        };
+        assert_eq!(outbid.recipient_id, "bidder@example.test");
+        assert_eq!(outbid.bid_id, "bid-2");
+        let debug = format!("{outbid:?}").to_ascii_lowercase();
+        assert!(!debug.contains("maximum"));
+        assert!(!debug.contains("leader"));
     }
 
     #[test]

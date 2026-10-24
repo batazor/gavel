@@ -113,6 +113,14 @@ pub struct RecoveryNotificationIntent {
     pub recipient_id: CandidateId,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OutbidNotificationIntent {
+    pub auction_id: AuctionId,
+    pub aggregate_version: u64,
+    pub recipient_id: CandidateId,
+    pub correlation_id: String,
+}
+
 /// Acknowledgement safe to serialize into Temporal history.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NotificationAcknowledgement {
@@ -161,6 +169,10 @@ pub trait NotifyActivities: Send + Sync {
     async fn notify_payment_recovery(
         &self,
         intent: RecoveryNotificationIntent,
+    ) -> Result<NotificationAcknowledgement, ProcessError>;
+    async fn notify_outbid(
+        &self,
+        intent: OutbidNotificationIntent,
     ) -> Result<NotificationAcknowledgement, ProcessError>;
 }
 

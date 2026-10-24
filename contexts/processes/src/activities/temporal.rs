@@ -10,8 +10,8 @@ use temporalio_sdk::{
 use super::{
     AttemptPaymentIntent, AuctionActivities, AuctionMutationOutcome, CloseAuctionIntent,
     ConfirmWinnerIntent, ExpirePaymentIntent, ForfeitCandidateIntent, NotificationAcknowledgement,
-    NotifyActivities, NotifyIntent, PaymentsActivities, RecoveryNotificationIntent,
-    SettlementAttemptRead, SettlementAttemptSnapshot,
+    NotifyActivities, NotifyIntent, OutbidNotificationIntent, PaymentsActivities,
+    RecoveryNotificationIntent, SettlementAttemptRead, SettlementAttemptSnapshot,
 };
 use crate::{
     telemetry::{MetricsTelemetry, ProcessTelemetry},
@@ -130,6 +130,17 @@ impl SettlementTemporalActivities {
     ) -> Result<NotificationAcknowledgement, ActivityError> {
         let result = self.notify.notify_payment_recovery(intent).await;
         record_activity_result("notify_recovery", &result);
+        result.map_err(process_activity_error)
+    }
+
+    #[activity]
+    pub async fn notify_outbid(
+        self: Arc<Self>,
+        _context: ActivityContext,
+        intent: OutbidNotificationIntent,
+    ) -> Result<NotificationAcknowledgement, ActivityError> {
+        let result = self.notify.notify_outbid(intent).await;
+        record_activity_result("notify_outbid", &result);
         result.map_err(process_activity_error)
     }
 }

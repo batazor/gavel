@@ -112,6 +112,31 @@ fn restricted_candidate_record() -> BrokerRecord {
     }
 }
 
+fn restricted_outbid_record() -> BrokerRecord {
+    BrokerRecord {
+        source: gavel_processes::ingress::EventSource::AuctionRestricted,
+        payload: AuctionProcessEvent {
+            event_id: "restricted-outbid-1".to_owned(),
+            aggregate_id: "auction-1".to_owned(),
+            aggregate_version: 4,
+            schema_version: 1,
+            occurred_at: Some(prost_types::Timestamp {
+                seconds: 1_700_000_110,
+                nanos: 0,
+            }),
+            correlation_id: "correlation-1".to_owned(),
+            causation_id: "bid-command-1".to_owned(),
+            payload: Some(auction_process_event::Payload::BidderOutbid(
+                auction_rpc::ProcessBidderOutbid {
+                    recipient_id: "candidate-private-1".to_owned(),
+                    bid_id: "bid-private-1".to_owned(),
+                },
+            )),
+        }
+        .encode_to_vec(),
+    }
+}
+
 fn ingress(client: FakeTemporalClient) -> Arc<VersionedSignalIngress<FakeTemporalClient>> {
     Arc::new(VersionedSignalIngress::new(TemporalGateway::new(
         client,
@@ -207,6 +232,43 @@ async fn restricted_candidate_routes_only_to_settlement_workflow() {
     assert_eq!((workflow_count, signal_count), (1, 1));
     assert_eq!(requests[0].workflow_type, "SettleAuction");
     assert_eq!(requests[0].request_id, "owner-event/restricted-candidate-1");
+}
+
+#[tokio::test]
+async fn restricted_outbid_routes_to_one_versioned_short_workflow() {
+    let client = FakeTemporalClient::default();
+    let adapter = TestBrokerAdapter::new(ingress(client.clone()));
+
+    let record = restricted_outbid_record();
+    assert!(matches!(
+        adapter.deliver(record.clone()).await.unwrap(),
+        IngressDisposition::SignalledAfterGap {
+            ref workflow_id,
+            expected_version: 1,
+            received_version: 4,
+        } if workflow_id == "notify-outbid/auction-1:4"
+    ));
+    assert_eq!(
+        adapter.deliver(record).await.unwrap(),
+        IngressDisposition::Duplicate
+    );
+
+    let (workflow_count, signal_count, requests) = client.snapshot();
+    assert_eq!((workflow_count, signal_count), (1, 1));
+    assert_eq!(requests[0].workflow_type, "NotifyOutbid");
+    assert_eq!(requests[0].task_queue, "settle-auction-v1");
+    assert_eq!(requests[0].request_id, "owner-event/restricted-outbid-1");
+}
+
+#[tokio::test]
+async fn outbid_on_public_source_is_rejected_before_temporal() {
+    let client = FakeTemporalClient::default();
+    let adapter = TestBrokerAdapter::new(ingress(client.clone()));
+    let mut record = restricted_outbid_record();
+    record.source = gavel_processes::ingress::EventSource::AuctionPublic;
+
+    assert!(adapter.deliver(record).await.is_err());
+    assert_eq!(client.snapshot().0, 0);
 }
 
 #[tokio::test]

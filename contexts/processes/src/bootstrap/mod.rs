@@ -396,6 +396,10 @@ mod tests {
                 "http://notify:50051".to_owned(),
             ),
             ("AUCTION_PRINCIPAL_ID".to_owned(), "processes".to_owned()),
+            (
+                "PROCESSES_SPIFFE_ID".to_owned(),
+                "spiffe://gavel.local/ns/gavel/sa/processes".to_owned(),
+            ),
             ("REDPANDA_BROKERS".to_owned(), "redpanda:9092".to_owned()),
         ])
     }

@@ -1,4 +1,5 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("cargo:rerun-if-changed=migrations");
     let protoc = protoc_bin_vendored::protoc_bin_path()?;
     // SAFETY: Cargo runs this build script as a dedicated process before code generation.
     unsafe { std::env::set_var("PROTOC", protoc) };

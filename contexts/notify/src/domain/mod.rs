@@ -115,6 +115,20 @@ impl NotificationCommand {
                 return Err(DomainError::InvalidCommand);
             }
         }
+        let allowed_keys: &[&str] = match self.template {
+            Template::PaymentRecoveryRequiredV1 => &["auction_id", "recovery_url"],
+            Template::SettlementCandidateV1
+            | Template::SettlementCandidateFailedV1
+            | Template::WinnerConfirmedV1
+            | Template::BidderOutbidV1 => &["auction_id"],
+        };
+        if self
+            .data
+            .keys()
+            .any(|key| !allowed_keys.contains(&key.as_str()))
+        {
+            return Err(DomainError::InvalidCommand);
+        }
         Ok(())
     }
 }
@@ -175,6 +189,7 @@ pub enum Template {
     SettlementCandidateFailedV1,
     PaymentRecoveryRequiredV1,
     WinnerConfirmedV1,
+    BidderOutbidV1,
 }
 
 impl Template {
@@ -184,6 +199,7 @@ impl Template {
             Self::SettlementCandidateFailedV1 => "settlement_candidate_failed.v1",
             Self::PaymentRecoveryRequiredV1 => "payment_recovery_required.v1",
             Self::WinnerConfirmedV1 => "winner_confirmed.v1",
+            Self::BidderOutbidV1 => "bidder_outbid.v1",
         }
     }
 }
@@ -232,5 +248,15 @@ mod tests {
             .data
             .insert("recovery_url".into(), "https://safe.test/\nsecret".into());
         assert_eq!(input.validate(), Err(DomainError::InvalidCommand));
+    }
+
+    #[test]
+    fn outbid_command_rejects_private_or_unknown_template_data() {
+        for key in ["maximum", "leader_id", "unexpected"] {
+            let mut input = command();
+            input.template = Template::BidderOutbidV1;
+            input.data.insert(key.into(), "secret".into());
+            assert_eq!(input.validate(), Err(DomainError::InvalidCommand));
+        }
     }
 }

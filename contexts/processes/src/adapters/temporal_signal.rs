@@ -5,13 +5,15 @@ use temporalio_client::{Client, WorkflowIdConflictPolicy, WorkflowStartOptions};
 
 use crate::{
     ingress::{
-        DecodedOwnerEvent, LIFECYCLE_WORKFLOW_TYPE, OwnerEvent, SETTLEMENT_WORKFLOW_TYPE,
-        SignalReceipt, SignalWithStartClient, SignalWithStartRequest, TemporalGatewayError,
+        DecodedOwnerEvent, LIFECYCLE_WORKFLOW_TYPE, OUTBID_WORKFLOW_TYPE, OwnerEvent,
+        SETTLEMENT_WORKFLOW_TYPE, SignalReceipt, SignalWithStartClient, SignalWithStartRequest,
+        TemporalGatewayError,
     },
     workflows::{
         AuctionLifecycleInput, AuctionLifecycleWorkflow, CorrelationContext, LifecycleEventKind,
-        LifecycleSignal, LifecycleTerminal, ProcessId, SettleAuctionInput, SettleAuctionWorkflow,
-        SettlementOwnerSignal, SettlementSignal, SettlementTerminal,
+        LifecycleSignal, LifecycleTerminal, NotifyOutbidInput, NotifyOutbidWorkflow, OutbidSignal,
+        ProcessId, SettleAuctionInput, SettleAuctionWorkflow, SettlementOwnerSignal,
+        SettlementSignal, SettlementTerminal,
     },
 };
 
@@ -50,6 +52,18 @@ impl SignalWithStartClient for Client {
                 .await
                 .map_err(|_| TemporalGatewayError::Unavailable)?;
             }
+            OUTBID_WORKFLOW_TYPE => {
+                let (input, signal) = outbid_payload(request.event)?;
+                self.signal_with_start_workflow(
+                    NotifyOutbidWorkflow::run,
+                    input,
+                    NotifyOutbidWorkflow::owner_event,
+                    signal,
+                    options,
+                )
+                .await
+                .map_err(|_| TemporalGatewayError::Unavailable)?;
+            }
             _ => return Err(TemporalGatewayError::Rejected),
         }
         Ok(SignalReceipt {
@@ -57,6 +71,35 @@ impl SignalWithStartClient for Client {
             signal_accepted: true,
         })
     }
+}
+
+fn outbid_payload(
+    event: DecodedOwnerEvent,
+) -> Result<(NotifyOutbidInput, OutbidSignal), TemporalGatewayError> {
+    let correlation = correlation(&event);
+    let signal = OutbidSignal {
+        event_id: event.event_id.clone(),
+        aggregate_version: event.aggregate_version,
+    };
+    let OwnerEvent::BidderOutbid {
+        auction_id,
+        recipient_id,
+        bid_id,
+    } = event.event
+    else {
+        return Err(TemporalGatewayError::Rejected);
+    };
+    Ok((
+        NotifyOutbidInput {
+            auction_id,
+            aggregate_version: event.aggregate_version,
+            recipient_id,
+            bid_id,
+            event_id: event.event_id,
+            correlation,
+        },
+        signal,
+    ))
 }
 
 fn lifecycle_payload(

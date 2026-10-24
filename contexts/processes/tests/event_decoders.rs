@@ -127,6 +127,10 @@ fn validates_every_registered_auction_restricted_envelope() {
                 amount: Some(money()),
             },
         ),
+        auction_process_event::Payload::BidderOutbid(auction_rpc::ProcessBidderOutbid {
+            recipient_id: "candidate-1".to_owned(),
+            bid_id: "bid-1".to_owned(),
+        }),
         auction_process_event::Payload::AuctionUnsold(auction_rpc::ProcessAuctionUnsold {}),
         auction_process_event::Payload::WinnerConfirmed(auction_rpc::ProcessWinnerConfirmed {
             candidate_id: "candidate-1".to_owned(),
@@ -141,6 +145,34 @@ fn validates_every_registered_auction_restricted_envelope() {
         envelope.payload = Some(payload);
         decode_auction_process(&envelope.encode_to_vec()).unwrap();
     }
+}
+
+#[test]
+fn decodes_outbid_only_from_restricted_envelope_and_validates_private_ids() {
+    let mut envelope = process_event(1);
+    envelope.payload = Some(auction_process_event::Payload::BidderOutbid(
+        auction_rpc::ProcessBidderOutbid {
+            recipient_id: "candidate-1".to_owned(),
+            bid_id: "bid-1".to_owned(),
+        },
+    ));
+    let decoded = decode_auction_process(&envelope.encode_to_vec()).unwrap();
+    assert!(matches!(
+        decoded.event,
+        OwnerEvent::BidderOutbid {
+            recipient_id,
+            bid_id,
+            ..
+        } if recipient_id.as_str() == "candidate-1" && bid_id.as_str() == "bid-1"
+    ));
+
+    if let Some(auction_process_event::Payload::BidderOutbid(value)) = envelope.payload.as_mut() {
+        value.recipient_id.clear();
+    }
+    assert_eq!(
+        decode_auction_process(&envelope.encode_to_vec()).unwrap_err(),
+        EventDecodeError::InvalidField
+    );
 }
 
 #[test]

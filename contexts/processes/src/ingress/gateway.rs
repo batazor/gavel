@@ -5,6 +5,7 @@ use crate::workflows::ProcessError;
 
 pub const LIFECYCLE_WORKFLOW_TYPE: &str = "AuctionLifecycle";
 pub const SETTLEMENT_WORKFLOW_TYPE: &str = "SettleAuction";
+pub const OUTBID_WORKFLOW_TYPE: &str = "NotifyOutbid";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WorkflowConflictPolicy {
@@ -120,12 +121,22 @@ where
         request_suffix: Option<&str>,
     ) -> Result<SignalWithStartRequest, ProcessError> {
         let auction_id = auction_id(&event.event);
+        let workflow_id = if route.workflow_type == OUTBID_WORKFLOW_TYPE {
+            format!(
+                "{}/{auction_id}:{}",
+                route.workflow_id_prefix, event.aggregate_version
+            )
+        } else {
+            format!("{}/{auction_id}", route.workflow_id_prefix)
+        };
         Ok(SignalWithStartRequest {
-            workflow_id: format!("{}/{auction_id}", route.workflow_id_prefix),
+            workflow_id,
             workflow_type: route.workflow_type,
             task_queue: match route.workflow_type {
                 LIFECYCLE_WORKFLOW_TYPE => self.lifecycle_task_queue.clone(),
-                SETTLEMENT_WORKFLOW_TYPE => self.settlement_task_queue.clone(),
+                SETTLEMENT_WORKFLOW_TYPE | OUTBID_WORKFLOW_TYPE => {
+                    self.settlement_task_queue.clone()
+                }
                 _ => return Err(ProcessError::InvariantViolation),
             },
             signal_name: route.signal_name,
@@ -172,6 +183,11 @@ fn route(event: &OwnerEvent) -> Route {
         | OwnerEvent::PaymentRecoveryRequired { .. }
         | OwnerEvent::PaymentSucceeded { .. }
         | OwnerEvent::PaymentExpired { .. } => route_for_settlement(),
+        OwnerEvent::BidderOutbid { .. } => Route {
+            workflow_id_prefix: "notify-outbid",
+            workflow_type: OUTBID_WORKFLOW_TYPE,
+            signal_name: "owner_event",
+        },
     }
 }
 
@@ -192,6 +208,7 @@ fn auction_id(event: &OwnerEvent) -> &str {
         | OwnerEvent::AuctionCancelled { auction_id }
         | OwnerEvent::AuctionUnsold { auction_id }
         | OwnerEvent::WinnerConfirmed { auction_id }
+        | OwnerEvent::BidderOutbid { auction_id, .. }
         | OwnerEvent::SettlementCandidateSelected { auction_id, .. }
         | OwnerEvent::PaymentAttemptStarted { auction_id, .. }
         | OwnerEvent::PaymentRecoveryRequired { auction_id, .. }

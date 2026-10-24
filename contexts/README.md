@@ -30,7 +30,7 @@
 | [BFF](bff/README.md) | [Живое обновление цены и переподключение subscription](bff/use-cases/live-updates/README.md) | есть |
 | BFF | Логин через OAuth | есть, authentication в меше |
 | [Authz](authz/README.md) | [Авторизация пользовательской команды](authz/use-cases/authorize-command/README.md) | есть |
-| Notify | «вас перебили» | later |
+| Notify | [«Вас перебили»](notify/use-cases/outbid-notification/README.md) | есть |
 | — | Watchlist | later |
 
 Сквозные процессы (Temporal): [processes/README.md](processes/README.md). BFF и process worker — не bounded contexts в смысле DDD, но часть нашей границы, поэтому живут здесь же.

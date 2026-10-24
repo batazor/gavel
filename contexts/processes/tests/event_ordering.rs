@@ -1,6 +1,6 @@
 use gavel_processes::{
     ingress::{DecodedOwnerEvent, EventGate, EventSource, GateDecision, OwnerEvent},
-    workflows::{AuctionId, PaymentAttemptId, SettlementRound},
+    workflows::{AuctionId, BidId, CandidateId, PaymentAttemptId, SettlementRound},
 };
 
 fn auction_event(event_id: &str, version: u64) -> DecodedOwnerEvent {
@@ -27,6 +27,21 @@ fn payment_event(event_id: &str, version: u64) -> DecodedOwnerEvent {
             auction_id: AuctionId::parse("auction-1").unwrap(),
             attempt_id: PaymentAttemptId::parse("attempt-1").unwrap(),
             round: SettlementRound::new(1).unwrap(),
+        },
+    }
+}
+
+fn outbid_event(event_id: &str, version: u64) -> DecodedOwnerEvent {
+    DecodedOwnerEvent {
+        event_id: event_id.to_owned(),
+        aggregate_version: version,
+        occurred_at_millis: 1,
+        correlation_id: "correlation-1".to_owned(),
+        causation_id: None,
+        event: OwnerEvent::BidderOutbid {
+            auction_id: AuctionId::parse("auction-1").unwrap(),
+            recipient_id: CandidateId::parse("candidate-1").unwrap(),
+            bid_id: BidId::parse(format!("bid-{version}")).unwrap(),
         },
     }
 }
@@ -146,5 +161,34 @@ fn auction_streams_and_payment_attempt_versions_are_independent() {
         )
         .unwrap(),
         GateDecision::Accepted
+    );
+}
+
+#[test]
+fn outbid_facts_remain_deliverable_when_distinct_versions_arrive_out_of_order() {
+    let mut gate = EventGate::default();
+    assert_eq!(
+        gate.admit(
+            EventSource::AuctionRestricted,
+            &outbid_event("outbid-7", 7),
+            b"outbid-seven"
+        )
+        .unwrap(),
+        GateDecision::Gap {
+            expected_version: 1,
+            received_version: 7
+        }
+    );
+    assert_eq!(
+        gate.admit(
+            EventSource::AuctionRestricted,
+            &outbid_event("outbid-5", 5),
+            b"outbid-five"
+        )
+        .unwrap(),
+        GateDecision::Gap {
+            expected_version: 1,
+            received_version: 5
+        }
     );
 }

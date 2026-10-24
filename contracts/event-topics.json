@@ -97,6 +97,7 @@
       },
       "partitionKey": "aggregate_id",
       "allowedEventTypes": [
+        "BidderOutbid",
         "SettlementCandidateSelected",
         "AuctionUnsold",
         "WinnerConfirmed",

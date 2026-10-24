@@ -5,7 +5,7 @@ use prost::Message;
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::workflows::{AuctionId, CandidateId, Money, PaymentAttemptId, SettlementRound};
+use crate::workflows::{AuctionId, BidId, CandidateId, Money, PaymentAttemptId, SettlementRound};
 
 const SUPPORTED_SCHEMA_VERSION: u32 = 1;
 
@@ -50,6 +50,11 @@ pub enum OwnerEvent {
         candidate_id: CandidateId,
         round: SettlementRound,
         amount: Money,
+    },
+    BidderOutbid {
+        auction_id: AuctionId,
+        recipient_id: CandidateId,
+        bid_id: BidId,
     },
     PaymentAttemptStarted {
         auction_id: AuctionId,
@@ -181,6 +186,12 @@ pub fn decode_auction_process(bytes: &[u8]) -> Result<DecodedOwnerEvent, EventDe
                     .map_err(|_| EventDecodeError::InvalidField)?,
             }
         }
+        auction_process_event::Payload::BidderOutbid(value) => OwnerEvent::BidderOutbid {
+            auction_id,
+            recipient_id: CandidateId::parse(value.recipient_id)
+                .map_err(|_| EventDecodeError::InvalidField)?,
+            bid_id: BidId::parse(value.bid_id).map_err(|_| EventDecodeError::InvalidField)?,
+        },
         auction_process_event::Payload::AuctionUnsold(_) => {
             OwnerEvent::AuctionUnsold { auction_id }
         }

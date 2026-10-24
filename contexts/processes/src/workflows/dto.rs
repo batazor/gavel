@@ -18,6 +18,10 @@ pub struct CandidateId(String);
 #[serde(transparent)]
 pub struct PaymentAttemptId(String);
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct BidId(String);
+
 macro_rules! process_id {
     ($type:ident) => {
         impl $type {
@@ -50,6 +54,7 @@ process_id!(ProcessId);
 process_id!(AuctionId);
 process_id!(CandidateId);
 process_id!(PaymentAttemptId);
+process_id!(BidId);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -107,6 +112,16 @@ pub struct AuctionLifecycleInput {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SettleAuctionInput {
     pub auction_id: AuctionId,
+    pub correlation: CorrelationContext,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NotifyOutbidInput {
+    pub auction_id: AuctionId,
+    pub aggregate_version: u64,
+    pub recipient_id: CandidateId,
+    pub bid_id: BidId,
+    pub event_id: String,
     pub correlation: CorrelationContext,
 }
 
